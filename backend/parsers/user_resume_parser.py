@@ -108,29 +108,6 @@ Resume Text:
         cleaned_json = cleaned_json.strip()
 
         data = json.loads(cleaned_json)
-        database_file = os.path.join(
-            project_root,
-            "data",
-            "user_profiles.json"
-        )
-        # Always attempt to write the parsed profile to the local JSON database (legacy fallback)
-        try:
-            if not os.path.exists(database_file):
-                with open(database_file, "w") as f:
-                    json.dump([], f)
-            try:
-                with open(database_file, "r") as f:
-                    users = json.load(f)
-            except Exception:
-                users = []
-            
-            # Append the new profile
-            users.append(data)
-            with open(database_file, "w") as f:
-                json.dump(users, f, indent=4)
-        except OSError:
-            print("Vercel Serverless environment detected (read-only filesystem). Skipping local JSON write.")
-            
         return data
     raise ValueError("No response from LLM model")
 

@@ -48,19 +48,9 @@ def get_current_user(
         except Exception as e:
             print(f"Error parsing mock token: {e}")
 
-    # 2. Fallback to mock user if JWT Secret or header is missing
-    if not JWT_SECRET or not authorization:
-        db_user = db.query(User).filter(User.id == MOCK_USER["id"]).first()
-        if not db_user:
-            db_user = User(
-                id=MOCK_USER["id"],
-                name=MOCK_USER["name"],
-                email=MOCK_USER["email"]
-            )
-            db.add(db_user)
-            db.commit()
-            db.refresh(db_user)
-        return db_user
+    # 2. Require Authorization Header
+    if not authorization:
+        raise HTTPException(status_code=401, detail="Missing Authorization header")
 
     # 3. Extract Bearer token for production Supabase auth
     try:
