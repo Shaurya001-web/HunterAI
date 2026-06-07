@@ -1,0 +1,27 @@
+# Environment Variables
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.venv/
+venv/
+env/
+
+# Node
+node_modules/
+.next/
+out/
+build/
+dist/
+
+# macOS
+.DS_Store
+
+# Databases
+*.db
+*.sqlite3
