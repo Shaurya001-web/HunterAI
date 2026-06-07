@@ -1,0 +1,73 @@
+from langchain.chat_models import init_chat_model
+from dotenv import load_dotenv
+import os,json
+path_env = os.path.dirname(os.path.abspath(__file__))
+project_root = os.path.dirname(path_env)
+load_path_dotenv = os.path.join(project_root, "config", ".env")
+load_dotenv(load_path_dotenv)
+llm_model=init_chat_model(
+    model="google_genai:gemini-2.5-flash"
+)
+
+
+job_description = """
+Python Developer Intern
+
+Requirements:
+- Python
+- FastAPI
+- SQL
+
+Location: Remote
+Stipend: 10000/month
+"""
+
+async def response_job_parser():
+    response = await llm_model.ainvoke(f"""
+            You are an expert job description parser.
+
+            Extract only information useful for job matching.
+
+            Return ONLY valid JSON.
+
+            Rules:
+            - No explanations.
+            - No markdown.
+            - No code fences.
+            - Do not invent information.
+            - Use [] for missing lists.
+            - Use "" for missing strings.
+
+            Schema:
+
+            {{
+                "job_title": "",
+                "company": "",
+                "required_skills": [],
+                "preferred_skills": [],
+                "responsibilities": [],
+                "location": "",
+                "stipend": "",
+                "experience_required": ""
+            }}
+
+            Job Description:{job_description}
+            """)
+    
+    job_text_des = response.content
+    try:
+        data = json.loads(job_text_des)
+        output_dir = os.path.join(project_root, "data")
+        os.makedirs(output_dir, exist_ok=True)
+        path = os.path.join(output_dir, "jobs.json")
+        # Save as a list containing the job dictionary for compatibility with matching engine
+        with open(path, "w") as f:
+            json.dump([data], f, indent=4)
+        print("Job description parsed and saved successfully ✅")
+    except json.JSONDecodeError:
+        print("Failed to parse response as JSON. Raw response:")
+        print(job_text_des)
+
+if __name__ == "__main__":
+    import asyncio
+    asyncio.run(response_job_parser())

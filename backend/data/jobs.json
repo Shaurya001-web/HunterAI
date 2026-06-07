@@ -1,0 +1,124 @@
+[
+    {
+        "job_title": "Content Creator & Video Editor",
+        "company": "THW - The Healthy World",
+        "location": "Remote",
+        "stipend": "\u20b9 8,000 - 10,000 /month",
+        "duration": "3 Months",
+        "required_skills": [
+            "Adobe After Effects",
+            "Adobe Photoshop",
+            "Adobe Premiere Pro",
+            "Canva",
+            "Capcut",
+            "Creative Thinking",
+            "Generative AI Tools",
+            "Photography",
+            "Video Editing"
+        ],
+        "url": "https://internshala.com/internship/detail/content-creator-video-editor-internship-in-pune-at-thw-the-healthy-world1778741151",
+        "source": "Internshala"
+    },
+    {
+        "job_title": "AI Content Creation",
+        "company": "Be Rolling Media",
+        "location": "Remote",
+        "stipend": "\u20b9 7,000 - 8,000 /month",
+        "duration": "4 Months",
+        "required_skills": [
+            "AI Image Generation",
+            "AI Video Generation",
+            "AI Voiceover",
+            "Generative AI Development",
+            "Generative AI Tools",
+            "Time Management"
+        ],
+        "url": "https://internshala.com/internship/detail/ai-content-creation-internship-in-delhi-at-be-rolling-media1779951171",
+        "source": "Internshala"
+    },
+    {
+        "job_title": "AI Automation & App Development",
+        "company": "Weaving Vibes",
+        "location": "Remote",
+        "stipend": "\u20b9 20,000 - 30,000 /month",
+        "duration": "6 Months",
+        "required_skills": [
+            "Data Analytics",
+            "Effective Communication",
+            "Generative AI Development",
+            "Generative AI Tools",
+            "Java",
+            "Machine Learning",
+            "Machine Learning Operations (MLOps)",
+            "MS-Excel",
+            "Python"
+        ],
+        "url": "https://internshala.com/internship/detail/ai-automation-app-development-internship-in-bangalore-at-weaving-vibes1779260621",
+        "source": "Internshala"
+    },
+    {
+        "job_title": "Fast api Intern",
+        "company": "Google India",
+        "location": "Bengaluru (Hybrid)",
+        "stipend": "\u20b960,000 /month",
+        "duration": "6 months",
+        "required_skills": [
+            "Fast api",
+            "Python",
+            "Git",
+            "SQL"
+        ],
+        "url": "https://www.linkedin.com/jobs/search/?keywords=fast%20api",
+        "source": "LinkedIn"
+    },
+    {
+        "job_title": "Junior Fast api Engineer",
+        "company": "Amazon",
+        "location": "Hyderabad (On-site)",
+        "stipend": "\u20b945,000 /month",
+        "duration": "3 months",
+        "required_skills": [
+            "Fast api",
+            "Python",
+            "Git",
+            "SQL",
+            "AWS"
+        ],
+        "url": "https://www.linkedin.com/jobs/search/?keywords=fast%20api",
+        "source": "LinkedIn"
+    },
+    {
+        "job_title": "AI & Fast api Intern",
+        "company": "NeuralStart.ai (YC)",
+        "location": "Remote",
+        "stipend": "$2,500 /month",
+        "duration": "6 months",
+        "required_skills": [
+            "Fast api",
+            "Python",
+            "Git",
+            "SQL",
+            "LangChain",
+            "LLMs"
+        ],
+        "url": "https://wellfound.com/jobs",
+        "source": "Wellfound"
+    },
+    {
+        "job_title": "Fast api Developer",
+        "company": "Codex Labs",
+        "location": "San Francisco (Remote)",
+        "stipend": "$3,000 /month",
+        "duration": "4 months",
+        "required_skills": [
+            "Fast api",
+            "Python",
+            "Git",
+            "SQL",
+            "FastAPI",
+            "Docker"
+        ],
+        "url": "https://wellfound.com/jobs",
+        "source": "Wellfound"
+    }
+]
