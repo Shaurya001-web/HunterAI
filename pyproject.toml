@@ -19,3 +19,6 @@ dependencies = [
     "psycopg2-binary",
     "pyjwt",
 ]
+
+[tool.vercel]
+entrypoint = "backend.main:app"
