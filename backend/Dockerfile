@@ -6,16 +6,14 @@ ENV PYTHONUNBUFFERED=1
 
 WORKDIR /app
 
-# Copy pyproject.toml first to cache dependency installation
-COPY pyproject.toml /app/
+# Copy requirements file first to cache dependency installation
+COPY requirements.txt /app/
 
 # Install dependencies
-RUN pip install --no-cache-dir .
+RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy backend files
-COPY backend /app/backend
-
-WORKDIR /app/backend
+# Copy all remaining backend files
+COPY . /app/
 
 EXPOSE 8000
 
