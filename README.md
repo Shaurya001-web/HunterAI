@@ -1,6 +1,9 @@
 # HunterAI 🎯
 
-HunterAI is an intelligent, multi-user web application designed to automatically parse user resumes, extract skills and experiences, and seamlessly match users with the most relevant internship and job opportunities. 
+HunterAI is a state-of-the-art career optimization platform that uses Google Gemini and Llama 3 (via Groq) to convert raw PDF resumes into rich, structured skill profiles. 
+By cross-referencing candidate profiles with live job markets, it dynamically matches applicants with top-tier, relevant internship and job opportunities. 
+The platform performs real-time skill gap analysis, detailing exactly which skills match and which ones need development to maximize landing success. 
+Integrated with Supabase Auth and Storage, it delivers a secure, lightning-fast, and personalized ecosystem for modern job seekers.
 
 ---
 
