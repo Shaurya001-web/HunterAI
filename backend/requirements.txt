@@ -10,3 +10,4 @@ requests
 sqlalchemy
 psycopg2-binary
 pyjwt
+uvicorn>=0.49.0
