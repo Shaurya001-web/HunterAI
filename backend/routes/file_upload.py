@@ -10,7 +10,9 @@ router = APIRouter()
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
 project_root = os.path.dirname(current_dir)
-upload_base_dir = os.path.join(project_root, "data", "uploads")
+# Use /tmp for Vercel Serverless compatibility
+upload_base_dir = "/tmp/hunterai_uploads"
+
 
 @router.post("/file/upload/resume")
 async def upload_file(
