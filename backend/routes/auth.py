@@ -32,6 +32,10 @@ def get_current_user(
                     
                     db_user = db.query(User).filter(User.id == user_id).first()
                     if not db_user:
+                        # Fallback check for email to prevent UNIQUE constraint crash!
+                        db_user = db.query(User).filter(User.email == email).first()
+                        
+                    if not db_user:
                         db_user = User(
                             id=user_id,
                             name=name,
@@ -83,6 +87,10 @@ def get_current_user(
             raise HTTPException(status_code=401, detail="Invalid token payload")
 
         db_user = db.query(User).filter(User.id == user_id).first()
+        if not db_user:
+            # Fallback check for email to prevent UNIQUE constraint crash!
+            db_user = db.query(User).filter(User.email == email).first()
+            
         if not db_user:
             db_user = User(
                 id=user_id,
