@@ -54,20 +54,19 @@ def load_jobs(file_path: str) -> List[Dict[str, Any]]:
         print(f"Error loading jobs from {file_path}: {e}")
         return []
 
+# Simple keyword mappings to catch related terms
+KEYWORDS_MAP = {
+    "machine learning": ["ml", "machine learning", "deep learning", "neural", "tensorflow", "pytorch", "scikit", "ai", "artificial intelligence", "regression", "model", "nlp", "cnn", "rnn", "computer vision", "llm", "chatgpt", "claude"],
+    "data science": ["data science", "pandas", "numpy", "matplotlib", "seaborn", "scikit", "analysis", "analytics", "sql", "machine learning", "ml"],
+    "python": ["python", "django", "flask", "fastapi", "pytest", "numpy", "pandas"],
+    "web development": ["react", "next.js", "angular", "vue", "node", "express", "html", "css", "js", "javascript", "typescript", "web", "website", "django", "flask"],
+    "software engineering": ["java", "c++", "c#", "python", "go", "rust", "algorithm", "data structures", "system design", "docker", "kubernetes", "git"]
+}
+
 def calculate_match(user_skills: List[str], job_skills: List[str]) -> Dict[str, Any]:
     """
     Compares user skills against job required skills, and calculates the match score,
-    matched skills, and missing skills. Matching is case-insensitive.
-    
-    Args:
-        user_skills: A list of skills possessed by the user.
-        job_skills: A list of skills required by the job.
-        
-    Returns:
-        A dictionary containing:
-            - 'match_score': Percentage of matched skills (float, rounded to 2 decimal places).
-            - 'matched_skills': List of user skills that matched the required job skills (in original casing).
-            - 'missing_skills': List of required job skills that the user is missing (in original casing).
+    matched skills, and missing skills. Uses substring and synonymous matching.
     """
     if not job_skills:
         return {
@@ -76,8 +75,7 @@ def calculate_match(user_skills: List[str], job_skills: List[str]) -> Dict[str, 
             "missing_skills": []
         }
     
-    # Normalize user skills for case-insensitive lookup
-    normalized_user_skills: Set[str] = {skill.strip().lower() for skill in user_skills if skill}
+    normalized_user_skills: List[str] = [skill.strip().lower() for skill in user_skills if skill]
     
     matched_skills: List[str] = []
     missing_skills: List[str] = []
@@ -86,12 +84,38 @@ def calculate_match(user_skills: List[str], job_skills: List[str]) -> Dict[str, 
         if not req_skill:
             continue
         normalized_req = req_skill.strip().lower()
-        if normalized_req in normalized_user_skills:
+        
+        # Build a list of valid terms to match for this required skill
+        terms_to_match = [normalized_req]
+        for key, synonyms in KEYWORDS_MAP.items():
+            if normalized_req == key or normalized_req in synonyms:
+                terms_to_match.extend(synonyms)
+                terms_to_match.append(key)
+                
+        terms_to_match = list(set(terms_to_match))
+        
+        matched = False
+        for user_skill in normalized_user_skills:
+            # Check if any synonymous term is in the user skill, or if user skill is in synonymous term
+            for term in terms_to_match:
+                # We use word boundaries or direct inclusion for simplicity, but basic "in" is usually fine 
+                # if the terms are substantial (like "claude", "ml", "python")
+                if term == user_skill or term in user_skill or user_skill in term:
+                    # Prevent overly broad matches like "c" in "react"
+                    if len(user_skill) <= 2 and user_skill != term:
+                        continue
+                    if len(term) <= 2 and term != user_skill:
+                        continue
+                    matched = True
+                    break
+            if matched:
+                break
+                
+        if matched:
             matched_skills.append(req_skill)
         else:
             missing_skills.append(req_skill)
             
-    # Calculate score based on normalized matching
     num_matched = len(matched_skills)
     num_required = len(job_skills)
     
@@ -116,18 +140,9 @@ def evaluate_suitability(user_profile: Dict[str, Any], job: Dict[str, Any], keyw
     projects = user_profile.get("projects", [])
     matched_projects = []
     
-    # Simple keyword mappings to catch related terms
-    keywords_map = {
-        "machine learning": ["ml", "machine learning", "deep learning", "neural", "tensorflow", "pytorch", "scikit", "ai", "artificial intelligence", "regression", "model", "nlp", "cnn", "rnn", "computer vision"],
-        "data science": ["data science", "pandas", "numpy", "matplotlib", "seaborn", "scikit", "analysis", "analytics", "sql", "machine learning", "ml"],
-        "python": ["python", "django", "flask", "fastapi", "pytest", "numpy", "pandas"],
-        "web development": ["react", "next.js", "angular", "vue", "node", "express", "html", "css", "js", "javascript", "typescript", "web", "website", "django", "flask"],
-        "software engineering": ["java", "c++", "c#", "python", "go", "rust", "algorithm", "data structures", "system design", "docker", "kubernetes", "git"]
-    }
-    
     # Get all search terms to check
     search_terms = [query]
-    for key, synonyms in keywords_map.items():
+    for key, synonyms in KEYWORDS_MAP.items():
         if key in query or any(syn in query for syn in [key] + synonyms):
             search_terms.extend(synonyms)
             
@@ -143,6 +158,8 @@ def evaluate_suitability(user_profile: Dict[str, Any], job: Dict[str, Any], keyw
         is_relevant = False
         for term in search_terms:
             if term in proj_title or term in proj_desc or any(term in tech for tech in proj_techs):
+                if len(term) <= 2 and term not in proj_techs: # strict for short terms
+                    continue
                 is_relevant = True
                 break
         if is_relevant:
@@ -155,7 +172,7 @@ def evaluate_suitability(user_profile: Dict[str, Any], job: Dict[str, Any], keyw
     if score >= 70 and num_matched_projects >= 1:
         assessment = f"Highly Suited: You have {num_matched_projects} relevant project(s) ({', '.join(matched_projects[:2])}) and match {int(score)}% of required skills."
         suitability_level = "highly_suited"
-    elif score >= 40 or num_matched_projects >= 1:
+    elif score >= 40 or (num_matched_projects >= 1 and score >= 20):
         if num_matched_projects == 0:
             assessment = f"Partially Suited: You match {int(score)}% of skills, but have no projects in this domain. Build a project to boost your profile."
             suitability_level = "partially_suited"
@@ -163,7 +180,7 @@ def evaluate_suitability(user_profile: Dict[str, Any], job: Dict[str, Any], keyw
             assessment = f"Partially Suited: You have {num_matched_projects} relevant project(s), but only match {int(score)}% of required skills."
             suitability_level = "partially_suited"
     else:
-        assessment = "Not Suited: Your resume doesn't list relevant skills or projects for this role."
+        assessment = "Not Suited: Your resume doesn't list enough relevant skills or projects for this role."
         suitability_level = "not_suited"
         
     return {
