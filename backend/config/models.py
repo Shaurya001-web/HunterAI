@@ -23,6 +23,7 @@ class Profile(Base):
     education = Column(JSON, default=list)
     experience = Column(JSON, default=list)
     projects = Column(JSON, default=list)
+    saved_internships = Column(JSON, default=list)
 
     user = relationship("User", back_populates="profile")
 

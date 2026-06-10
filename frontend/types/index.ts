@@ -6,6 +6,7 @@ export interface Profile {
   education: Education[];
   experience: Experience[];
   projects: Project[];
+  saved_internships?: number[];
 }
 
 export interface Education {
@@ -27,6 +28,7 @@ export interface Project {
 }
 
 export interface JobMatch {
+  id?: number;
   job_title: string;
   company: string;
   score: number;

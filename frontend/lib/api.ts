@@ -51,5 +51,52 @@ export const api = {
     if (!res.ok) throw new Error("Failed to load matches");
     return res.json();
   },
+
+  saveProfile: async (payload: any) => {
+    const res = await fetch(`${BASE_URL}/profile`, {
+      method: "POST",
+      headers: getHeaders({ "Content-Type": "application/json" }),
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) throw new Error("Failed to save profile");
+    return res.json();
+  },
+
+  migrateProfile: async (guestUserId: string) => {
+    const res = await fetch(`${BASE_URL}/profile/migrate`, {
+      method: "POST",
+      headers: getHeaders({ "Content-Type": "application/json" }),
+      body: JSON.stringify({ guest_user_id: guestUserId }),
+    });
+    if (!res.ok) throw new Error("Failed to migrate profile");
+    return res.json();
+  },
+
+  getSavedInternships: async () => {
+    const res = await fetch(`${BASE_URL}/profile/saved`, {
+      headers: getHeaders(),
+    });
+    if (!res.ok) throw new Error("Failed to load saved internships");
+    return res.json();
+  },
+
+  saveInternship: async (jobId: number) => {
+    const res = await fetch(`${BASE_URL}/profile/saved`, {
+      method: "POST",
+      headers: getHeaders({ "Content-Type": "application/json" }),
+      body: JSON.stringify({ job_id: jobId }),
+    });
+    if (!res.ok) throw new Error("Failed to save internship");
+    return res.json();
+  },
+
+  unsaveInternship: async (jobId: number) => {
+    const res = await fetch(`${BASE_URL}/profile/saved/${jobId}`, {
+      method: "DELETE",
+      headers: getHeaders(),
+    });
+    if (!res.ok) throw new Error("Failed to unsave internship");
+    return res.json();
+  },
 };
 export default api;

@@ -22,7 +22,7 @@ def get_current_user(
     # 1. Parse custom mock token if present (local development isolation)
     if authorization:
         try:
-            scheme, token = authorization.split()
+            scheme, token = authorization.split(maxsplit=1)
             if scheme.lower() == "bearer" and token.startswith("mock_token:"):
                 parts = token.split(":")
                 if len(parts) >= 4:
@@ -54,7 +54,7 @@ def get_current_user(
 
     # 3. Extract Bearer token for production Supabase auth
     try:
-        scheme, token = authorization.split()
+        scheme, token = authorization.split(maxsplit=1)
         if scheme.lower() != "bearer":
             raise HTTPException(status_code=401, detail="Invalid authentication scheme")
     except ValueError:
