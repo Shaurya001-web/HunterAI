@@ -14,6 +14,7 @@ import {
   ChevronDown,
   Sparkles,
   SlidersHorizontal,
+  Bookmark,
 } from "lucide-react";
 import Link from "next/link";
 import { api } from "@/lib/api";
@@ -21,6 +22,8 @@ import { Profile, JobMatch } from "@/types";
 import { ScoreRing } from "@/components/shared/ScoreRing";
 import { CardSkeleton } from "@/components/shared/Skeleton";
 import { AppShell } from "@/components/shell/AppShell";
+import { useAuth } from "@/components/auth/AuthProvider";
+import { AuthModal } from "@/components/auth/AuthModal";
 import "../shell.css";
 
 function renderJobTitle(title: string) {
@@ -54,7 +57,15 @@ function renderJobTitle(title: string) {
   });
 }
 
-function JobCard({ match }: { match: JobMatch }) {
+function JobCard({
+  match,
+  isSaved,
+  onToggleSave,
+}: {
+  match: JobMatch;
+  isSaved: boolean;
+  onToggleSave: () => void;
+}) {
   const scoreColor =
     match.score >= 70 ? "#00d68f" : match.score >= 40 ? "#ffd166" : "#ff4d6d";
 
@@ -137,7 +148,31 @@ function JobCard({ match }: { match: JobMatch }) {
             )}
           </div>
         </div>
-        <ScoreRing score={match.score} size={56} />
+        <div style={{ display: "flex", alignItems: "center", gap: "10px", flexShrink: 0 }}>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onToggleSave();
+            }}
+            style={{
+              background: isSaved ? "var(--accent-soft)" : "transparent",
+              border: `1px solid ${isSaved ? "var(--accent-border)" : "var(--border)"}`,
+              borderRadius: "50%",
+              width: "32px",
+              height: "32px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              cursor: "pointer",
+              color: isSaved ? "var(--accent)" : "var(--text-muted)",
+              transition: "all 0.2s",
+            }}
+            title={isSaved ? "Unsave Internship" : "Save Internship"}
+          >
+            <Bookmark size={15} fill={isSaved ? "currentColor" : "none"} />
+          </button>
+          <ScoreRing score={match.score} size={56} />
+        </div>
       </div>
 
       {/* Meta info */}
@@ -306,6 +341,9 @@ function JobCard({ match }: { match: JobMatch }) {
 }
 
 export default function RecommendationsPage() {
+  const { user } = useAuth();
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [savedJobIds, setSavedJobIds] = useState<number[]>([]);
   const [matches, setMatches] = useState<JobMatch[]>([]);
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [selectedEmail, setSelectedEmail] = useState("");
@@ -329,6 +367,37 @@ export default function RecommendationsPage() {
     }
   };
 
+  const fetchSaved = async () => {
+    if (user && !user.isGuest) {
+      try {
+        const saved = await api.getSavedInternships();
+        setSavedJobIds(saved.map((s: any) => s.id));
+      } catch (e) {
+        console.error("Failed to load saved jobs:", e);
+      }
+    }
+  };
+
+  const handleToggleSave = async (jobId: number) => {
+    if (!user || user.isGuest) {
+      setIsAuthModalOpen(true);
+      return;
+    }
+
+    const isCurrentlySaved = savedJobIds.includes(jobId);
+    try {
+      if (isCurrentlySaved) {
+        await api.unsaveInternship(jobId);
+        setSavedJobIds((prev) => prev.filter((id) => id !== jobId));
+      } else {
+        await api.saveInternship(jobId);
+        setSavedJobIds((prev) => [...prev, jobId]);
+      }
+    } catch (e) {
+      console.error("Error toggling save:", e);
+    }
+  };
+
   const init = async () => {
     setLoading(true);
     setError("");
@@ -340,7 +409,10 @@ export default function RecommendationsPage() {
         const p = profs.find((x: Profile) => x.email === saved) || profs[profs.length - 1];
         setSelectedEmail(p.email);
         localStorage.setItem("selectedProfileEmail", p.email);
-        await fetchMatches(p.email);
+        await Promise.all([
+          fetchMatches(p.email),
+          fetchSaved()
+        ]);
       } else {
         setLoading(false);
       }
@@ -357,7 +429,7 @@ export default function RecommendationsPage() {
     }, 0);
     return () => clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [user]);
 
   const handleProfileChange = async (email: string) => {
     setSelectedEmail(email);
@@ -608,8 +680,14 @@ export default function RecommendationsPage() {
           style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(340px, 1fr))", gap: "16px" }}
         >
           {filtered.map((match, i) => (
-            <JobCard key={i} match={match} />
+            <JobCard
+              key={i}
+              match={match}
+              isSaved={match.id ? savedJobIds.includes(match.id) : false}
+              onToggleSave={() => match.id && handleToggleSave(match.id)}
+            />
           ))}
+          <AuthModal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} />
         </div>
       )}
     </AppShell>

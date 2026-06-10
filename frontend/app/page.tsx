@@ -2,9 +2,13 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
+import { useAuth } from "@/components/auth/AuthProvider";
+import { AuthModal } from "@/components/auth/AuthModal";
 
 
 export default function Home() {
+  const { user } = useAuth();
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [navRaised, setNavRaised] = useState(false);
   const skillCanvasRef = useRef<HTMLCanvasElement>(null);
   const miniGraphRef = useRef<HTMLCanvasElement>(null);
@@ -496,25 +500,68 @@ export default function Home() {
             Stories
           </a>
         </div>
-        <Link href="/upload">
-          <button
-            className="nav-pill"
-            style={{
-              fontSize: 13,
-              fontWeight: 500,
-              padding: "8px 22px",
-              background: "var(--ink)",
-              color: "var(--white)",
-              border: "none",
-              borderRadius: 999,
-              cursor: "pointer",
-              transition: "opacity 0.2s, transform 0.2s",
-              letterSpacing: "0.01em",
-            }}
-          >
-            Get started
-          </button>
-        </Link>
+        <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
+          {(!user || user.isGuest) ? (
+            <>
+              <button
+                onClick={() => setIsAuthModalOpen(true)}
+                style={{
+                  fontSize: 13,
+                  fontWeight: 500,
+                  padding: "8px 18px",
+                  background: "transparent",
+                  color: "var(--ink)",
+                  border: "1px solid var(--cream-4)",
+                  borderRadius: 999,
+                  cursor: "pointer",
+                  transition: "opacity 0.2s, transform 0.2s",
+                  letterSpacing: "0.01em",
+                }}
+              >
+                Sign in
+              </button>
+              <Link href="/upload">
+                <button
+                  className="nav-pill"
+                  style={{
+                    fontSize: 13,
+                    fontWeight: 500,
+                    padding: "8px 22px",
+                    background: "var(--ink)",
+                    color: "var(--white)",
+                    border: "none",
+                    borderRadius: 999,
+                    cursor: "pointer",
+                    transition: "opacity 0.2s, transform 0.2s",
+                    letterSpacing: "0.01em",
+                  }}
+                >
+                  Get started
+                </button>
+              </Link>
+            </>
+          ) : (
+            <Link href="/dashboard">
+              <button
+                className="nav-pill"
+                style={{
+                  fontSize: 13,
+                  fontWeight: 500,
+                  padding: "8px 22px",
+                  background: "var(--purple)",
+                  color: "var(--white)",
+                  border: "none",
+                  borderRadius: 999,
+                  cursor: "pointer",
+                  transition: "opacity 0.2s, transform 0.2s",
+                  letterSpacing: "0.01em",
+                }}
+              >
+                Go to Dashboard
+              </button>
+            </Link>
+          )}
+        </div>
       </nav>
 
       {/* HERO */}
@@ -671,6 +718,25 @@ export default function Home() {
               </svg>
             </button>
           </Link>
+          {(!user || user.isGuest) && (
+            <button
+              className="btn-ghost"
+              onClick={() => setIsAuthModalOpen(true)}
+              style={{
+                fontSize: 15,
+                fontWeight: 500,
+                padding: "13px 30px",
+                background: "transparent",
+                color: "var(--ink-2)",
+                border: "0.5px solid var(--cream-4)",
+                borderRadius: 999,
+                cursor: "pointer",
+                transition: "border-color 0.2s, color 0.2s",
+              }}
+            >
+              Sign In
+            </button>
+          )}
           <button
             className="btn-ghost"
             onClick={() =>
@@ -690,6 +756,7 @@ export default function Home() {
           >
             See how it works
           </button>
+          <AuthModal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} />
         </div>
 
         <div

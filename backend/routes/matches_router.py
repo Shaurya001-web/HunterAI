@@ -171,6 +171,7 @@ def get_matches(
         for rm in ranked_matches:
             job_obj = job_map.get((rm["job_title"], rm["company"]))
             if job_obj:
+                rm["id"] = job_obj.id
                 db_match = Match(
                     user_id=current_user.id,
                     job_id=job_obj.id,
