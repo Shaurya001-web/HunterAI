@@ -136,6 +136,54 @@ def calculate_match(user_skills: List[str], job_skills: List[str]) -> Dict[str, 
         "missing_skills": missing_skills
     }
 
+def calculate_selection_probability_penalty(user_profile: Dict[str, Any], job: Dict[str, Any], score: float, num_matched_projects: int) -> float:
+    penalty = 0.0
+    title = job.get("job_title", "").lower()
+    
+    # 1. Seniority Check: If the title contains "Senior", "Lead", "Manager", "Architect", or "Sr.",
+    # and the candidate is a student (experience is empty/short), apply a heavy penalty.
+    experience = user_profile.get("experience", [])
+    is_student = len(experience) == 0 or any(
+        "intern" in str(exp.get("role", "")).lower() or any(kw in str(exp.get("description", "")).lower() for kw in ["student", "study", "university", "college"])
+        for exp in experience if isinstance(exp, dict)
+    )
+    
+    education = user_profile.get("education", [])
+    is_current_student = any(
+        any(c.isdigit() for c in str(edu.get("year", ""))) and "202" in str(edu.get("year", ""))
+        for edu in education if isinstance(edu, dict)
+    )
+    
+    if (is_student or is_current_student) and any(sk in title for sk in ["senior", "lead", "manager", "architect", "sr.", "principal"]):
+        penalty += 35.0
+        
+    # 2. Project Relevance Penalty:
+    # If the job requires a skill, and they match it but have ZERO matching projects in the domain,
+    # reduce the score. Having projects proves practical capability.
+    if num_matched_projects == 0 and score > 0:
+        specific_roles = ["machine learning", "ml", "ai", "data science", "react", "frontend", "flutter", "java", "python", "backend"]
+        if any(r in title for r in specific_roles):
+            penalty += 25.0
+            
+    # 3. Core Tech Mismatch Penalty:
+    # If the job title explicitly names a technology (e.g. "React Intern", "Flutter Developer", "Java Developer"),
+    # and the candidate does NOT have this technology in their skills list:
+    skills_lower = [s.lower() for s in user_profile.get("skills", [])]
+    core_techs = ["react", "flutter", "java", "python", "c++", "angular", "node", "android", "ios", "machine learning", "ml", "aws", "docker"]
+    for tech in core_techs:
+        if tech in title:
+            # Check if this tech or a synonym is in skills
+            has_tech = False
+            for s in skills_lower:
+                if tech in s or (tech == "ml" and "machine learning" in s) or (tech == "machine learning" and "ml" in s):
+                    has_tech = True
+                    break
+            if not has_tech:
+                penalty += 30.0
+                
+    final_score = max(0.0, score - penalty)
+    return round(final_score, 2)
+
 def evaluate_suitability(user_profile: Dict[str, Any], job: Dict[str, Any], keyword: str = None) -> Dict[str, Any]:
     """
     Evaluates candidate suitability for a job based on skills and resume projects matching.
@@ -225,19 +273,22 @@ def evaluate_suitability(user_profile: Dict[str, Any], job: Dict[str, Any], keyw
     num_matched_projects = len(matched_projects)
     score = match_result["match_score"]
     
+    # Calculate adjusted score reflecting selection probability
+    score = calculate_selection_probability_penalty(user_profile, job, score, num_matched_projects)
+    
     # Determine suitability level
-    if score >= 70 and num_matched_projects >= 1:
+    if score >= 60 and num_matched_projects >= 1:
         assessment = f"Highly Suited: You have {num_matched_projects} relevant project(s) ({', '.join(matched_projects[:2])}) and match {int(score)}% of required skills."
         suitability_level = "highly_suited"
-    elif score >= 40 or (num_matched_projects >= 1 and score >= 20):
+    elif score >= 30:
         if num_matched_projects == 0:
             assessment = f"Partially Suited: You match {int(score)}% of skills, but have no projects in this domain. Build a project to boost your profile."
             suitability_level = "partially_suited"
         else:
-            assessment = f"Partially Suited: You have {num_matched_projects} relevant project(s), but only match {int(score)}% of required skills."
+            assessment = f"Partially Suited: You have {num_matched_projects} relevant project(s), but match only {int(score)}% of required skills."
             suitability_level = "partially_suited"
     else:
-        assessment = "Not Suited: Your resume doesn't list enough relevant skills or projects for this role."
+        assessment = "Not Suited: Your profile lacks matching core skills, domain projects, or experience level for this role."
         suitability_level = "not_suited"
         
     return {

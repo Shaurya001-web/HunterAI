@@ -31,27 +31,51 @@ def extract_text(pdf_path: str) -> str:
 async def parse_resume_to_json(pdf_path: str) -> dict:
     text = extract_text(pdf_path)
     prompt_text = f"""
-You are an ATS resume parser.
-
-Extract information from the resume and return ONLY valid JSON.
+You are an expert ATS resume parser. Your job is to extract candidate information and output a clean, strict JSON file adhering strictly to the schema rules below.
 
 Rules:
-- Do not add explanations.
-- Do not add markdown.
-- Do not invent information.
-- Remove duplicate skills.
-- Use [] for missing lists.
-- Use "" for missing strings.
-Schema:
+1. **Name, Email, Phone**: Parse accurately.
+2. **Skills Extraction Rules (CRITICAL)**:
+   - ONLY extract skills that are explicitly listed in the dedicated "SKILLS" section of the resume, or are clearly demonstrated by technologies listed inside the candidate's "PROJECTS" / "EXPERIENCE" sections.
+   - **DO NOT** extract skills from the "CAREER OBJECTIVE", "PROFESSIONAL SUMMARY", "FUTURE GOALS", or "HOBBIES" statements. For example, if the candidate states they are "Seeking an internship to apply machine learning and Generative AI", do NOT add "Machine Learning" or "Generative AI" to their skills array unless they have a matching project, certification, or technical skill entry proving they have actual hands-on capability.
+   - Separate and extract standalone skills (e.g. "C++", "Java", "HTML", "CSS", "Git", "GitHub") cleanly.
+3. **Projects**: For each project, extract the exact title, description details, and technical tools used. Make sure you map them to the keys:
+   - "title": (Project name)
+   - "description": (Project description)
+   - "technologies": (List of tools/technologies used)
+4. **Education**: Parse the institution, degree/course name, and years/passing details.
+5. **Experience**: Parse the company, role, duration, and details.
+
+JSON Schema format to follow:
 {{
-  "name": "",
-  "email": "",
-  "phone": "",
-  "skills": [],
-  "projects": [],
-  "education": [],
-  "experience": []
+  "name": "Candidate's full name",
+  "email": "Candidate's email",
+  "phone": "Candidate's phone number",
+  "skills": ["Skill 1", "Skill 2", ...],
+  "projects": [
+     {{
+       "title": "Project Title",
+       "description": "Project details description",
+       "technologies": ["Tool 1", "Tool 2", ...]
+     }}
+  ],
+  "education": [
+     {{
+       "institution": "University/School",
+       "degree": "Degree earned",
+       "year": "Dates of study"
+     }}
+  ],
+  "experience": [
+     {{
+       "company": "Company Name",
+       "role": "Job Title",
+       "duration": "Dates of employment",
+       "description": "Job description details"
+     }}
+  ]
 }}
+
 Resume Text:
 {text}
 """
