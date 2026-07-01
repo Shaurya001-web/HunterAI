@@ -272,7 +272,7 @@ function EduExpSection({ profile }: { profile: Profile }) {
         <div className="section-eyebrow">Education</div>
         {profile.education?.length ? (
           profile.education.map((item, i) => {
-            const rawEdu = item as Record<string, unknown>;
+            const rawEdu = item as unknown as Record<string, unknown>;
             const institution = (rawEdu.institution || rawEdu.school || rawEdu.university || "Unknown Institution") as string;
             const degree = (rawEdu.degree || rawEdu.course || rawEdu.program || "Degree") as string;
             const year = (rawEdu.year || rawEdu.date || rawEdu.dates || rawEdu.yearOfPassing || "") as string;
@@ -321,7 +321,7 @@ function EduExpSection({ profile }: { profile: Profile }) {
         <div className="section-eyebrow">Experience</div>
         {profile.experience?.length ? (
           profile.experience.map((item, i) => {
-            const rawExp = item as Record<string, unknown>;
+            const rawExp = item as unknown as Record<string, unknown>;
             const company = (rawExp.company || rawExp.organization || rawExp.employer || "Unknown Company") as string;
             const role = (rawExp.role || rawExp.title || rawExp.designation || "Role") as string;
             const duration = (rawExp.duration || rawExp.date || rawExp.dates || rawExp.period || "") as string;
@@ -633,9 +633,9 @@ export default function ProfilePage() {
                 lineHeight: 1.4,
               }}>
                 {profile.experience?.[0]
-                  ? `${profile.experience[0].role || ((profile.experience[0] as Record<string, unknown>).title as string) || "Software Engineer"} · Open to work`
+                  ? `${profile.experience[0].role || ((profile.experience[0] as unknown as Record<string, unknown>).title as string) || "Software Engineer"} · Open to work`
                   : profile.education?.[0]
-                  ? `${profile.education[0].institution || ((profile.education[0] as Record<string, unknown>).school as string) || ((profile.education[0] as Record<string, unknown>).university as string) || "Student"} · Open to work`
+                  ? `${profile.education[0].institution || ((profile.education[0] as unknown as Record<string, unknown>).school as string) || ((profile.education[0] as unknown as Record<string, unknown>).university as string) || "Student"} · Open to work`
                   : "Open to opportunities"}
               </p>
 
