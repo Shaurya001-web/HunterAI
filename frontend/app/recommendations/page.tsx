@@ -368,10 +368,10 @@ export default function RecommendationsPage() {
   };
 
   const fetchSaved = async () => {
-    if (user && !user.isGuest) {
+    if (user) {
       try {
         const saved = await api.getSavedInternships();
-        setSavedJobIds(saved.map((s: any) => s.id));
+        setSavedJobIds(saved.map((s: { id: number }) => s.id));
       } catch (e) {
         console.error("Failed to load saved jobs:", e);
       }
@@ -379,7 +379,7 @@ export default function RecommendationsPage() {
   };
 
   const handleToggleSave = async (jobId: number) => {
-    if (!user || user.isGuest) {
+    if (!user) {
       setIsAuthModalOpen(true);
       return;
     }

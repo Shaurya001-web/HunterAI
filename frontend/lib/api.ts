@@ -52,7 +52,7 @@ export const api = {
     return res.json();
   },
 
-  saveProfile: async (payload: any) => {
+  saveProfile: async (payload: unknown) => {
     const res = await fetch(`${BASE_URL}/profile`, {
       method: "POST",
       headers: getHeaders({ "Content-Type": "application/json" }),

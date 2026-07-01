@@ -18,9 +18,8 @@ class UserProfile(BaseModel):
     education: list
     experience: list
 
-llm_model=init_chat_model(model="google_genai:gemini-2.5-flash")
+# LLM initialization is moved inside parse_resume_to_json to make it lazy-loaded.
 
-resume_path = os.path.join(project_root, "data", "uploads", "resume", "25bai70051_shauryamishra.pdf")
 
 def extract_text(pdf_path: str) -> str:
     with fitz.open(pdf_path) as Content:
@@ -59,6 +58,7 @@ Resume Text:
     json_text = ""
     try:
         # Try primary Gemini model
+        llm_model = init_chat_model(model="google_genai:gemini-2.5-flash")
         res = await asyncio.wait_for(llm_model.ainvoke(prompt_text), timeout=15.0)
         json_text = res.content
     except Exception as gemini_err:
@@ -111,14 +111,23 @@ Resume Text:
         return data
     raise ValueError("No response from LLM model")
 
+def get_default_resume_path():
+    return os.path.join(project_root, "data", "uploads", "resume", "25bai70051_shauryamishra.pdf")
+
 def content_file():
-    return extract_text(resume_path)
+    path = get_default_resume_path()
+    return extract_text(path)
 
 async def response():
-    data = await parse_resume_to_json(resume_path)
+    path = get_default_resume_path()
+    if not os.path.exists(path):
+        print(f"Test resume file not found at: {path}")
+        return {}
+    data = await parse_resume_to_json(path)
     print("\nProfile saved successfully ✅")
     return data
 
 if __name__ == "__main__":
     asyncio.run(response())
+
 

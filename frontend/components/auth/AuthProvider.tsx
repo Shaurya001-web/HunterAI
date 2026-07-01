@@ -50,64 +50,64 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     api.setToken(token);
   }, [token]);
 
-  // Load guest user or saved auth user
-  const initAuth = async () => {
-    setLoading(true);
-    
-    // Check if real user is saved
-    const savedUser = localStorage.getItem("mock_auth_user");
-    if (savedUser) {
-      try {
-        const parsed = JSON.parse(savedUser);
-        setUser(parsed);
-        const t = `mock_token:${parsed.id}:${parsed.email}:${parsed.name}`;
-        setToken(t);
-        api.setToken(t);
-        setLoading(false);
-        return;
-      } catch (e) {
-        localStorage.removeItem("mock_auth_user");
-      }
-    }
-
-    if (isSupabaseConfigured) {
-      const { data: { session } } = await supabase!.auth.getSession();
-      if (session) {
-        const t = session.access_token;
-        setToken(t);
-        api.setToken(t);
-        const parsedUser = {
-          id: session.user.id,
-          email: session.user.email ?? "",
-          name: session.user.user_metadata?.full_name || session.user.user_metadata?.name || session.user.email?.split("@")[0] || "",
-          isGuest: false
-        };
-        setUser(parsedUser);
-        setLoading(false);
-        return;
-      }
-    }
-
-    // Default: load or generate Guest session
-    let guestId = localStorage.getItem("guest_user_id");
-    if (!guestId) {
-      guestId = "guest_" + Math.random().toString(36).substring(2, 11);
-      localStorage.setItem("guest_user_id", guestId);
-    }
-    const guestUser = {
-      id: guestId,
-      email: `${guestId}@hunterai.local`,
-      name: "Guest User",
-      isGuest: true
-    };
-    const guestToken = `mock_token:${guestUser.id}:${guestUser.email}:${guestUser.name}`;
-    setUser(guestUser);
-    setToken(guestToken);
-    api.setToken(guestToken);
-    setLoading(false);
-  };
-
+  // Load guest user or saved auth user on mount
   useEffect(() => {
+    const initAuth = async () => {
+      setLoading(true);
+      
+      // Check if real user is saved
+      const savedUser = localStorage.getItem("mock_auth_user");
+      if (savedUser) {
+        try {
+          const parsed = JSON.parse(savedUser);
+          setUser(parsed);
+          const t = `mock_token:${parsed.id}:${parsed.email}:${parsed.name}`;
+          setToken(t);
+          api.setToken(t);
+          setLoading(false);
+          return;
+        } catch {
+          localStorage.removeItem("mock_auth_user");
+        }
+      }
+
+      if (isSupabaseConfigured) {
+        const { data: { session } } = await supabase!.auth.getSession();
+        if (session) {
+          const t = session.access_token;
+          setToken(t);
+          api.setToken(t);
+          const parsedUser = {
+            id: session.user.id,
+            email: session.user.email ?? "",
+            name: session.user.user_metadata?.full_name || session.user.user_metadata?.name || session.user.email?.split("@")[0] || "",
+            isGuest: false
+          };
+          setUser(parsedUser);
+          setLoading(false);
+          return;
+        }
+      }
+
+      // Default: load or generate Guest session
+      let guestId = localStorage.getItem("guest_user_id");
+      if (!guestId) {
+        guestId = "guest_" + Math.random().toString(36).substring(2, 11);
+        localStorage.setItem("guest_user_id", guestId);
+      }
+      const guestUser = {
+        id: guestId,
+        email: `${guestId}@hunterai.local`,
+        name: "Guest User",
+        isGuest: true
+      };
+      const guestToken = `mock_token:${guestUser.id}:${guestUser.email}:${guestUser.name}`;
+      setUser(guestUser);
+      setToken(guestToken);
+      api.setToken(guestToken);
+      setLoading(false);
+    };
+
     initAuth();
 
     if (isSupabaseConfigured) {
@@ -167,7 +167,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           // Migrate profile
           const guestId = localStorage.getItem("guest_user_id");
           if (guestId && guestId !== newUser.id) {
-            try { await api.migrateProfile(guestId); localStorage.removeItem("guest_user_id"); } catch (e) {}
+            try { await api.migrateProfile(guestId); localStorage.removeItem("guest_user_id"); } catch {}
           }
           return true;
         }
@@ -188,12 +188,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         // Migrate profile
         const guestId = localStorage.getItem("guest_user_id");
         if (guestId && guestId !== newUser.id) {
-          try { await api.migrateProfile(guestId); localStorage.removeItem("guest_user_id"); } catch (e) {}
+          try { await api.migrateProfile(guestId); localStorage.removeItem("guest_user_id"); } catch {}
         }
         return true;
       }
-    } catch (err: any) {
-      setAuthError(err.message || "Failed to sign in");
+    } catch (err) {
+      const errorMsg = err instanceof Error ? err.message : "Failed to sign in";
+      setAuthError(errorMsg);
     } finally {
       setAuthLoading(false);
     }
@@ -231,7 +232,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
           const guestId = localStorage.getItem("guest_user_id");
           if (guestId && guestId !== newUser.id) {
-            try { await api.migrateProfile(guestId); localStorage.removeItem("guest_user_id"); } catch (e) {}
+            try { await api.migrateProfile(guestId); localStorage.removeItem("guest_user_id"); } catch {}
           }
           return true;
         } else {
@@ -254,12 +255,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
         const guestId = localStorage.getItem("guest_user_id");
         if (guestId && guestId !== newUser.id) {
-          try { await api.migrateProfile(guestId); localStorage.removeItem("guest_user_id"); } catch (e) {}
+          try { await api.migrateProfile(guestId); localStorage.removeItem("guest_user_id"); } catch {}
         }
         return true;
       }
-    } catch (err: any) {
-      setAuthError(err.message || "Failed to sign up");
+    } catch (err) {
+      const errorMsg = err instanceof Error ? err.message : "Failed to sign up";
+      setAuthError(errorMsg);
     } finally {
       setAuthLoading(false);
     }
@@ -268,9 +270,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const enterSandboxMode = () => {
     const sandboxUser = {
-      id: "mock_user_shaurya",
-      email: "mishrashaurya2008@gmail.com",
-      name: "Shaurya Mishra",
+      id: "mock_user_demo",
+      email: "demo@hunterai.local",
+      name: "Demo User",
       isGuest: false
     };
     const t = `mock_token:${sandboxUser.id}:${sandboxUser.email}:${sandboxUser.name}`;

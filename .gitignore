@@ -1,6 +1,7 @@
 # Environment Variables
 .env
 .env.*
+backend/config/.env
 !.env.example
 
 # Python

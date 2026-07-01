@@ -1,6 +1,5 @@
 from fastapi import APIRouter, HTTPException, Depends
 from sqlalchemy.orm import Session
-import urllib.parse
 from engine.matching_engine import rank_jobs
 from scrapers.internshala_scraper import scrape_internshala
 from routes.auth import get_current_user
@@ -9,88 +8,33 @@ from config.database import get_db
 
 router = APIRouter()
 
-def generate_platform_jobs(keyword: str) -> list:
-    if not keyword:
-        return []
-    
-    kw = keyword.strip()
-    kw_cap = kw.capitalize()
-    
-    # Generate matching skills based on typical domains
-    skills_map = {
-        "machine learning": ["Python", "TensorFlow", "PyTorch", "Machine Learning", "Deep Learning", "SQL", "NLP"],
-        "data science": ["Python", "SQL", "Pandas", "NumPy", "Tableau", "Machine Learning", "Statistics"],
-        "python": ["Python", "FastAPI", "Django", "Flask", "SQL", "Git"],
-        "web development": ["JavaScript", "TypeScript", "React", "Next.js", "Node.js", "HTML", "CSS", "Tailwind"],
-        "software engineering": ["Java", "C++", "Python", "Data Structures", "Algorithms", "Git", "Docker"]
-    }
-    
-    # Default skills if keyword not in mapping
-    req_skills = skills_map.get(kw.lower(), [kw_cap, "Python", "Git", "SQL"])
-    
-    linkedin_jobs = [
-        {
-            "job_title": f"{kw_cap} Intern",
-            "company": "Google India",
-            "location": "Bengaluru (Hybrid)",
-            "stipend": "₹60,000 /month",
-            "duration": "6 months",
-            "required_skills": req_skills,
-            "url": "https://www.linkedin.com/jobs/search/?keywords=" + urllib.parse.quote(kw),
-            "source": "LinkedIn"
-        },
-        {
-            "job_title": f"Junior {kw_cap} Engineer",
-            "company": "Amazon",
-            "location": "Hyderabad (On-site)",
-            "stipend": "₹45,000 /month",
-            "duration": "3 months",
-            "required_skills": req_skills + ["AWS"],
-            "url": "https://www.linkedin.com/jobs/search/?keywords=" + urllib.parse.quote(kw),
-            "source": "LinkedIn"
-        }
-    ]
-    
-    wellfound_jobs = [
-        {
-            "job_title": f"AI & {kw_cap} Intern",
-            "company": "NeuralStart.ai (YC)",
-            "location": "Remote",
-            "stipend": "$2,500 /month",
-            "duration": "6 months",
-            "required_skills": req_skills + ["LangChain", "LLMs"],
-            "url": "https://wellfound.com/jobs",
-            "source": "Wellfound"
-        },
-        {
-            "job_title": f"{kw_cap} Developer",
-            "company": "Codex Labs",
-            "location": "San Francisco (Remote)",
-            "stipend": "$3,000 /month",
-            "duration": "4 months",
-            "required_skills": req_skills + ["FastAPI", "Docker"],
-            "url": "https://wellfound.com/jobs",
-            "source": "Wellfound"
-        }
-    ]
-    
-    return linkedin_jobs + wellfound_jobs
-
 @router.get("/matches")
 def get_matches(
     keyword: str = None,
+    email: str = None,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
     try:
         # 1. Fetch user profile from database
-        profile = db.query(Profile).filter(Profile.user_id == current_user.id).first()
+        profile = None
+        target_user = current_user
+        if email:
+            target_user_db = db.query(User).filter(User.email == email).first()
+            if target_user_db:
+                target_user = target_user_db
+                profile = db.query(Profile).filter(Profile.user_id == target_user.id).first()
+        
+        if not profile:
+            profile = db.query(Profile).filter(Profile.user_id == current_user.id).first()
+            target_user = current_user
+
         if not profile:
             raise HTTPException(status_code=400, detail="No profile found. Please upload a resume first.")
         
         user_profile_dict = {
-            "name": current_user.name or "",
-            "email": current_user.email,
+            "name": target_user.name or "",
+            "email": target_user.email,
             "skills": profile.skills,
             "education": profile.education,
             "experience": profile.experience,
@@ -98,7 +42,6 @@ def get_matches(
         }
 
         # 2. Collect jobs (either scraping or querying existing)
-        jobs_pool = []
         if keyword:
             scraped_jobs = []
             # Scrape Internshala
@@ -110,10 +53,6 @@ def get_matches(
                     scraped_jobs.extend(scraped)
             except Exception as e:
                 print(f"On-demand Internshala scraping failed: {e}")
-            
-            # Synthesize platform jobs
-            platform_jobs = generate_platform_jobs(keyword)
-            scraped_jobs.extend(platform_jobs)
             
             # Save new jobs to database
             for sj in scraped_jobs:
@@ -166,14 +105,14 @@ def get_matches(
         
         # 5. Persist calculated matches in database for user
         # Clean old matches for this user first to keep matches list updated
-        db.query(Match).filter(Match.user_id == current_user.id).delete()
+        db.query(Match).filter(Match.user_id == target_user.id).delete()
         
         for rm in ranked_matches:
             job_obj = job_map.get((rm["job_title"], rm["company"]))
             if job_obj:
                 rm["id"] = job_obj.id
                 db_match = Match(
-                    user_id=current_user.id,
+                    user_id=target_user.id,
                     job_id=job_obj.id,
                     score=rm["score"],
                     matched_skills=rm["matched_skills"],

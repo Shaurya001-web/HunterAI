@@ -19,43 +19,7 @@ import config.models # Ensure models are loaded
 # Create database tables
 Base.metadata.create_all(bind=engine)
 
-def seed_database():
-    from config.database import SessionLocal
-    from config.models import Job
-    from routes.matches_router import generate_platform_jobs
-    
-    db = SessionLocal()
-    try:
-        if db.query(Job).count() == 0:
-            print("Seeding default jobs in database...")
-            default_keywords = ["python", "machine learning", "web development"]
-            for kw in default_keywords:
-                jobs = generate_platform_jobs(kw)
-                for sj in jobs:
-                    existing = db.query(Job).filter(
-                        Job.title == sj["job_title"],
-                        Job.company == sj["company"]
-                    ).first()
-                    if not existing:
-                        new_job = Job(
-                            title=sj["job_title"],
-                            company=sj["company"],
-                            skills=sj["required_skills"],
-                            location=sj.get("location"),
-                            stipend=sj.get("stipend"),
-                            duration=sj.get("duration"),
-                            url=sj.get("url"),
-                            source=sj.get("source")
-                        )
-                        db.add(new_job)
-            db.commit()
-            print("Database seeded successfully! ✅")
-    except Exception as e:
-        print(f"Error seeding database: {e}")
-    finally:
-        db.close()
 
-seed_database()
 
 app = FastAPI(
     title="Internship Hunter API",
@@ -64,11 +28,22 @@ app = FastAPI(
 )
 
 # Configure CORS
+# Read allowed origins from env (comma-separated list), fallback to localhost for dev
+_cors_origins_env = os.getenv("CORS_ALLOWED_ORIGINS", "")
+_allowed_origins: list[str] = (
+    [o.strip() for o in _cors_origins_env.split(",") if o.strip()]
+    if _cors_origins_env
+    else [
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+    ]
+)
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"], # Allow all origins for local MVP development
-    allow_credentials=False, # Must be False if origins is "*"
-    allow_methods=["*"],
+    allow_origins=_allowed_origins,
+    allow_credentials=False,
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],
 )
 

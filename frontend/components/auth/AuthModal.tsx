@@ -22,12 +22,14 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
     if (!dialog) return;
 
     if (isOpen) {
-      setAuthError("");
-      setEmail("");
-      setPassword("");
       if (!dialog.open) {
         dialog.showModal();
       }
+      setTimeout(() => {
+        setAuthError("");
+        setEmail("");
+        setPassword("");
+      }, 0);
     } else {
       if (dialog.open) {
         dialog.close();

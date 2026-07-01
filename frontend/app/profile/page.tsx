@@ -19,13 +19,26 @@ const SKILL_GROUPS: Record<string, string[]> = {
   Tools: ["git", "docker", "kubernetes", "aws", "gcp", "azure", "linux", "ci/cd", "github", "gitlab", "terraform", "nginx"],
 };
 
+/* ─── SKILL MATCH HELPER ───────────────────────────────────── */
+function matchSkillKeyword(skill: string, keyword: string): boolean {
+  const s = skill.toLowerCase().trim();
+  const k = keyword.toLowerCase().trim();
+  
+  if (k.length <= 4) {
+    // For short words like api, rest, git, ml, nlp - do word boundary match
+    const regex = new RegExp(`\\b${k}\\b`, 'i');
+    return regex.test(s);
+  }
+  return s.includes(k);
+}
+
 function categorizeSkills(skills: string[]): Record<string, string[]> {
   const grouped: Record<string, string[]> = {};
   const used = new Set<string>();
 
   for (const [group, keywords] of Object.entries(SKILL_GROUPS)) {
     const matched = skills.filter((s) =>
-      keywords.some((k) => s.toLowerCase().includes(k.toLowerCase()))
+      keywords.some((k) => matchSkillKeyword(s, k))
     );
     if (matched.length > 0) {
       grouped[group] = matched;
@@ -52,7 +65,7 @@ const STRENGTH_DEFS = [
 
 function computeStrength(skills: string[], keys: string[], maxDots: number): number {
   const count = skills.filter((s) =>
-    keys.some((k) => s.toLowerCase().includes(k))
+    keys.some((k) => matchSkillKeyword(s, k))
   ).length;
   return Math.min(maxDots, Math.round((count / 3) * maxDots));
 }
@@ -167,16 +180,33 @@ function SkillGroups({ skills }: { skills: string[] }) {
 }
 
 /* ─── PROJECT BLOCK ───────────────────────────────────────── */
+interface ProjectType {
+  title?: string;
+  name?: string;
+  description?: string | string[];
+  technologies?: string[];
+  tech?: string[];
+  techs?: string[];
+}
+
 function ProjectBlock({ proj, index, totalMatches }: {
-  proj: { title: string; description?: string; technologies?: string[] };
+  proj: ProjectType;
   index: number;
   totalMatches: number;
 }) {
   const { ref, visible } = useReveal(index * 120);
+
+  const title = proj.title || proj.name || "Unnamed Project";
+  const rawDescription = proj.description || "";
+  const description = Array.isArray(rawDescription)
+    ? rawDescription.join(" ")
+    : rawDescription;
+  const technologies = proj.technologies || proj.tech || proj.techs || [];
+
   return (
     <div ref={ref} className={`reveal project-block ${visible ? "visible" : ""}`}>
-      <div className="project-title">{proj.title}</div>
-      {proj.description && (
+      <div className="project-title">{title}</div>
+      {description && (
         <p style={{
           fontFamily: "var(--font-body)",
           fontSize: 13,
@@ -184,12 +214,12 @@ function ProjectBlock({ proj, index, totalMatches }: {
           lineHeight: 1.6,
           marginBottom: 8,
         }}>
-          {proj.description}
+          {description}
         </p>
       )}
-      {proj.technologies?.length ? (
+      {technologies?.length ? (
         <div style={{ display: "flex", flexWrap: "wrap", gap: 5, marginBottom: 8 }}>
-          {proj.technologies.map((t) => (
+          {technologies.map((t: string) => (
             <span
               key={t}
               style={{
@@ -241,38 +271,44 @@ function EduExpSection({ profile }: { profile: Profile }) {
       <div>
         <div className="section-eyebrow">Education</div>
         {profile.education?.length ? (
-          profile.education.map((edu, i) => (
-            <div key={i} className="entry-row">
-              <div style={{ flex: 1 }}>
-                <div style={{
-                  fontFamily: "var(--font-body)",
-                  fontSize: 13,
-                  fontWeight: 500,
-                  color: "var(--text-primary)",
-                  marginBottom: 2,
-                }}>
-                  {edu.institution}
+          profile.education.map((item, i) => {
+            const rawEdu = item as Record<string, unknown>;
+            const institution = (rawEdu.institution || rawEdu.school || rawEdu.university || "Unknown Institution") as string;
+            const degree = (rawEdu.degree || rawEdu.course || rawEdu.program || "Degree") as string;
+            const year = (rawEdu.year || rawEdu.date || rawEdu.dates || rawEdu.yearOfPassing || "") as string;
+            return (
+              <div key={i} className="entry-row">
+                <div style={{ flex: 1 }}>
+                  <div style={{
+                    fontFamily: "var(--font-body)",
+                    fontSize: 13,
+                    fontWeight: 500,
+                    color: "var(--text-primary)",
+                    marginBottom: 2,
+                  }}>
+                    {institution}
+                  </div>
+                  <div style={{
+                    fontFamily: "var(--font-body)",
+                    fontSize: 13,
+                    color: "var(--text-secondary)",
+                  }}>
+                    {degree}
+                  </div>
                 </div>
-                <div style={{
-                  fontFamily: "var(--font-body)",
-                  fontSize: 13,
-                  color: "var(--text-secondary)",
-                }}>
-                  {edu.degree}
-                </div>
+                {year && (
+                  <span style={{
+                    fontFamily: "var(--font-body)",
+                    fontSize: 11,
+                    color: "var(--text-muted)",
+                    flexShrink: 0,
+                  }}>
+                    {year}
+                  </span>
+                )}
               </div>
-              {edu.year && (
-                <span style={{
-                  fontFamily: "var(--font-body)",
-                  fontSize: 11,
-                  color: "var(--text-muted)",
-                  flexShrink: 0,
-                }}>
-                  {edu.year}
-                </span>
-              )}
-            </div>
-          ))
+            );
+          })
         ) : (
           <p style={{ fontFamily: "var(--font-body)", fontSize: 13, color: "var(--text-muted)", fontStyle: "italic" }}>
             No education listed.
@@ -284,38 +320,44 @@ function EduExpSection({ profile }: { profile: Profile }) {
       <div>
         <div className="section-eyebrow">Experience</div>
         {profile.experience?.length ? (
-          profile.experience.map((exp, i) => (
-            <div key={i} className="entry-row">
-              <div style={{ flex: 1 }}>
-                <div style={{
-                  fontFamily: "var(--font-body)",
-                  fontSize: 13,
-                  fontWeight: 500,
-                  color: "var(--text-primary)",
-                  marginBottom: 2,
-                }}>
-                  {exp.company}
+          profile.experience.map((item, i) => {
+            const rawExp = item as Record<string, unknown>;
+            const company = (rawExp.company || rawExp.organization || rawExp.employer || "Unknown Company") as string;
+            const role = (rawExp.role || rawExp.title || rawExp.designation || "Role") as string;
+            const duration = (rawExp.duration || rawExp.date || rawExp.dates || rawExp.period || "") as string;
+            return (
+              <div key={i} className="entry-row">
+                <div style={{ flex: 1 }}>
+                  <div style={{
+                    fontFamily: "var(--font-body)",
+                    fontSize: 13,
+                    fontWeight: 500,
+                    color: "var(--text-primary)",
+                    marginBottom: 2,
+                  }}>
+                    {company}
+                  </div>
+                  <div style={{
+                    fontFamily: "var(--font-body)",
+                    fontSize: 13,
+                    color: "var(--text-secondary)",
+                  }}>
+                    {role}
+                  </div>
                 </div>
-                <div style={{
-                  fontFamily: "var(--font-body)",
-                  fontSize: 13,
-                  color: "var(--text-secondary)",
-                }}>
-                  {exp.role}
-                </div>
+                {duration && (
+                  <span style={{
+                    fontFamily: "var(--font-body)",
+                    fontSize: 11,
+                    color: "var(--text-muted)",
+                    flexShrink: 0,
+                  }}>
+                    {duration}
+                  </span>
+                )}
               </div>
-              {exp.duration && (
-                <span style={{
-                  fontFamily: "var(--font-body)",
-                  fontSize: 11,
-                  color: "var(--text-muted)",
-                  flexShrink: 0,
-                }}>
-                  {exp.duration}
-                </span>
-              )}
-            </div>
-          ))
+            );
+          })
         ) : (
           <p style={{ fontFamily: "var(--font-body)", fontSize: 13, color: "var(--text-muted)", fontStyle: "italic" }}>
             No experience listed.
@@ -590,10 +632,10 @@ export default function ProfilePage() {
                 marginBottom: 20,
                 lineHeight: 1.4,
               }}>
-                {profile.experience?.[0]?.role
-                  ? `${profile.experience[0].role} · Open to work`
-                  : profile.education?.[0]?.institution
-                  ? `${profile.education[0].institution} · Open to work`
+                {profile.experience?.[0]
+                  ? `${profile.experience[0].role || ((profile.experience[0] as Record<string, unknown>).title as string) || "Software Engineer"} · Open to work`
+                  : profile.education?.[0]
+                  ? `${profile.education[0].institution || ((profile.education[0] as Record<string, unknown>).school as string) || ((profile.education[0] as Record<string, unknown>).university as string) || "Student"} · Open to work`
                   : "Open to opportunities"}
               </p>
 

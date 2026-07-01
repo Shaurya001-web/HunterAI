@@ -86,7 +86,7 @@ export function AppShell({ children, title }: { children: React.ReactNode; title
           </div>
 
           {/* User profile dropdown container */}
-          {user && !user.isGuest ? (
+          {user ? (
             <div style={{ position: "relative" }}>
               {/* Dropup menu */}
               {menuOpen && (
@@ -124,28 +124,54 @@ export function AppShell({ children, title }: { children: React.ReactNode; title
                       </div>
                     </div>
                   </div>
-                  <button
-                    onClick={() => signOut()}
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      gap: "8px",
-                      width: "100%",
-                      padding: "8px",
-                      borderRadius: "6px",
-                      background: "var(--surface-2)",
-                      border: "1px solid var(--border)",
-                      color: "#ff4d6d",
-                      fontSize: "12px",
-                      fontWeight: 600,
-                      cursor: "pointer",
-                      fontFamily: "var(--font-body)",
-                      transition: "opacity 0.2s"
-                    }}
-                  >
-                    <LogOut size={13} /> Sign Out
-                  </button>
+                  {user.isGuest ? (
+                    <button
+                      onClick={() => { setMenuOpen(false); setIsAuthModalOpen(true); }}
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        gap: "6px",
+                        width: "100%",
+                        padding: "8px",
+                        borderRadius: "6px",
+                        background: "linear-gradient(135deg, #6c5ce7, #8b5cf6)",
+                        color: "white",
+                        border: "none",
+                        fontSize: "12px",
+                        fontWeight: 700,
+                        cursor: "pointer",
+                        fontFamily: "var(--font-body)",
+                        boxShadow: "0 2px 6px rgba(108, 92, 231, 0.2)",
+                      }}
+                    >
+                      <Zap size={13} /> Sign In to Save
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => signOut()}
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        gap: "8px",
+                        width: "100%",
+                        padding: "8px",
+                        borderRadius: "6px",
+                        background: "var(--surface-2)",
+                        border: "1px solid var(--border)",
+                        color: "#ff4d6d",
+                        fontSize: "12px",
+                        fontWeight: 600,
+                        cursor: "pointer",
+                        fontFamily: "var(--font-body)",
+                        transition: "opacity 0.2s"
+                      }}
+                    >
+                      <LogOut size={13} /> Sign Out
+                    </button>
+                  )}
+                  <AuthModal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} />
                 </div>
               )}
 
@@ -184,33 +210,7 @@ export function AppShell({ children, title }: { children: React.ReactNode; title
                 <ChevronUp size={13} color="var(--text-muted)" style={{ transform: menuOpen ? "rotate(180deg)" : "none", transition: "transform 0.2s", marginLeft: 4 }} />
               </div>
             </div>
-          ) : (
-            <div style={{ padding: "8px 0" }}>
-              <button
-                onClick={() => setIsAuthModalOpen(true)}
-                style={{
-                  width: "100%",
-                  padding: "10px",
-                  borderRadius: "10px",
-                  background: "linear-gradient(135deg, #6c5ce7, #8b5cf6)",
-                  color: "white",
-                  border: "none",
-                  fontSize: "12px",
-                  fontWeight: 700,
-                  cursor: "pointer",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  gap: "6px",
-                  boxShadow: "0 4px 10px rgba(108, 92, 231, 0.2)",
-                  fontFamily: "var(--font-body)",
-                }}
-              >
-                <Zap size={13} /> Sign In to Save
-              </button>
-              <AuthModal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} />
-            </div>
-          )}
+          ) : null}
         </div>
       </aside>
 

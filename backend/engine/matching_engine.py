@@ -63,6 +63,17 @@ KEYWORDS_MAP = {
     "software engineering": ["java", "c++", "c#", "python", "go", "rust", "algorithm", "data structures", "system design", "docker", "kubernetes", "git"]
 }
 
+import re
+
+def _is_skill_match(user_skill: str, term: str) -> bool:
+    if term == user_skill:
+        return True
+    # If the term is very short (like rest, api, git, ml, nlp), use word boundaries
+    if len(term) <= 4 or len(user_skill) <= 4:
+        pattern = r'\b' + re.escape(term) + r'\b'
+        return bool(re.search(pattern, user_skill))
+    return term in user_skill or user_skill in term
+
 def calculate_match(user_skills: List[str], job_skills: List[str]) -> Dict[str, Any]:
     """
     Compares user skills against job required skills, and calculates the match score,
@@ -98,9 +109,7 @@ def calculate_match(user_skills: List[str], job_skills: List[str]) -> Dict[str, 
         for user_skill in normalized_user_skills:
             # Check if any synonymous term is in the user skill, or if user skill is in synonymous term
             for term in terms_to_match:
-                # We use word boundaries or direct inclusion for simplicity, but basic "in" is usually fine 
-                # if the terms are substantial (like "claude", "ml", "python")
-                if term == user_skill or term in user_skill or user_skill in term:
+                if _is_skill_match(user_skill, term):
                     # Prevent overly broad matches like "c" in "react"
                     if len(user_skill) <= 2 and user_skill != term:
                         continue
@@ -150,10 +159,20 @@ def evaluate_suitability(user_profile: Dict[str, Any], job: Dict[str, Any], keyw
     search_terms = list(set([t.lower() for t in search_terms if t]))
     
     for proj in projects:
+        if isinstance(proj, str):
+            proj = {"title": proj, "description": "", "technologies": []}
+        elif not isinstance(proj, dict):
+            continue
+            
         # Check if project contains title, description, or tech matching
-        proj_title = proj.get("title", "").lower()
-        proj_desc = proj.get("description", "").lower()
-        proj_techs = [t.lower() for t in proj.get("technologies", []) or []]
+        proj_title = proj.get("title", "") or proj.get("name", "") or ""
+        proj_title = proj_title.lower()
+        
+        raw_desc = proj.get("description", "") or ""
+        proj_desc = " ".join(raw_desc) if isinstance(raw_desc, list) else str(raw_desc)
+        proj_desc = proj_desc.lower()
+        
+        proj_techs = [t.lower() for t in (proj.get("technologies", []) or proj.get("tech", []) or []) if t]
         
         is_relevant = False
         for term in search_terms:
@@ -163,7 +182,8 @@ def evaluate_suitability(user_profile: Dict[str, Any], job: Dict[str, Any], keyw
                 is_relevant = True
                 break
         if is_relevant:
-            matched_projects.append(proj.get("title", "Unnamed Project"))
+            proj_title_display = proj.get("title") or proj.get("name") or "Unnamed Project"
+            matched_projects.append(proj_title_display)
             
     num_matched_projects = len(matched_projects)
     score = match_result["match_score"]
