@@ -3,6 +3,11 @@ import os
 # Add the backend directory to Python path so Vercel can find the modules!
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
+# Load environment variables BEFORE any module imports that depend on them
+from dotenv import load_dotenv
+_config_env = os.path.join(os.path.dirname(os.path.abspath(__file__)), "config", ".env")
+load_dotenv(_config_env)
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from routes.file_upload import router as file_upload_router

@@ -18,6 +18,8 @@ dependencies = [
     "sqlalchemy",
     "psycopg2-binary",
     "pyjwt",
+    "python-dotenv",
+    "httpx",
 ]
 
 [tool.vercel]

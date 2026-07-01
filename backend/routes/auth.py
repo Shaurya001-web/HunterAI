@@ -5,15 +5,11 @@ from sqlalchemy.orm import Session
 from config.database import get_db
 from config.models import User
 
-# Load Supabase JWT Secret
-JWT_SECRET = os.getenv("SUPABASE_JWT_SECRET")
 
-# Mock user fallback
-MOCK_USER = {
-    "id": "mock_user_shaurya",
-    "email": "mishrashaurya2008@gmail.com",
-    "name": "Shaurya Mishra"
-}
+def _get_jwt_secret():
+    """Lazy loader so the env var is read after dotenv has been loaded in main.py."""
+    return os.getenv("SUPABASE_JWT_SECRET")
+
 
 def get_current_user(
     authorization: str = Header(None),
@@ -24,7 +20,9 @@ def get_current_user(
         try:
             scheme, token = authorization.split(maxsplit=1)
             if scheme.lower() == "bearer" and token.startswith("mock_token:"):
-                parts = token.split(":")
+                # Format: mock_token:<user_id>:<email>:<name>
+                # Use maxsplit=3 on the token part so names with colons are preserved
+                parts = token.split(":", maxsplit=3)
                 if len(parts) >= 4:
                     user_id = parts[1]
                     email = parts[2]
@@ -61,10 +59,17 @@ def get_current_user(
         raise HTTPException(status_code=401, detail="Invalid Authorization header format")
 
     # 4. Decode and verify Supabase JWT
+    jwt_secret = _get_jwt_secret()
+    if not jwt_secret:
+        raise HTTPException(
+            status_code=401,
+            detail="Supabase JWT secret not configured. Use mock auth (sign in via the app) for local development."
+        )
+
     try:
         payload = jwt.decode(
             token,
-            JWT_SECRET,
+            jwt_secret,
             algorithms=["HS256"],
             options={"verify_aud": False}
         )
@@ -96,3 +101,4 @@ def get_current_user(
         raise HTTPException(status_code=401, detail="Authentication token has expired")
     except jwt.InvalidTokenError as e:
         raise HTTPException(status_code=401, detail=f"Invalid authentication token: {e}")
+
