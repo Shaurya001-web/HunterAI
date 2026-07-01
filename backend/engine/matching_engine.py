@@ -165,14 +165,42 @@ def evaluate_suitability(user_profile: Dict[str, Any], job: Dict[str, Any], keyw
             continue
             
         # Check if project contains title, description, or tech matching
-        proj_title = proj.get("title", "") or proj.get("name", "") or ""
-        proj_title = proj_title.lower()
+        proj_title = (
+            proj.get("title")
+            or proj.get("name")
+            or proj.get("projectName")
+            or proj.get("project_name")
+            or proj.get("projectTitle")
+            or proj.get("project_title")
+            or proj.get("project")
+            or ""
+        )
+        proj_title = str(proj_title).lower()
         
-        raw_desc = proj.get("description", "") or ""
+        raw_desc = (
+            proj.get("description")
+            or proj.get("desc")
+            or proj.get("details")
+            or proj.get("detail")
+            or proj.get("summary")
+            or proj.get("about")
+            or proj.get("work")
+            or ""
+        )
         proj_desc = " ".join(raw_desc) if isinstance(raw_desc, list) else str(raw_desc)
         proj_desc = proj_desc.lower()
         
-        proj_techs = [t.lower() for t in (proj.get("technologies", []) or proj.get("tech", []) or []) if t]
+        raw_techs = (
+            proj.get("technologies")
+            or proj.get("tech")
+            or proj.get("techs")
+            or proj.get("techStack")
+            or proj.get("tech_stack")
+            or proj.get("stack")
+            or proj.get("tools")
+            or []
+        )
+        proj_techs = [str(t).lower() for t in raw_techs if t]
         
         is_relevant = False
         for term in search_terms:
@@ -182,7 +210,16 @@ def evaluate_suitability(user_profile: Dict[str, Any], job: Dict[str, Any], keyw
                 is_relevant = True
                 break
         if is_relevant:
-            proj_title_display = proj.get("title") or proj.get("name") or "Unnamed Project"
+            proj_title_display = (
+                proj.get("title")
+                or proj.get("name")
+                or proj.get("projectName")
+                or proj.get("project_name")
+                or proj.get("projectTitle")
+                or proj.get("project_title")
+                or proj.get("project")
+                or "Unnamed Project"
+            )
             matched_projects.append(proj_title_display)
             
     num_matched_projects = len(matched_projects)

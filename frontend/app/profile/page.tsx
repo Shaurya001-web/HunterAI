@@ -183,10 +183,25 @@ function SkillGroups({ skills }: { skills: string[] }) {
 interface ProjectType {
   title?: string;
   name?: string;
+  projectName?: string;
+  project_name?: string;
+  projectTitle?: string;
+  project_title?: string;
+  project?: string;
   description?: string | string[];
+  desc?: string | string[];
+  details?: string | string[];
+  detail?: string | string[];
+  summary?: string | string[];
+  about?: string | string[];
+  work?: string | string[];
   technologies?: string[];
   tech?: string[];
   techs?: string[];
+  techStack?: string[];
+  tech_stack?: string[];
+  stack?: string[];
+  tools?: string[];
 }
 
 function ProjectBlock({ proj, index, totalMatches }: {
@@ -196,12 +211,12 @@ function ProjectBlock({ proj, index, totalMatches }: {
 }) {
   const { ref, visible } = useReveal(index * 120);
 
-  const title = proj.title || proj.name || "Unnamed Project";
-  const rawDescription = proj.description || "";
+  const title = proj.title || proj.name || proj.projectName || proj.project_name || proj.projectTitle || proj.project_title || proj.project || "Unnamed Project";
+  const rawDescription = proj.description || proj.desc || proj.details || proj.detail || proj.summary || proj.about || proj.work || "";
   const description = Array.isArray(rawDescription)
     ? rawDescription.join(" ")
     : rawDescription;
-  const technologies = proj.technologies || proj.tech || proj.techs || [];
+  const technologies = proj.technologies || proj.tech || proj.techs || proj.techStack || proj.tech_stack || proj.stack || proj.tools || [];
 
   return (
     <div ref={ref} className={`reveal project-block ${visible ? "visible" : ""}`}>
