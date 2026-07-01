@@ -46,7 +46,7 @@ def get_matches(
             scraped_jobs = []
             # Scrape Internshala
             try:
-                scraped = scrape_internshala(keyword, limit=3)
+                scraped = scrape_internshala(keyword, limit=25)
                 if scraped:
                     for s in scraped:
                         s["source"] = "Internshala"

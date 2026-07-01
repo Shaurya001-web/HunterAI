@@ -59,11 +59,13 @@ def get_job_skills(detail_url: str) -> List[str]:
         print(f"Error fetching skills from {detail_url}: {e}")
         return []
 
-def scrape_internshala(search_query: str, limit: int = 5) -> List[Dict[str, Any]]:
+from concurrent.futures import ThreadPoolExecutor
+
+def scrape_internshala(search_query: str, limit: int = 25) -> List[Dict[str, Any]]:
     """
-    Scrapes Internshala search listings and fetches required skills from the detail pages.
+    Scrapes Internshala search listings and fetches required skills from the detail pages concurrently.
     """
-    print(f"Searching Internshala for '{search_query}'...")
+    print(f"Searching Internshala for '{search_query}' (limit: {limit})...")
     encoded_query = urllib.parse.quote(search_query)
     url = f"https://internshala.com/internships/keywords-{encoded_query}/"
     
@@ -76,11 +78,9 @@ def scrape_internshala(search_query: str, limit: int = 5) -> List[Dict[str, Any]
         soup = BeautifulSoup(response.text, 'html.parser')
         cards = soup.find_all('div', class_='individual_internship')
         
-        jobs = []
-        count = 0
-        
+        pre_jobs = []
         for card in cards:
-            if count >= limit:
+            if len(pre_jobs) >= limit:
                 break
                 
             title_el = card.find('h2', class_='job-internship-name')
@@ -111,28 +111,34 @@ def scrape_internshala(search_query: str, limit: int = 5) -> List[Dict[str, Any]
             if not link:
                 continue
                 
-            print(f"[{count + 1}] Scraping details for '{title}' at '{company}'...")
-            
-            # Fetch required skills from detail page
-            required_skills = get_job_skills(link)
-            
-            # Fallback if no skills parsed (use query keyword as fallback required skill)
-            if not required_skills:
-                required_skills = [search_query.capitalize()]
-                
-            jobs.append({
+            pre_jobs.append({
                 "job_title": title,
                 "company": company,
                 "location": location,
                 "stipend": stipend,
                 "duration": duration,
-                "required_skills": required_skills,
                 "url": link
             })
             
-            count += 1
-            # Polite delay between requests
-            time.sleep(1.0)
+        if not pre_jobs:
+            return []
+
+        # Fetch required skills concurrently
+        def fetch_skills_task(job):
+            try:
+                required_skills = get_job_skills(job["url"])
+            except Exception as thread_err:
+                print(f"Thread fetch error for {job['url']}: {thread_err}")
+                required_skills = []
+                
+            if not required_skills:
+                required_skills = [search_query.capitalize()]
+            job["required_skills"] = required_skills
+            return job
+
+        # Use ThreadPoolExecutor for concurrent requests
+        with ThreadPoolExecutor(max_workers=10) as executor:
+            jobs = list(executor.map(fetch_skills_task, pre_jobs))
             
         return jobs
         
