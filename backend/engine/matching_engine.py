@@ -54,13 +54,21 @@ def load_jobs(file_path: str) -> List[Dict[str, Any]]:
         print(f"Error loading jobs from {file_path}: {e}")
         return []
 
-# Simple keyword mappings to catch related terms
-KEYWORDS_MAP = {
-    "machine learning": ["ml", "machine learning", "deep learning", "neural", "tensorflow", "pytorch", "scikit", "ai", "artificial intelligence", "regression", "model", "nlp", "cnn", "rnn", "computer vision", "llm", "chatgpt", "claude"],
-    "data science": ["data science", "pandas", "numpy", "matplotlib", "seaborn", "scikit", "analysis", "analytics", "sql", "machine learning", "ml"],
-    "python": ["python", "django", "flask", "fastapi", "pytest", "numpy", "pandas"],
-    "web development": ["react", "next.js", "angular", "vue", "node", "express", "html", "css", "js", "javascript", "typescript", "web", "website", "django", "flask"],
-    "software engineering": ["java", "c++", "c#", "python", "go", "rust", "algorithm", "data structures", "system design", "docker", "kubernetes", "git"]
+# Unidirectional Skill Satisfaction Matrix
+# Key: The required job skill
+# Value: The list of user skills that STRICTLY satisfy that requirement.
+# Example: If job requires "deep learning", user MUST have "deep learning" or "pytorch". "machine learning" is not enough.
+SKILL_SATISFACTION_MAP = {
+    "deep learning": ["deep learning", "neural networks", "neural network", "tensorflow", "pytorch", "keras", "cnn", "rnn", "computer vision"],
+    "data science": ["data science", "pandas", "numpy", "matplotlib", "seaborn", "data analysis", "data analytics", "data scientist"],
+    "machine learning": ["machine learning", "ml", "deep learning", "tensorflow", "pytorch", "scikit", "scikit-learn", "regression", "model", "nlp"],
+    "artificial intelligence": ["artificial intelligence", "ai", "machine learning", "deep learning", "llm", "genai", "generative ai"],
+    "ai": ["ai", "artificial intelligence", "machine learning", "deep learning", "llm", "genai", "generative ai"],
+    "python": ["python", "django", "flask", "fastapi", "pytest", "numpy", "pandas", "pytorch", "tensorflow"],
+    "web development": ["web development", "react", "next.js", "nextjs", "angular", "vue", "node", "express", "html", "css", "js", "javascript", "typescript", "web", "website", "django", "flask", "frontend", "backend"],
+    "frontend": ["frontend", "front-end", "react", "next.js", "angular", "vue", "html", "css", "javascript", "typescript", "tailwind"],
+    "backend": ["backend", "back-end", "node", "express", "django", "flask", "fastapi", "spring boot", "java", "python", "go", "ruby"],
+    "software engineering": ["software engineering", "java", "c++", "c#", "python", "go", "rust", "algorithm", "data structures", "system design", "docker", "kubernetes", "git"]
 }
 
 import re
@@ -68,7 +76,7 @@ import re
 def _is_skill_match(user_skill: str, term: str) -> bool:
     if term == user_skill:
         return True
-    # If the term is very short (like rest, api, git, ml, nlp), use word boundaries
+    # If the term is very short (like rest, api, git, ml, nlp, ai), use word boundaries
     if len(term) <= 4 or len(user_skill) <= 4:
         pattern = r'\b' + re.escape(term) + r'\b'
         return bool(re.search(pattern, user_skill))
@@ -76,8 +84,8 @@ def _is_skill_match(user_skill: str, term: str) -> bool:
 
 def calculate_match(user_skills: List[str], job_skills: List[str]) -> Dict[str, Any]:
     """
-    Compares user skills against job required skills, and calculates the match score,
-    matched skills, and missing skills. Uses substring and synonymous matching.
+    Compares user skills against job required skills using a unidirectional strict satisfaction matrix.
+    Basic skills will NOT trigger a match for advanced roles.
     """
     if not job_skills:
         return {
@@ -96,19 +104,19 @@ def calculate_match(user_skills: List[str], job_skills: List[str]) -> Dict[str, 
             continue
         normalized_req = req_skill.strip().lower()
         
-        # Build a list of valid terms to match for this required skill
-        terms_to_match = [normalized_req]
-        for key, synonyms in KEYWORDS_MAP.items():
-            if normalized_req == key or normalized_req in synonyms:
-                terms_to_match.extend(synonyms)
-                terms_to_match.append(key)
-                
-        terms_to_match = list(set(terms_to_match))
+        # 1. Start with the literal requirement itself
+        valid_satisfying_terms = [normalized_req]
+        
+        # 2. Add specific terms that strictly satisfy this requirement from our unidirectional map
+        if normalized_req in SKILL_SATISFACTION_MAP:
+            valid_satisfying_terms.extend(SKILL_SATISFACTION_MAP[normalized_req])
+            
+        # Optional: Clean up duplicates
+        valid_satisfying_terms = list(set(valid_satisfying_terms))
         
         matched = False
         for user_skill in normalized_user_skills:
-            # Check if any synonymous term is in the user skill, or if user skill is in synonymous term
-            for term in terms_to_match:
+            for term in valid_satisfying_terms:
                 if _is_skill_match(user_skill, term):
                     # Prevent overly broad matches like "c" in "react"
                     if len(user_skill) <= 2 and user_skill != term:
@@ -199,7 +207,7 @@ def evaluate_suitability(user_profile: Dict[str, Any], job: Dict[str, Any], keyw
     
     # Get all search terms to check
     search_terms = [query]
-    for key, synonyms in KEYWORDS_MAP.items():
+    for key, synonyms in SKILL_SATISFACTION_MAP.items():
         if key in query or any(syn in query for syn in [key] + synonyms):
             search_terms.extend(synonyms)
             
