@@ -1,92 +1,85 @@
 /* ─── APP SHELL ──────────────────────────────────────────────── */
 .app-shell {
   display: flex;
-  min-height: 100vh;
+  height: 100vh;
+  overflow: hidden;
   background: var(--bg-base);
 }
 
-/* ─── SIDEBAR (FLOATING PILL) ────────────────────────────────── */
+/* ─── SIDEBAR ────────────────────────────────── */
 .sidebar {
-  width: 88px;
-  height: auto;
-  min-height: 540px;
-  max-height: 90vh;
-  background: var(--bg-sidebar);
-  border: 1px solid var(--border);
-  border-radius: 28px;
+  width: 260px;
+  height: 100vh;
+  background: var(--bg-surface);
+  border-right: 1px solid var(--border);
   display: flex;
   flex-direction: column;
-  position: fixed;
-  top: 50%;
-  left: 16px;
-  transform: translateY(-50%);
+  flex-shrink: 0;
   z-index: 900;
-  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.03);
-  padding: 32px 0;
+  padding: 32px 20px;
 }
 
 .sidebar-logo {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  gap: 8px;
-  margin-bottom: 32px;
+  gap: 12px;
+  margin-bottom: 40px;
+  padding: 0 12px;
   text-decoration: none;
 }
 
 .sidebar-logo-mark {
-  width: 36px;
-  height: 36px;
+  width: 32px;
+  height: 32px;
   background: var(--accent);
-  border-radius: 12px;
+  border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
 }
 
 .sidebar-logo-text {
-  display: none;
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: -0.01em;
 }
 
 .sidebar-nav {
   flex: 1;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 16px;
+  gap: 8px;
 }
 
 .nav-item {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  justify-content: center;
-  gap: 6px;
-  width: 64px;
-  height: 64px;
-  border-radius: 18px;
+  gap: 12px;
+  width: 100%;
+  height: 44px;
+  padding: 0 16px;
+  border-radius: 12px;
   text-decoration: none;
   font-family: var(--font-body);
-  font-size: 10px;
+  font-size: 14px;
   font-weight: 600;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
   color: var(--text-secondary);
-  transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
-  position: relative;
+  transition: all 0.2s ease;
+  border: 1px solid transparent;
 }
 
 .nav-item:hover {
   color: var(--text-primary);
   background: var(--bg-elevated);
-  transform: scale(1.02);
 }
 
 .nav-item.active {
-  color: var(--bg-surface);
-  background: var(--accent);
+  color: var(--accent);
+  background: var(--accent-light);
   border: 1px solid var(--accent);
-  box-shadow: 0 4px 12px var(--accent-soft);
 }
 
 .sidebar-bottom {
@@ -97,12 +90,20 @@
   gap: 16px;
 }
 
+/* ─── MAIN WRAPPER ───────────────────────────────────────────── */
+.main-wrapper {
+  flex: 1;
+  position: relative;
+  height: 100vh;
+  overflow: hidden;
+}
+
 /* ─── TOPBAR ─────────────────────────────────────────────────── */
 .topbar-wrapper {
-  position: fixed;
+  position: absolute;
   top: 16px;
-  left: 120px;
-  right: 48px;
+  left: 0;
+  right: 0;
   display: flex;
   justify-content: center;
   z-index: 1000;
@@ -138,13 +139,13 @@
 
 /* ─── CONTENT AREA ───────────────────────────────────────────── */
 .page-content {
-  margin-left: 120px; /* Space for the thinner floating sidebar */
-  padding-top: 100px; /* Use padding instead of margin so content visually scrolls from top */
-  min-height: 100vh;
+  height: 100vh;
+  overflow-y: auto;
+  padding-top: 100px; /* Space for absolute topbar */
   padding-bottom: 80px;
   padding-left: 48px;
   padding-right: 48px;
-  width: calc(100% - 120px);
+  width: 100%;
 }
 
 /* ─── CARDS ──────────────────────────────────────────────────── */
