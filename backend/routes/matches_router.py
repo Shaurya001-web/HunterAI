@@ -42,11 +42,18 @@ def get_matches(
         }
 
         # 2. Collect jobs (either scraping or querying existing)
-        if keyword:
+        scrape_keyword = keyword
+        
+        # If no keyword was searched, but the database is empty, auto-scrape using their top skill
+        # so they don't see an empty page on first login.
+        if not scrape_keyword and db.query(Job).count() < 10 and profile.skills:
+            scrape_keyword = profile.skills[0]
+
+        if scrape_keyword:
             scraped_jobs = []
             # Scrape Internshala
             try:
-                scraped = scrape_internshala(keyword, limit=25)
+                scraped = scrape_internshala(scrape_keyword, limit=25)
                 if scraped:
                     for s in scraped:
                         s["source"] = "Internshala"
