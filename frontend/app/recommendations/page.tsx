@@ -71,26 +71,12 @@ function JobCard({
 
   return (
     <div
-      className="card"
+      className="glass-panel glass-card-hover"
       style={{
-        padding: "24px",
+        padding: "28px",
         display: "flex",
         flexDirection: "column",
-        gap: "16px",
-        transition: "all 0.2s",
-        cursor: "default",
-      }}
-      onMouseEnter={(e) => {
-        const el = e.currentTarget as HTMLElement;
-        el.style.borderColor = `${scoreColor}30`;
-        el.style.transform = "translateY(-2px)";
-        el.style.boxShadow = `0 8px 32px ${scoreColor}10`;
-      }}
-      onMouseLeave={(e) => {
-        const el = e.currentTarget as HTMLElement;
-        el.style.borderColor = "var(--border)";
-        el.style.transform = "translateY(0)";
-        el.style.boxShadow = "none";
+        gap: "18px",
       }}
     >
       {/* Top row */}
@@ -155,7 +141,7 @@ function JobCard({
               onToggleSave();
             }}
             style={{
-              background: isSaved ? "var(--accent-soft)" : "transparent",
+              background: isSaved ? "var(--accent-light)" : "transparent",
               border: `1px solid ${isSaved ? "var(--accent-border)" : "var(--border)"}`,
               borderRadius: "50%",
               width: "32px",
@@ -449,17 +435,17 @@ export default function RecommendationsPage() {
   if (profiles.length === 0 && !loading) {
     return (
       <div style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "100vh", padding: "40px" }}>
-        <div style={{ background: "var(--bg-surface)", border: "1px solid var(--border)", borderRadius: "20px", padding: "52px 40px", textAlign: "center", maxWidth: "380px" }}>
-          <div style={{ width: "52px", height: "52px", background: "var(--accent-soft)", borderRadius: "14px", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 20px" }}>
+        <div style={{ background: "var(--bg-surface)", border: "1px solid var(--border)", borderRadius: "20px", padding: "52px 40px", textAlign: "center", maxWidth: "380px", boxShadow: "0 12px 32px rgba(0,0,0,0.06)" }}>
+          <div style={{ width: "52px", height: "52px", background: "var(--accent-light)", borderRadius: "14px", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 20px" }}>
             <Sparkles size={24} color="var(--accent)" />
           </div>
-          <h2 style={{ fontFamily: "var(--font-display)", fontSize: "20px", fontWeight: 700, color: "var(--text-primary)", marginBottom: "8px" }}>No Profile Yet</h2>
-          <p style={{ color: "var(--text-secondary)", fontSize: "13.5px", marginBottom: "28px", lineHeight: 1.6 }}>
+          <h2 style={{ fontFamily: "var(--font-display)", fontSize: "28px", color: "var(--text-primary)", marginBottom: "8px" }}>No Profile Yet</h2>
+          <p style={{ color: "var(--text-secondary)", fontSize: "14px", marginBottom: "28px", lineHeight: 1.6 }}>
             Upload your resume first to calculate personalized job matches.
           </p>
           <Link
             href="/upload"
-            style={{ display: "inline-flex", alignItems: "center", gap: "8px", textDecoration: "none", fontWeight: 600, fontSize: "14px", color: "white", padding: "11px 24px", borderRadius: "10px", background: "linear-gradient(135deg, #6c5ce7, #8b5cf6)", boxShadow: "0 4px 14px rgba(108,92,231,0.3)" }}
+            style={{ display: "inline-flex", alignItems: "center", gap: "8px", textDecoration: "none", fontWeight: 600, fontSize: "14px", color: "white", padding: "12px 24px", borderRadius: "12px", background: "var(--accent)" }}
           >
             <Upload size={15} /> Upload Resume
           </Link>
@@ -472,7 +458,7 @@ export default function RecommendationsPage() {
     <AppShell title="Recommendations">
       {/* Subheader and profile selector */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "24px", flexWrap: "wrap", gap: "16px" }}>
-        <p style={{ color: "var(--text-secondary)", fontSize: "13.5px" }}>
+        <p style={{ color: "var(--text-secondary)", fontSize: "13.5px", fontWeight: 500 }}>
           {loading ? "Searching opportunities..." : `${filtered.length} matches found, evaluated against skills & projects`}
         </p>
 
@@ -480,7 +466,7 @@ export default function RecommendationsPage() {
         {profiles.length > 1 && (
           <div
             style={{
-              background: "var(--surface)",
+              background: "var(--bg-surface)",
               border: "1px solid var(--border)",
               borderRadius: "10px",
               position: "relative",
@@ -510,98 +496,86 @@ export default function RecommendationsPage() {
         )}
       </div>
 
-      {/* Search + Filter bar */}
-      <form
-        onSubmit={handleSearchSubmit}
-        style={{
-          background: "var(--surface)",
-          border: "1px solid var(--border)",
-          borderRadius: "14px",
-          padding: "16px",
-          marginBottom: "24px",
-          display: "flex",
-          gap: "12px",
-          alignItems: "center",
-          flexWrap: "wrap",
-        }}
-      >
-        <div style={{ position: "relative", flex: "1 1 220px" }}>
-          <Search size={14} color="var(--text-muted)" style={{ position: "absolute", left: "12px", top: "50%", transform: "translateY(-50%)" }} />
-          <input
-            type="text"
-            placeholder="Search ML, python, web dev... (Runs live scrapers)"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="input-base"
-            style={{ paddingLeft: "36px" }}
-          />
-        </div>
-
-        <button
-          type="submit"
+      {/* Search + Filter bar (Sticky) */}
+      <div style={{ position: "sticky", top: 80, zIndex: 10, marginBottom: "32px" }}>
+        <form
+          onSubmit={handleSearchSubmit}
+          className="glass-light"
           style={{
+            padding: "16px 24px",
             display: "flex",
+            gap: "12px",
             alignItems: "center",
-            gap: "6px",
-            background: "linear-gradient(135deg, #6c5ce7, #8b5cf6)",
-            border: "none",
-            borderRadius: "10px",
-            padding: "9px 18px",
-            color: "white",
-            fontSize: "13px",
-            cursor: "pointer",
-            fontFamily: "var(--font-body)",
-            fontWeight: 600,
-            transition: "all 0.15s",
+            flexWrap: "wrap",
+            borderRadius: 24,
+            border: "1px solid var(--border)",
           }}
         >
-          <Search size={14} /> Search
-        </button>
+          <div style={{ position: "relative", flex: "1 1 220px" }}>
+            <Search size={14} color="var(--text-muted)" style={{ position: "absolute", left: "12px", top: "50%", transform: "translateY(-50%)" }} />
+            <input
+              type="text"
+              placeholder="Search ML, python, web dev..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="input-base"
+              style={{ paddingLeft: "36px", background: "var(--bg-surface)", border: "1px solid var(--border)", borderRadius: "12px", padding: "10px 12px 10px 36px", width: "100%", fontSize: 14 }}
+            />
+          </div>
 
-        <button
-          type="button"
-          onClick={() => setShowFilters(!showFilters)}
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: "6px",
-            background: showFilters ? "var(--accent-light)" : "var(--surface-2)",
-            border: showFilters ? "1px solid var(--accent-border)" : "1px solid var(--border)",
-            borderRadius: "10px",
-            padding: "9px 14px",
-            color: showFilters ? "var(--accent)" : "var(--text-secondary)",
-            fontSize: "13px",
-            cursor: "pointer",
-            fontFamily: "var(--font-body)",
-            fontWeight: 500,
-            transition: "all 0.15s",
-          }}
-        >
-          <SlidersHorizontal size={14} /> Filters
-        </button>
+          <button
+            type="submit"
+            className="btn-primary"
+            style={{ display: "flex", alignItems: "center", gap: "6px", padding: "11px 20px" }}
+          >
+            <Search size={14} /> Search
+          </button>
 
-        <button
-          type="button"
-          onClick={() => { setSearchQuery(""); fetchMatches(selectedEmail, ""); setMinScore(0); }}
-          style={{
-            background: "none",
-            border: "none",
-            color: "var(--text-muted)",
-            fontSize: "12px",
-            cursor: "pointer",
-            fontFamily: "var(--font-body)",
-            padding: "4px",
-          }}
-        >
-          Reset
-        </button>
-      </form>
+          <button
+            type="button"
+            onClick={() => setShowFilters(!showFilters)}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "6px",
+              background: showFilters ? "var(--accent-light)" : "var(--bg-surface)",
+              border: showFilters ? "1px solid var(--accent)" : "1px solid var(--border)",
+              borderRadius: "10px",
+              padding: "10px 16px",
+              color: showFilters ? "var(--accent)" : "var(--text-secondary)",
+              fontSize: "13px",
+              cursor: "pointer",
+              fontFamily: "var(--font-body)",
+              fontWeight: 500,
+              transition: "all 0.15s",
+            }}
+          >
+            <SlidersHorizontal size={14} /> Filters
+          </button>
+
+          <button
+            type="button"
+            onClick={() => { setSearchQuery(""); fetchMatches(selectedEmail, ""); setMinScore(0); }}
+            style={{
+              background: "none",
+              border: "none",
+              color: "var(--text-muted)",
+              fontSize: "13px",
+              cursor: "pointer",
+              fontFamily: "var(--font-body)",
+              padding: "8px 12px",
+            }}
+          >
+            Reset
+          </button>
+        </form>
+      </div>
 
       {/* Min score filter */}
       {showFilters && (
         <div
           style={{
-            background: "var(--surface)",
+            background: "var(--bg-surface)",
             border: "1px solid var(--border)",
             borderRadius: "14px",
             padding: "16px 20px",
@@ -618,17 +592,17 @@ export default function RecommendationsPage() {
             max="100"
             value={minScore}
             onChange={(e) => setMinScore(Number(e.target.value))}
-            style={{ flex: 1, maxWidth: "200px", accentColor: "#6c5ce7" }}
+            style={{ flex: 1, maxWidth: "200px", accentColor: "var(--accent)" }}
           />
           <span
             style={{
               fontSize: "13px",
               fontWeight: 800,
-              fontFamily: "var(--font-mono)",
+              fontFamily: "var(--font-body)",
               color: "var(--accent)",
               background: "var(--accent-light)",
-              padding: "3px 10px",
-              borderRadius: "6px",
+              padding: "4px 12px",
+              borderRadius: "8px",
               minWidth: "44px",
               textAlign: "center",
             }}
@@ -656,7 +630,7 @@ export default function RecommendationsPage() {
           <p style={{ color: "#ff4d6d", fontSize: "13.5px", marginBottom: "16px" }}>{error}</p>
           <button
             onClick={() => fetchMatches(selectedEmail, searchQuery)}
-            style={{ display: "inline-flex", alignItems: "center", gap: "6px", background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "8px", padding: "8px 16px", color: "var(--text-secondary)", fontSize: "13px", cursor: "pointer", fontFamily: "var(--font-body)" }}
+            style={{ display: "inline-flex", alignItems: "center", gap: "6px", background: "var(--bg-surface)", border: "1px solid var(--border)", borderRadius: "8px", padding: "8px 16px", color: "var(--text-secondary)", fontSize: "13px", cursor: "pointer", fontFamily: "var(--font-body)" }}
           >
             <RefreshCw size={13} /> Retry
           </button>
@@ -664,7 +638,7 @@ export default function RecommendationsPage() {
       ) : filtered.length === 0 ? (
         <div
           style={{
-            background: "var(--surface)",
+            background: "var(--bg-surface)",
             border: "1px dashed var(--border-strong)",
             borderRadius: "20px",
             padding: "80px 40px",

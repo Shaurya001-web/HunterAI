@@ -164,7 +164,9 @@ function SkillGroups({ skills }: { skills: string[] }) {
                   key={skill}
                   className={`skill-pill ${isTop ? "skill-pill-lg" : ""}`}
                   style={{
-                    borderLeftColor: `rgba(108,79,224,${prof})`,
+                    background: `rgba(108, 79, 224, ${prof * 0.12})`,
+                    borderLeftColor: `rgba(108, 79, 224, ${prof})`,
+                    color: "var(--text-primary)",
                     animationDelay: `${gi * 150 + si * 30}ms`,
                   }}
                 >
@@ -601,50 +603,63 @@ export default function ProfilePage() {
             </Link>
           </div>
 
-          {/* Zone 1 — Profile Hero */}
+          {/* Two-Column Sticky Layout */}
           <div
-            ref={heroRef}
-            className={`reveal profile-hero ${heroVisible ? "visible" : ""}`}
-            style={{ display: "grid", gridTemplateColumns: "auto 1fr", gap: 48 }}
+            style={{
+              display: "grid",
+              gridTemplateColumns: "280px 1fr",
+              gap: 64,
+              alignItems: "flex-start",
+            }}
+            className="profile-grid"
           >
-            {/* Left side */}
-            <div style={{ width: 240, flexShrink: 0 }}>
-              {/* Avatar */}
+            {/* Left Column (Sticky Identity Card) */}
+            <div
+              ref={heroRef}
+              className={`reveal glass-panel ${heroVisible ? "visible" : ""}`}
+              style={{
+                position: "sticky",
+                top: 100,
+                padding: "32px 24px",
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "flex-start",
+              }}
+            >
               <div style={{
-                width: 72, height: 72, borderRadius: "50%",
+                width: 80, height: 80, borderRadius: "50%",
                 background: "linear-gradient(135deg, var(--accent), var(--accent-cyan))",
                 display: "flex", alignItems: "center", justifyContent: "center",
-                fontFamily: "var(--font-display)", fontSize: 26, fontWeight: 400,
-                color: "white", marginBottom: 16,
+                fontFamily: "var(--font-display)", fontSize: 28, fontWeight: 400,
+                color: "white", marginBottom: 20,
               }}>
                 {initials}
               </div>
 
-              {/* Name */}
               <h1 style={{
                 fontFamily: "var(--font-display)",
-                fontSize: 30,
-                letterSpacing: "-0.03em",
+                fontSize: 32,
+                letterSpacing: "-0.02em",
                 lineHeight: 1.1,
                 color: "var(--text-primary)",
-                marginBottom: 6,
+                marginBottom: 8,
               }}>
                 {firstName ? (
                   <>
                     <em>{firstName}</em>
-                    {profile.name?.slice(firstName.length)}
+                    <br />
+                    {profile.name?.slice(firstName.length).trim()}
                   </>
                 ) : (
                   profile.name || "Profile"
                 )}
               </h1>
 
-              {/* Role line */}
               <p style={{
                 fontFamily: "var(--font-body)",
-                fontSize: 13,
+                fontSize: 14,
                 color: "var(--text-muted)",
-                marginBottom: 20,
+                marginBottom: 16,
                 lineHeight: 1.4,
               }}>
                 {profile.experience?.[0]
@@ -654,79 +669,83 @@ export default function ProfilePage() {
                   : "Open to opportunities"}
               </p>
 
-              {/* Contact */}
               {profile.email && (
-                <p style={{
+                <div style={{
                   fontFamily: "var(--font-body)",
-                  fontSize: 12,
-                  color: "var(--text-muted)",
-                  marginBottom: 4,
+                  fontSize: 13,
+                  color: "var(--text-secondary)",
+                  marginBottom: 24,
+                  padding: "8px 12px",
+                  background: "var(--bg-elevated)",
+                  borderRadius: 6,
+                  border: "1px dashed var(--border)"
                 }}>
                   {profile.email}
-                </p>
+                </div>
               )}
 
-              {/* Strength pills */}
-              <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 16 }}>
+              <div style={{ width: "100%", height: 1, background: "var(--border)", marginBottom: 24 }} />
+
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 8, width: "100%" }}>
                 {strengths.filter(s => s.filled > 0).map((s) => (
                   <StrengthPill key={s.label} label={s.label} filled={s.filled} total={s.total} />
                 ))}
               </div>
             </div>
 
-            {/* Right side — AI Summary */}
-            <AiSummaryBlock profile={profile} />
-          </div>
-
-          {/* Zones 2 + 3 — Skills | Projects */}
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "55fr 45fr",
-              gap: 56,
-              marginBottom: 0,
-            }}
-            className="profile-grid"
-          >
-            {/* Zone 2 — Skills by group */}
-            {profile.skills?.length ? (
-              <SkillGroups skills={profile.skills} />
-            ) : (
-              <div>
-                <div className="section-heading">Skills</div>
-                <p style={{ fontFamily: "var(--font-body)", fontSize: 13, color: "var(--text-muted)", fontStyle: "italic" }}>
-                  No skills parsed from this resume.
-                </p>
+            {/* Right Column (Scrollable Content) */}
+            <div style={{ display: "flex", flexDirection: "column", gap: 56 }}>
+              <div className="glass-panel" style={{ padding: 40 }}>
+                <AiSummaryBlock profile={profile} />
               </div>
-            )}
 
-            {/* Zone 3 — Projects */}
-            <div>
-              <div className="section-heading">Projects</div>
-              {profile.projects?.length ? (
-                profile.projects.map((proj, i) => (
-                  <ProjectBlock
-                    key={i}
-                    proj={proj}
-                    index={i}
-                    totalMatches={i < 2 ? matchCount : 0}
-                  />
-                ))
-              ) : (
-                <p style={{
-                  fontFamily: "var(--font-body)",
-                  fontSize: 13,
-                  color: "var(--text-muted)",
-                  fontStyle: "italic",
-                }}>
-                  No projects listed.
-                </p>
-              )}
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "1fr 1fr",
+                  gap: 56,
+                }}
+              >
+                <div>
+                  {profile.skills?.length ? (
+                    <SkillGroups skills={profile.skills} />
+                  ) : (
+                    <div>
+                      <div className="section-heading">Skills</div>
+                      <p style={{ fontFamily: "var(--font-body)", fontSize: 13, color: "var(--text-muted)", fontStyle: "italic" }}>
+                        No skills parsed from this resume.
+                      </p>
+                    </div>
+                  )}
+                </div>
+
+                <div>
+                  <div className="section-heading">Projects</div>
+                  {profile.projects?.length ? (
+                    profile.projects.map((proj, i) => (
+                      <ProjectBlock
+                        key={i}
+                        proj={proj}
+                        index={i}
+                        totalMatches={i < 2 ? matchCount : 0}
+                      />
+                    ))
+                  ) : (
+                    <p style={{
+                      fontFamily: "var(--font-body)",
+                      fontSize: 13,
+                      color: "var(--text-muted)",
+                      fontStyle: "italic",
+                    }}>
+                      No projects listed.
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              <EduExpSection profile={profile} />
             </div>
           </div>
-
-          {/* Zone 4 — Education & Experience */}
-          <EduExpSection profile={profile} />
         </>
       )}
     </AppShell>

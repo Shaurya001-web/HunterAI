@@ -110,14 +110,7 @@ export default function UploadPage() {
         </div>
 
         {/* Card */}
-        <div
-          style={{
-            background: "var(--bg-surface)",
-            border: "1px solid var(--border)",
-            borderRadius: "20px",
-            padding: "28px",
-          }}
-        >
+        <div className="glass-panel" style={{ padding: "40px" }}>
           {status === "success" ? (
             <div style={{ textAlign: "center", padding: "16px 0" }}>
               <div
@@ -152,19 +145,14 @@ export default function UploadPage() {
               <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
                 <Link
                   href="/recommendations"
+                  className="btn-primary"
                   style={{
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
                     gap: "8px",
                     textDecoration: "none",
-                    fontWeight: 700,
-                    fontSize: "14px",
-                    color: "white",
                     padding: "13px",
-                    borderRadius: "12px",
-                    background: "linear-gradient(135deg, #6c5ce7, #8b5cf6)",
-                    boxShadow: "0 4px 16px rgba(108,92,231,0.3)",
                   }}
                 >
                   View Recommendations <ArrowRight size={15} />
@@ -181,8 +169,8 @@ export default function UploadPage() {
                     fontSize: "13.5px",
                     color: "var(--text-secondary)",
                     padding: "11px",
-                    borderRadius: "12px",
-                    background: "var(--bg-elevated)",
+                    borderRadius: "10px",
+                    background: "rgba(255,255,255,0.03)",
                     border: "1px solid var(--border)",
                   }}
                 >
@@ -191,7 +179,7 @@ export default function UploadPage() {
               </div>
             </div>
           ) : (
-            <form onSubmit={handleUpload} style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+            <form onSubmit={handleUpload} style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
               {/* Drop zone */}
               <div
                 onClick={() => fileInputRef.current?.click()}
@@ -199,20 +187,21 @@ export default function UploadPage() {
                 onDragLeave={() => setDragging(false)}
                 onDrop={handleDrop}
                 style={{
-                  border: `2px dashed ${dragging ? "rgba(108,92,231,0.6)" : file ? "rgba(108,92,231,0.4)" : "var(--border-strong)"}`,
-                  borderRadius: "14px",
-                  padding: "40px 24px",
+                  border: `2px dashed ${dragging ? "var(--accent)" : file ? "var(--accent-border)" : "var(--border-strong)"}`,
+                  borderRadius: "16px",
+                  padding: "64px 24px",
                   display: "flex",
                   flexDirection: "column",
                   alignItems: "center",
                   justifyContent: "center",
                   cursor: "pointer",
-                  transition: "all 0.2s",
+                  transition: "all 0.2s cubic-bezier(0.22, 1, 0.36, 1)",
                   background: dragging
-                    ? "var(--accent-soft)"
+                    ? "var(--accent-light)"
                     : file
-                    ? "rgba(108,92,231,0.05)"
-                    : "var(--bg-elevated)",
+                    ? "var(--accent-light)"
+                    : "var(--bg-surface)",
+                  boxShadow: dragging ? "inset 0 0 0 2px var(--accent)" : "none",
                 }}
               >
                 <input
@@ -226,34 +215,34 @@ export default function UploadPage() {
                   <>
                     <div
                       style={{
-                        width: "44px",
-                        height: "44px",
-                        borderRadius: "10px",
+                        width: "56px",
+                        height: "56px",
+                        borderRadius: "14px",
                         background: "var(--accent-soft)",
                         border: "1px solid var(--accent-border)",
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
-                        marginBottom: "12px",
+                        marginBottom: "16px",
                       }}
                     >
-                      <FileText size={20} color="var(--accent)" />
+                      <FileText size={24} color="var(--accent)" />
                     </div>
                     <p
                       style={{
                         fontWeight: 600,
-                        fontSize: "13.5px",
+                        fontSize: "14px",
                         color: "var(--text-primary)",
-                        maxWidth: "200px",
+                        maxWidth: "240px",
                         overflow: "hidden",
                         textOverflow: "ellipsis",
                         whiteSpace: "nowrap",
-                        marginBottom: "4px",
+                        marginBottom: "6px",
                       }}
                     >
                       {file.name}
                     </p>
-                    <p style={{ fontSize: "11px", color: "var(--text-muted)", marginBottom: "12px" }}>
+                    <p style={{ fontSize: "12px", color: "var(--text-muted)", marginBottom: "16px" }}>
                       {(file.size / 1024 / 1024).toFixed(2)} MB · PDF
                     </p>
                     <button
@@ -266,13 +255,15 @@ export default function UploadPage() {
                       style={{
                         display: "flex",
                         alignItems: "center",
-                        gap: "4px",
-                        background: "none",
-                        border: "none",
-                        color: "var(--text-muted)",
+                        gap: "6px",
+                        background: "rgba(255, 255, 255, 0.05)",
+                        border: "1px solid var(--border)",
+                        borderRadius: "20px",
+                        color: "var(--text-secondary)",
                         fontSize: "11px",
                         cursor: "pointer",
-                        padding: 0,
+                        padding: "6px 12px",
+                        transition: "all 0.15s",
                       }}
                     >
                       <X size={12} /> Remove
@@ -282,23 +273,24 @@ export default function UploadPage() {
                   <>
                     <div
                       style={{
-                        width: "44px",
-                        height: "44px",
-                        borderRadius: "10px",
-                        background: "var(--bg-hover)",
-                        border: "1px solid var(--border-strong)",
+                        width: "64px",
+                        height: "64px",
+                        borderRadius: "50%",
+                        background: "var(--bg-elevated)",
+                        border: "1px solid var(--border)",
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
-                        marginBottom: "12px",
+                        marginBottom: "20px",
+                        boxShadow: "0 4px 16px rgba(0,0,0,0.2)",
                       }}
                     >
-                      <UploadCloud size={20} color="var(--text-muted)" />
+                      <UploadCloud size={24} color="var(--text-secondary)" />
                     </div>
-                    <p style={{ fontSize: "13.5px", color: "var(--text-secondary)", marginBottom: "4px", fontWeight: 500 }}>
-                      <span style={{ color: "var(--accent)", fontWeight: 600 }}>Click to upload</span> or drag & drop
+                    <p style={{ fontSize: "15px", color: "var(--text-secondary)", marginBottom: "6px", fontWeight: 500 }}>
+                      <span style={{ color: "var(--text-primary)", fontWeight: 600 }}>Click to upload</span> or drag & drop
                     </p>
-                    <p style={{ fontSize: "11px", color: "var(--text-muted)" }}>PDF only · max 5MB</p>
+                    <p style={{ fontSize: "12px", color: "var(--text-muted)" }}>PDF only · max 5MB</p>
                   </>
                 )}
               </div>
@@ -310,14 +302,14 @@ export default function UploadPage() {
                     display: "flex",
                     gap: "10px",
                     alignItems: "flex-start",
-                    background: "rgba(255,77,109,0.08)",
-                    border: "1px solid rgba(255,77,109,0.2)",
+                    background: "rgba(244, 63, 94, 0.08)",
+                    border: "1px solid rgba(244, 63, 94, 0.2)",
                     borderRadius: "10px",
                     padding: "12px 14px",
                   }}
                 >
-                  <AlertCircle size={15} color="#ff4d6d" style={{ flexShrink: 0, marginTop: "1px" }} />
-                  <p style={{ fontSize: "12.5px", color: "#ff4d6d", lineHeight: 1.5 }}>{errorMsg}</p>
+                  <AlertCircle size={15} color="var(--rose)" style={{ flexShrink: 0, marginTop: "1px" }} />
+                  <p style={{ fontSize: "12.5px", color: "var(--rose)", lineHeight: 1.5 }}>{errorMsg}</p>
                 </div>
               )}
 
@@ -325,26 +317,15 @@ export default function UploadPage() {
               <button
                 type="submit"
                 disabled={!file || loading}
+                className="btn-primary"
                 style={{
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
                   gap: "8px",
                   width: "100%",
-                  padding: "13px",
-                  borderRadius: "12px",
-                  border: "none",
-                  fontFamily: "var(--font-body)",
-                  fontWeight: 700,
-                  fontSize: "14px",
-                  cursor: !file || loading ? "not-allowed" : "pointer",
-                  background:
-                    !file || loading
-                      ? "var(--bg-elevated)"
-                      : "linear-gradient(135deg, #6c5ce7, #8b5cf6)",
-                  color: !file || loading ? "var(--text-muted)" : "white",
-                  boxShadow: !file || loading ? "none" : "0 4px 16px rgba(108,92,231,0.3)",
-                  transition: "all 0.2s",
+                  padding: "14px",
+                  fontSize: "15px",
                 }}
               >
                 {loading ? (
@@ -354,7 +335,7 @@ export default function UploadPage() {
                   </>
                 ) : (
                   <>
-                    <Sparkles size={15} />
+                    <Sparkles size={16} />
                     <span>Parse & Extract Profile</span>
                   </>
                 )}
@@ -363,34 +344,47 @@ export default function UploadPage() {
           )}
         </div>
 
-        {/* Tips */}
+        {/* Tips (Collapsible) */}
         {status !== "success" && (
-          <div
+          <details
             className="fade-up fade-up-delay-2"
             style={{
-              marginTop: "20px",
-              background: "var(--bg-surface)",
+              marginTop: "24px",
+              padding: "16px 20px",
+              background: "var(--bg-elevated)",
               border: "1px solid var(--border)",
               borderRadius: "14px",
-              padding: "16px 20px",
+              cursor: "pointer",
             }}
           >
-            <p style={{ fontSize: "11px", fontWeight: 700, color: "var(--text-muted)", marginBottom: "10px", textTransform: "uppercase", letterSpacing: "0.06em" }}>
-              Tips for best results
-            </p>
-            <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+            <summary
+              style={{
+                fontSize: "12px",
+                fontWeight: 600,
+                color: "var(--text-secondary)",
+                textTransform: "uppercase",
+                letterSpacing: "0.06em",
+                outline: "none",
+                display: "flex",
+                alignItems: "center",
+                gap: "8px",
+              }}
+            >
+              <Sparkles size={12} color="var(--accent)" /> Tips for best results
+            </summary>
+            <div style={{ display: "flex", flexDirection: "column", gap: "10px", marginTop: "16px" }}>
               {[
                 "Use a clean, text-based PDF resume",
-                "Include a skills section for better matching",
-                "Add project names and tech stacks used",
+                "Include a dedicated skills section",
+                "Add explicit technologies to your project descriptions",
               ].map((tip) => (
                 <div key={tip} style={{ display: "flex", gap: "8px", alignItems: "center" }}>
-                  <CheckCircle2 size={12} color="#00d68f" />
-                  <span style={{ fontSize: "12.5px", color: "var(--text-secondary)" }}>{tip}</span>
+                  <CheckCircle2 size={13} color="var(--emerald)" />
+                  <span style={{ fontSize: "13px", color: "var(--text-secondary)" }}>{tip}</span>
                 </div>
               ))}
             </div>
-          </div>
+          </details>
         )}
       </div>
 

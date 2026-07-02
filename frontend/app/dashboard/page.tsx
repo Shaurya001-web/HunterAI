@@ -191,14 +191,13 @@ function MatchCard({ match, index }: { match: JobMatch; index: number }) {
   return (
     <div
       ref={ref}
-      className={`reveal match-card ${visible ? "visible" : ""}`}
+      className={`reveal glass-panel glass-card-hover ${visible ? "visible" : ""}`}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       style={{
-        borderLeft: `3px solid rgba(108,79,224,${borderOpacity})`,
-        borderRadius: "0 12px 12px 0",
-        transform: hovered ? "translateY(-2px)" : "translateY(0)",
-        boxShadow: hovered ? "var(--shadow-lift)" : "none",
+        borderLeft: `4px solid rgba(108, 79, 224, ${borderOpacity})`,
+        padding: 24,
+        position: "relative",
         transitionDelay: `${index * 80}ms`,
       }}
     >
@@ -526,65 +525,75 @@ export default function DashboardPage() {
         </div>
       ) : (
         <>
-          {/* Zone 1 — Welcome Header */}
+          {/* Zone 1 — Glass Hero Welcome */}
           <div
             ref={headerRef}
-            className={`reveal welcome-header ${headerVisible ? "visible" : ""}`}
+            className={`reveal glass-panel ${headerVisible ? "visible" : ""}`}
+            style={{ padding: "40px 48px", marginBottom: 24, display: "flex", justifyContent: "space-between", alignItems: "center" }}
           >
             <div>
-              <h1 className="welcome-name">
+              <h1 className="welcome-name" style={{ marginBottom: 8 }}>
                 {getTimeOfDay()},{" "}
                 <em>{profile?.name?.split(" ")[0] ?? "there"}.</em>
               </h1>
-              <p className="welcome-date">{formatDate()}</p>
+              <p className="welcome-date" style={{ color: "var(--text-secondary)", fontSize: 14 }}>{formatDate()}</p>
             </div>
             <div>
-              <span className={profileComplete ? "badge badge-cyan" : "badge badge-amber"}>
+              <span className={profileComplete ? "badge badge-cyan" : "badge badge-amber"} style={{ padding: "8px 16px", fontSize: 13 }}>
                 <span style={{
-                  width: 5, height: 5, borderRadius: "50%",
+                  width: 6, height: 6, borderRadius: "50%",
                   background: "currentColor",
                   display: "inline-block",
                 }} />
-                {profileComplete ? "Profile complete" : "Action needed"}
+                {profileComplete ? "Profile Complete" : "Action Needed"}
               </span>
             </div>
           </div>
 
-          {/* Zone 2 — AI Insight Strip */}
-          <InsightStrip
-            count={matches.length}
-            topSkill={topSkillArea}
-            gap={gapSkill}
-          />
+          {/* Zone 2 — Unified Stat Strip */}
+          <div className="glass-panel" style={{ display: "flex", padding: "0", marginBottom: 64, overflow: "hidden" }}>
+             {[
+               { label: "Jobs Matched", value: matches.length, suffix: "", color: "var(--accent)" },
+               { label: "Skills Parsed", value: skillCount, suffix: "", color: "var(--text-primary)" },
+               { label: "Match Strength", value: avgScore, suffix: "%", color: "var(--text-primary)" },
+               { label: "Profile %", value: completion, suffix: "%", color: "var(--text-primary)" },
+             ].map(({ label, value, suffix, color }, i) => (
+               <div key={label} style={{ flex: 1, padding: "24px 32px", borderRight: i < 3 ? "1px solid var(--border)" : "none" }}>
+                 <div className="metric-number" style={{ color }}>
+                   <AnimatedCounter target={value} suffix={suffix} delay={200 + i * 100} duration={800} color={color} />
+                 </div>
+                 <div className="metric-label">{label}</div>
+                 <div style={{ marginTop: 12, height: 4, background: "var(--bg-elevated)", borderRadius: 2, overflow: "hidden" }}>
+                   <MiniBar pct={value} max={100} delay={300 + i * 100} />
+                 </div>
+               </div>
+             ))}
+          </div>
 
-          {/* Zone 3 — Metrics Row */}
-          <MetricsRow
-            matched={matches.length}
-            skills={skillCount}
-            strength={avgScore}
-            completion={completion}
-          />
-
-          {/* Zones 4 + 5 — Two column */}
+          {/* Zones 3 + 4 — Main Content & Sidebar */}
           <div
             style={{
               display: "grid",
-              gridTemplateColumns: "3fr 2fr",
-              gap: 48,
+              gridTemplateColumns: "1fr 280px", /* Dominant matches, slim sidebar */
+              gap: 64,
               alignItems: "flex-start",
             }}
             className="profile-grid"
           >
-            {/* Zone 4 — Top Matches */}
+            {/* Zone 3 — Top Matches (Hero Content) */}
             <div>
-              <div className="section-heading">Top matches</div>
-              <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+              <div className="section-heading" style={{ fontSize: 32, marginBottom: 32 }}>Top Matches</div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
                 {topMatches.length === 0 ? (
                   <p style={{
                     fontFamily: "var(--font-body)",
-                    fontSize: 13,
+                    fontSize: 14,
                     color: "var(--text-muted)",
                     fontStyle: "italic",
+                    background: "var(--bg-elevated)",
+                    padding: 24,
+                    borderRadius: 16,
+                    border: "1px dashed var(--border-strong)"
                   }}>
                     No matches yet. Upload a resume to get started.
                   </p>
@@ -595,16 +604,18 @@ export default function DashboardPage() {
                 )}
               </div>
               {matches.length > 3 && (
-                <div style={{ marginTop: 20 }}>
-                  <Link href="/recommendations" className="link-text">
+                <div style={{ marginTop: 32 }}>
+                  <Link href="/recommendations" className="link-text" style={{ fontSize: 14, fontWeight: 500 }}>
                     See all {matches.length} matches →
                   </Link>
                 </div>
               )}
             </div>
 
-            {/* Zone 5 — Activity Timeline */}
-            <ActivityTimeline count={matches.length} />
+            {/* Zone 4 — Secondary Sidebar */}
+            <div style={{ position: "sticky", top: 100 }}>
+              <ActivityTimeline count={matches.length} />
+            </div>
           </div>
         </>
       )}
