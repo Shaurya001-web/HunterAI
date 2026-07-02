@@ -98,5 +98,15 @@ export const api = {
     if (!res.ok) throw new Error("Failed to unsave internship");
     return res.json();
   },
+
+  chat: async (message: string) => {
+    const res = await fetch(`${BASE_URL}/chat`, {
+      method: "POST",
+      headers: getHeaders({ "Content-Type": "application/json" }),
+      body: JSON.stringify({ message }),
+    });
+    if (!res.ok) throw new Error("Failed to chat");
+    return res.json();
+  },
 };
 export default api;

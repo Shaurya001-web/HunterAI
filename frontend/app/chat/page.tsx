@@ -30,20 +30,7 @@ export default function ChatPage() {
     setInsights(null);
 
     try {
-      const res = await fetch("http://127.0.0.1:8000/chat", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${user.id}`
-        },
-        body: JSON.stringify({ message: query })
-      });
-
-      if (!res.ok) {
-        throw new Error("Failed to get insights");
-      }
-
-      const data = await res.json();
+      const data = await api.chat(query);
       setInsights(data);
     } catch (e) {
       console.error(e);
