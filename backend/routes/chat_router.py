@@ -64,6 +64,9 @@ async def chat_with_gemini(
     Always be encouraging but professionally honest about what is missing.
     """
 
+    if not client:
+        raise HTTPException(status_code=500, detail="Gemini API Key is not configured on the server.")
+
     try:
         response = client.models.generate_content(
             model='gemini-2.5-flash',

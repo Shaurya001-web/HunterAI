@@ -110,8 +110,8 @@ export default function ChatPage() {
           <div style={{ display: "flex", gap: 24 }}>
             {/* Score Card */}
             <div className="card" style={{ flex: "0 0 240px", padding: 32, textAlign: "center", display: "flex", flexDirection: "column", justifyContent: "center" }}>
-              <div style={{ fontSize: 12, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--text-muted)", marginBottom: 12 }}>
-                Resume Score
+              <div style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", letterSpacing: "0.08em", marginBottom: 24, textTransform: "uppercase" }}>
+                POWERED BY GEMINI 1.5 FLASH
               </div>
               <div style={{ fontSize: 64, fontFamily: "var(--font-display)", color: "var(--accent)", lineHeight: 1 }}>
                 {insights.overall_score}
