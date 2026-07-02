@@ -66,9 +66,11 @@ export function AppShell({ children, title }: { children: React.ReactNode; title
       <div className="topbar-wrapper">
         <header className={`topbar ${scrolled ? "scrolled" : ""}`}>
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-            <div style={{ fontFamily: "var(--font-display)", fontSize: 24, letterSpacing: "-0.01em", color: "var(--text-primary)" }}>
-              Hunter<em style={{ fontStyle: "italic", color: "var(--accent)" }}>AI</em>
-            </div>
+            <Link href="/" style={{ textDecoration: "none" }}>
+              <div style={{ fontFamily: "var(--font-display)", fontSize: 24, letterSpacing: "-0.01em", color: "var(--text-primary)" }}>
+                Hunter<em style={{ fontStyle: "italic", color: "var(--accent)" }}>AI</em>
+              </div>
+            </Link>
           </div>
 
           <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
