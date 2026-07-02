@@ -43,7 +43,6 @@ export function AppShell({ children, title }: { children: React.ReactNode; title
           <div className="sidebar-logo-mark">
             <Sparkles size={20} color="white" />
           </div>
-          <span className="sidebar-logo-text">HunterAI</span>
         </Link>
 
         <nav className="sidebar-nav">

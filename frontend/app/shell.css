@@ -8,7 +8,7 @@
 
 /* ─── SIDEBAR ────────────────────────────────── */
 .sidebar {
-  width: 160px;
+  width: 80px;
   height: calc(100vh - 32px);
   margin: 16px;
   border-radius: 20px;
@@ -19,15 +19,15 @@
   flex-direction: column;
   flex-shrink: 0;
   z-index: 900;
-  padding: 32px 20px;
+  padding: 32px 12px;
 }
 
 .sidebar-logo {
   display: flex;
   align-items: center;
-  gap: 12px;
+  justify-content: center;
   margin-bottom: 40px;
-  padding: 0 12px;
+  padding: 0;
   text-decoration: none;
 }
 
@@ -60,10 +60,10 @@
 .nav-item {
   display: flex;
   align-items: center;
-  gap: 12px;
+  justify-content: center;
   width: 100%;
   height: 44px;
-  padding: 0 16px;
+  padding: 0;
   border-radius: 12px;
   text-decoration: none;
   font-family: var(--font-body);
@@ -72,6 +72,10 @@
   color: var(--text-secondary);
   transition: all 0.2s ease;
   border: 1px solid transparent;
+}
+
+.nav-item span {
+  display: none;
 }
 
 .nav-item:hover {
