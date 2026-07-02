@@ -3,8 +3,7 @@ from sqlalchemy.orm import Session
 from typing import List
 from pydantic import BaseModel, Field
 import json
-from google import genai
-from google.genai import types
+from groq import Groq
 
 from routes.auth import get_current_user
 from config.models import User, Profile
@@ -14,9 +13,9 @@ router = APIRouter()
 
 import os
 
-# Get Gemini API Key from environment
-GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
-client = genai.Client(api_key=GEMINI_API_KEY) if GEMINI_API_KEY else None
+# Get Groq API Key from environment
+GROQ_API_KEY = os.environ.get("GROQ_API_KEY")
+client = Groq(api_key=GROQ_API_KEY) if GROQ_API_KEY else None
 
 # Define Pydantic BaseModel for structured response
 class ActionItem(BaseModel):
@@ -62,23 +61,35 @@ async def chat_with_gemini(
     
     Analyze their resume carefully and provide a highly structured analysis directly answering their query.
     Always be encouraging but professionally honest about what is missing.
+    
+    You MUST respond with a valid JSON object matching this exact schema:
+    {{
+      "overall_score": int (out of 100),
+      "strengths": [string, string, ...],
+      "weaknesses": [string, string, ...],
+      "action_items": [
+        {{ "category": string, "suggestion": string }}
+      ],
+      "response_message": "A conversational response to the user's specific query"
+    }}
     """
 
     if not client:
-        raise HTTPException(status_code=500, detail="Gemini API Key is not configured on the server.")
+        raise HTTPException(status_code=500, detail="Groq API Key is not configured on the server.")
 
     try:
-        response = client.models.generate_content(
-            model='gemini-2.0-flash',
-            contents=system_prompt,
-            config=types.GenerateContentConfig(
-                response_mime_type="application/json",
-                response_schema=ResumeInsights,
-                temperature=0.7,
-            ),
+        response = client.chat.completions.create(
+            model="llama3-70b-8192",
+            messages=[
+                {"role": "system", "content": system_prompt},
+            ],
+            response_format={"type": "json_object"},
+            temperature=0.7,
         )
+        
         # Parse the JSON string response back to a dict so FastAPI can serialize it
-        return json.loads(response.text)
+        content = response.choices[0].message.content
+        return json.loads(content)
     except Exception as e:
-        print(f"Gemini API Error: {e}")
+        print(f"Groq API Error: {e}")
         raise HTTPException(status_code=500, detail=str(e))

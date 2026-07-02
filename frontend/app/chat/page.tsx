@@ -55,7 +55,7 @@ export default function ChatPage() {
     <AppShell title="AI Insights">
       <div className="fade-up">
         <h1 className="section-heading">AI Career Coach</h1>
-        <p className="section-eyebrow">Powered by Gemini 2.5 Flash</p>
+        <p className="section-eyebrow">Powered by Groq (Llama 3)</p>
       </div>
 
       <div className="card fade-up fade-up-delay-1" style={{ padding: 24, marginTop: 32, display: "flex", flexDirection: "column", gap: 16 }}>
@@ -64,11 +64,11 @@ export default function ChatPage() {
             width: 40, height: 40, borderRadius: 20, background: "var(--accent-light)",
             display: "flex", alignItems: "center", justifyContent: "center"
           }}>
-            <Bot size={20} color="var(--accent)" />
+            <Bot size={20} className="text-primary" />
           </div>
           <div>
-            <h3 style={{ fontSize: 16, fontFamily: "var(--font-display)", marginBottom: 2 }}>Gemini Insight Engine</h3>
-            <p style={{ fontSize: 13, color: "var(--text-secondary)" }}>Ask me about your resume, missing skills, or what you should improve.</p>
+            <div style={{ fontWeight: 600, fontSize: 14, color: "var(--text-primary)", marginBottom: 2 }}>Llama 3 Insight Engine</div>
+            <div style={{ fontSize: 13, color: "var(--text-secondary)" }}>Ask me about your resume, missing skills, or what you should improve.</div>
           </div>
         </div>
 
@@ -112,7 +112,7 @@ export default function ChatPage() {
             {/* Score Card */}
             <div className="card" style={{ flex: "0 0 240px", padding: 32, textAlign: "center", display: "flex", flexDirection: "column", justifyContent: "center" }}>
               <div style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", letterSpacing: "0.08em", marginBottom: 24, textTransform: "uppercase" }}>
-                POWERED BY GEMINI 1.5 FLASH
+                POWERED BY GROQ
               </div>
               <div style={{ fontSize: 64, fontFamily: "var(--font-display)", color: "var(--accent)", lineHeight: 1 }}>
                 {insights.overall_score}

@@ -5,6 +5,7 @@ langchain-community>=0.4.2
 langchain-core>=1.4.0
 langchain-google-genai>=4.2.4
 google-genai>=0.1.2
+groq>=0.9.0
 python-multipart
 beautifulsoup4
 requests
