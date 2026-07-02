@@ -496,8 +496,8 @@ export default function RecommendationsPage() {
         )}
       </div>
 
-      {/* Search + Filter bar (Sticky) */}
-      <div style={{ position: "sticky", top: 80, zIndex: 10, marginBottom: "32px" }}>
+      {/* Search + Filter bar */}
+      <div style={{ marginBottom: "32px" }}>
         <form
           onSubmit={handleSearchSubmit}
           className="glass-light"
