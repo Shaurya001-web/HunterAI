@@ -136,8 +136,15 @@
   align-items: center;
   justify-content: space-between;
   padding: 0 16px 0 24px;
-  transition: all 300ms ease;
+  transition: all 300ms ease, transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
   box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+}
+
+.topbar:hover {
+  transform: translateY(-4px);
+  max-width: 720px;
+  box-shadow: 0 16px 40px rgba(0,0,0,0.12), 0 4px 12px rgba(0,0,0,0.08);
+  border-color: rgba(0,0,0,0.12);
 }
 
 .topbar.scrolled {

@@ -1,3 +1,7 @@
+from pydantic import BaseModel, Field
+from typing import Dict, List, Optional, Any
+from engine.preference_extractor import PreferenceFilters
+
 import os
 import json
 from typing import List, Dict, Any, Set
@@ -226,18 +230,34 @@ def calculate_selection_probability_penalty(user_profile: Dict[str, Any], job: D
 
 def evaluate_suitability(user_profile: Dict[str, Any], job: Dict[str, Any], keyword: str | None = None) -> Dict[str, Any]:
     """
-    Evaluates candidate suitability for a job based on skills and resume projects matching.
+    Evaluates candidate suitability for a job based on an industry-standard ATS scoring algorithm (100 points max).
+    - Keyword Match: 45%
+    - Strict Skills Match: 25%
+    - Work Experience / Project Relevance: 15%
+    - Education & Certifications: 10%
+    - Resume Formatting / Completeness: 5%
     """
     user_skills = user_profile.get("skills", [])
     job_skills = job.get("required_skills", [])
+    
+    # 2. Strict Skills Match (25 points max)
     match_result = calculate_match(user_skills, job_skills)
+    skills_score = (match_result["match_score"] / 100.0) * 25.0
+    
+    # Extract keywords from job for keyword matching
+    job_title = str(job.get("job_title", "")).lower()
+    job_keywords = set([job_title] + [s.lower() for s in job_skills if s])
+    
+    # Extract user text for keyword matching
+    user_text = []
+    user_text.extend([str(s).lower() for s in user_skills])
     
     # Check projects for keyword / job title relevance
-    query = (keyword or job.get("job_title") or "").strip().lower()
+    query = (keyword or job_title).strip().lower()
     projects = user_profile.get("projects", [])
     matched_projects = []
     
-    # Get all search terms to check
+    # Get all search terms to check for projects
     search_terms = [query]
     for key, synonyms in SKILL_SATISFACTION_MAP.items():
         if key in query or any(syn in query for syn in [key] + synonyms):
@@ -252,69 +272,64 @@ def evaluate_suitability(user_profile: Dict[str, Any], job: Dict[str, Any], keyw
         elif not isinstance(proj, dict):
             continue
             
-        # Check if project contains title, description, or tech matching
-        proj_title = (
-            proj.get("title")
-            or proj.get("name")
-            or proj.get("projectName")
-            or proj.get("project_name")
-            or proj.get("projectTitle")
-            or proj.get("project_title")
-            or proj.get("project")
-            or ""
-        )
-        proj_title = str(proj_title).lower()
-        
-        raw_desc = (
-            proj.get("description")
-            or proj.get("desc")
-            or proj.get("details")
-            or proj.get("detail")
-            or proj.get("summary")
-            or proj.get("about")
-            or proj.get("work")
-            or ""
-        )
+        proj_title_val = str(proj.get("title") or proj.get("name") or proj.get("project") or "").lower()
+        raw_desc = proj.get("description") or proj.get("summary") or ""
         proj_desc = " ".join(raw_desc) if isinstance(raw_desc, list) else str(raw_desc)
         proj_desc = proj_desc.lower()
         
-        raw_techs = (
-            proj.get("technologies")
-            or proj.get("tech")
-            or proj.get("techs")
-            or proj.get("techStack")
-            or proj.get("tech_stack")
-            or proj.get("stack")
-            or proj.get("tools")
-            or []
-        )
+        raw_techs = proj.get("technologies") or proj.get("techStack") or []
         proj_techs = [str(t).lower() for t in raw_techs if t]
+        
+        user_text.extend([proj_title_val, proj_desc] + proj_techs)
         
         is_relevant = False
         for term in search_terms:
-            if term in proj_title or term in proj_desc or any(term in tech for tech in proj_techs):
+            if term in proj_title_val or term in proj_desc or any(term in tech for tech in proj_techs):
                 if len(term) <= 2 and term not in proj_techs: # strict for short terms
                     continue
                 is_relevant = True
                 break
         if is_relevant:
-            proj_title_display = (
-                proj.get("title")
-                or proj.get("name")
-                or proj.get("projectName")
-                or proj.get("project_name")
-                or proj.get("projectTitle")
-                or proj.get("project_title")
-                or proj.get("project")
-                or "Unnamed Project"
-            )
-            matched_projects.append(proj_title_display)
+            matched_projects.append(proj.get("title") or "Unnamed Project")
             
     num_matched_projects = len(matched_projects)
-    score = match_result["match_score"]
     
-    # Calculate adjusted score reflecting selection probability
-    score = calculate_selection_probability_penalty(user_profile, job, score, num_matched_projects)
+    # 1. Keyword Match (45 points max)
+    # Check how many job keywords appear in user's profile text
+    user_text_str = " ".join(user_text)
+    keyword_hits = 0
+    valid_job_keywords = [k for k in job_keywords if len(k) > 2]
+    if valid_job_keywords:
+        for kw in valid_job_keywords:
+            if kw in user_text_str:
+                keyword_hits += 1
+        keyword_score = (keyword_hits / len(valid_job_keywords)) * 45.0
+    else:
+        keyword_score = 45.0 # If no valid keywords, give benefit of doubt
+        
+    # 3. Work Experience / Project Relevance (15 points max)
+    experience = user_profile.get("experience", [])
+    has_experience = len(experience) > 0
+    experience_score = 0.0
+    if num_matched_projects > 0 or has_experience:
+        experience_score = 15.0 # Give full 15 if they have any related projects or some experience
+        
+    # 4. Education & Certifications (10 points max)
+    education = user_profile.get("education", [])
+    education_score = 10.0 if len(education) > 0 else 0.0
+    
+    # 5. Resume Formatting / Completeness (5 points max)
+    completeness_score = 0.0
+    if len(user_skills) > 0: completeness_score += 1.25
+    if len(projects) > 0: completeness_score += 1.25
+    if len(experience) > 0: completeness_score += 1.25
+    if len(education) > 0: completeness_score += 1.25
+    
+    # Base ATS Score
+    raw_ats_score = keyword_score + skills_score + experience_score + education_score + completeness_score
+    
+    # Apply old selection probability penalties to keep the system rigorous
+    score = calculate_selection_probability_penalty(user_profile, job, raw_ats_score, num_matched_projects)
     
     # Check Hard Constraints (Dealbreakers)
     job_constraints = job.get("constraints", {})
@@ -325,23 +340,22 @@ def evaluate_suitability(user_profile: Dict[str, Any], job: Dict[str, Any], keyw
         assessment = f"Not Eligible: {dealbreaker_reasons[0]}"
         suitability_level = "not_suited"
     else:
-        # Determine suitability level
-        if score >= 60 and num_matched_projects >= 1:
-            assessment = f"Highly Suited: You have {num_matched_projects} relevant project(s) ({', '.join(matched_projects[:2])}) and match {int(score)}% of required skills."
+        if score >= 75:
+            assessment = f"Highly Suited: ATS Score {int(score)}/100. Excellent keyword match and skills alignment."
             suitability_level = "highly_suited"
-        elif score >= 30:
+        elif score >= 50:
             if num_matched_projects == 0:
-                assessment = f"Partially Suited: You match {int(score)}% of skills, but have no projects in this domain. Build a project to boost your profile."
+                assessment = f"Partially Suited: ATS Score {int(score)}/100. Good skills, but lacking relevant projects."
                 suitability_level = "partially_suited"
             else:
-                assessment = f"Partially Suited: You have {num_matched_projects} relevant project(s), but match only {int(score)}% of required skills."
+                assessment = f"Partially Suited: ATS Score {int(score)}/100. Average keyword and experience match."
                 suitability_level = "partially_suited"
         else:
-            assessment = "Not Suited: Your profile lacks matching core skills, domain projects, or experience level for this role."
+            assessment = f"Not Suited: ATS Score {int(score)}/100. Missing core keywords, skills, or experience."
             suitability_level = "not_suited"
         
     return {
-        "score": score,
+        "score": round(score, 2),
         "matched_skills": match_result["matched_skills"],
         "missing_skills": match_result["missing_skills"],
         "matched_projects": matched_projects,
@@ -360,6 +374,7 @@ def rank_jobs(user_profile: Dict[str, Any], jobs: List[Dict[str, Any]], keyword:
         suitability = evaluate_suitability(user_profile, job, keyword)
         
         ranked_list.append({
+            "id": job.get("id"),
             "job_title": job.get("job_title", "Unknown Job"),
             "company": job.get("company", "Unknown Company"),
             "stipend": job.get("stipend", "Negotiable"),
@@ -426,3 +441,179 @@ if __name__ == "__main__":
             print(f"Ranking jobs for user: {user.get('name', 'Unknown')}")
             real_ranked = rank_jobs(user, jobs)
             print(json.dumps(real_ranked, indent=4))
+
+
+class Job(BaseModel):
+    id: str
+    title: str
+    company: str
+    location: str  # e.g. "San Francisco, CA" or "Remote"
+    is_remote: bool
+    stipend_monthly: Optional[int] = None
+    description: str
+    required_skills: List[str] = Field(default_factory=list)
+
+
+class JobMatch(BaseModel):
+    job: Job
+    ats_score: float  # 0-100, from existing resume/skill matching
+    match_score: float  # ats_score after preference boosts, capped at 100
+    matched_preferences: List[str] = Field(default_factory=list)  # for UI transparency
+
+
+
+
+# NEW: Preference-based hard filters
+# ---------------------------------------------------------------------------
+
+
+def _location_matches(job: Job, preferred_locations: List[str]) -> bool:
+    if not preferred_locations:
+        return True  # no location preference stated -> don't filter anything out
+
+    wants_remote = any(loc.strip().lower() == "remote" for loc in preferred_locations)
+    if wants_remote and job.is_remote:
+        return True
+
+    job_location = job.location.lower()
+    return any(
+        loc.strip().lower() in job_location
+        for loc in preferred_locations
+        if loc.strip().lower() != "remote"
+    )
+
+
+def apply_hard_filters(jobs: List[Job], preferences: PreferenceFilters) -> List[Job]:
+    """Drop any job that violates a strict, explicitly stated preference."""
+    filtered: List[Job] = []
+
+    for job in jobs:
+        if not _location_matches(job, preferences.preferred_locations):
+            continue
+
+        if preferences.min_stipend_monthly is not None:
+            if job.stipend_monthly is None or job.stipend_monthly < preferences.min_stipend_monthly:
+                continue
+
+        if preferences.must_have:
+            haystack = f"{job.title} {job.description}".lower()
+            if not all(req.lower() in haystack for req in preferences.must_have):
+                continue
+
+        filtered.append(job)
+
+    return filtered
+
+
+# ---------------------------------------------------------------------------
+# NEW: Preference-based soft ranking
+# ---------------------------------------------------------------------------
+
+ROLE_KEYWORD_BOOST = 0.15  # +15% match score for a role keyword hit
+LOCATION_BOOST = 0.05  # +5% extra for an exact, non-remote location hit
+
+
+def apply_soft_ranking(
+    jobs: List[Job],
+    preferences: PreferenceFilters,
+    base_scores: Dict[str, float],
+) -> List[JobMatch]:
+    """
+    Take ATS base scores and boost them where a job aligns with soft
+    (non-strict) preferences, returning fully-formed JobMatch objects.
+    """
+    matches: List[JobMatch] = []
+
+    for job in jobs:
+        base = base_scores.get(job.id, 0.0)
+        score = base
+        matched: List[str] = []
+
+        haystack = f"{job.title} {job.description}".lower()
+        if any(kw.lower() in haystack for kw in preferences.role_keywords):
+            score *= 1 + ROLE_KEYWORD_BOOST
+            matched.append("role_keyword")
+
+        non_remote_locations = [
+            loc for loc in preferences.preferred_locations if loc.lower() != "remote"
+        ]
+        if non_remote_locations and any(
+            loc.lower() in job.location.lower() for loc in non_remote_locations
+        ):
+            score *= 1 + LOCATION_BOOST
+            matched.append("preferred_location")
+
+        matches.append(
+            JobMatch(
+                job=job,
+                ats_score=base,
+                match_score=round(min(score, 100.0), 2),
+                matched_preferences=matched,
+            )
+        )
+
+    return matches
+
+
+# ---------------------------------------------------------------------------
+# NEW: Single entry point used by the /api/recommendations/preferences route
+# ---------------------------------------------------------------------------
+
+
+
+def get_ranked_jobs_for_user(
+    user_id: str, preferences: Optional[PreferenceFilters] = None
+) -> List[JobMatch]:
+    preferences = preferences or PreferenceFilters()
+    
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    project_root = os.path.dirname(current_dir)
+    profiles_path = os.path.join(project_root, "data", "user_profiles.json")
+    jobs_path = os.path.join(project_root, "data", "jobs.json")
+    
+    profiles = load_profiles(profiles_path)
+    jobs = load_jobs(jobs_path)
+    
+    user = next((p for p in profiles if p.get("id") == user_id or p.get("name") == "Shaurya Mishra"), None)
+    if not user and profiles:
+        user = profiles[0]
+        
+    real_ranked = rank_jobs(user, jobs)
+    
+    # Convert dictionaries to Job objects for the preference filter
+    job_objects = []
+    base_scores = {}
+    
+    for r in real_ranked:
+        # Map our dict to the Job pydantic model
+        import hashlib
+        jid = hashlib.md5(f"{r['job_title']}_{r['company']}_{len(job_objects)}".encode()).hexdigest()
+        
+        # safely parse stipend
+        stipend_val = None
+        s_str = str(r.get("stipend", "")).lower()
+        import re
+        nums = re.findall(r'\d+', s_str)
+        if nums:
+            stipend_val = int(nums[0])
+            if stipend_val < 100: stipend_val *= 1000 # quick fix for "10k"
+            
+        is_remote = "remote" in r.get("location", "").lower()
+            
+        j_obj = Job(
+            id=jid,
+            title=r["job_title"],
+            company=r["company"],
+            location=r["location"],
+            is_remote=is_remote,
+            stipend_monthly=stipend_val,
+            description="",
+            required_skills=r["matched_skills"] + r["missing_skills"]
+        )
+        job_objects.append(j_obj)
+        base_scores[jid] = r["score"]
+        
+    eligible_jobs = apply_hard_filters(job_objects, preferences)
+    ranked = apply_soft_ranking(eligible_jobs, preferences, base_scores)
+    ranked.sort(key=lambda m: m.match_score, reverse=True)
+    return ranked

@@ -14,6 +14,8 @@ from routes.file_upload import router as file_upload_router
 from routes.user_router import router as user_router
 from routes.matches_router import router as matches_router
 from routes.chat_router import router as chat_router
+from routes.recommendations import router as recommendations_router
+from routes.tailor_router import router as tailor_router
 from config.database import engine, Base
 import config.models # Ensure models are loaded
 
@@ -48,8 +50,10 @@ app.add_middleware(
 # Include sub-routers
 app.include_router(file_upload_router, tags=["File Upload"])
 app.include_router(user_router, tags=["User Profiles"])
-app.include_router(matches_router, tags=["Job Matching"])
-app.include_router(chat_router, tags=["AI Chat"])
+app.include_router(matches_router, tags=["Matches"])
+app.include_router(chat_router, tags=["Chat"])
+app.include_router(recommendations_router, tags=["Recommendations"])
+app.include_router(tailor_router, prefix="/api", tags=["Tailor"])
 
 @app.get("/")
 def home():

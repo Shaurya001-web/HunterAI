@@ -197,9 +197,9 @@ export default function UploadPage() {
                   cursor: "pointer",
                   transition: "all 0.2s cubic-bezier(0.22, 1, 0.36, 1)",
                   background: dragging
-                    ? "var(--accent-light)"
+                    ? "var(--accent-soft)"
                     : file
-                    ? "var(--accent-light)"
+                    ? "var(--accent-soft)"
                     : "var(--bg-surface)",
                   boxShadow: dragging ? "inset 0 0 0 2px var(--accent)" : "none",
                 }}

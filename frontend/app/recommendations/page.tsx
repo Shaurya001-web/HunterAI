@@ -15,6 +15,8 @@ import {
   Sparkles,
   SlidersHorizontal,
   Bookmark,
+  Wand2,
+  Briefcase
 } from "lucide-react";
 import Link from "next/link";
 import { api } from "@/lib/api";
@@ -270,8 +272,8 @@ function JobCard({
         )}
       </div>
 
-      {/* Apply button */}
-      <div style={{ borderTop: "1px solid var(--border)", paddingTop: "14px", marginTop: "auto" }}>
+      {/* Apply and Tailor buttons */}
+      <div style={{ borderTop: "1px solid var(--border)", paddingTop: "14px", marginTop: "auto", display: "flex", flexDirection: "column", gap: "8px" }}>
         {match.url ? (
           <a
             href={match.url}
@@ -318,6 +320,35 @@ function JobCard({
           >
             Quick Apply <ExternalLink size={13} />
           </button>
+        )}
+        
+        {match.id && (
+          <a
+            href={`/internships/${match.id}/tailor`}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: "7px",
+              textDecoration: "none",
+              fontWeight: 700,
+              fontSize: "13.5px",
+              color: "#00b4d8",
+              padding: "11px",
+              borderRadius: "10px",
+              border: "1px solid rgba(0, 180, 216, 0.3)",
+              background: "rgba(0, 180, 216, 0.05)",
+              transition: "all 0.2s",
+            }}
+            onMouseEnter={(e) => { 
+              (e.currentTarget as HTMLElement).style.background = "rgba(0, 180, 216, 0.15)"; 
+            }}
+            onMouseLeave={(e) => { 
+              (e.currentTarget as HTMLElement).style.background = "rgba(0, 180, 216, 0.05)"; 
+            }}
+          >
+            <Wand2 size={13} /> Tailor Resume for this Job
+          </a>
         )}
       </div>
     </div>

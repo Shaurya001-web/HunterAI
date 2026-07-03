@@ -61,3 +61,18 @@ class Match(Base):
 
     user: Mapped["User"] = relationship("User", back_populates="matches")
     job: Mapped["Job"] = relationship("Job", back_populates="matches")
+
+class TailoredResume(Base):
+    __tablename__ = "tailored_resumes"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True, autoincrement=True)
+    user_id: Mapped[str] = mapped_column(String, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    job_id: Mapped[int] = mapped_column(Integer, ForeignKey("jobs.id", ondelete="CASCADE"), nullable=False)
+    profile_version_hash: Mapped[str] = mapped_column(String, nullable=False)
+    tailored_json: Mapped[dict] = mapped_column(JSON, default=dict)
+    ats_score_before: Mapped[float] = mapped_column(Float, nullable=False)
+    ats_score_after: Mapped[float] = mapped_column(Float, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+    user: Mapped["User"] = relationship("User")
+    job: Mapped["Job"] = relationship("Job")

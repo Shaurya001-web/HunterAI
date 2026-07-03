@@ -7,6 +7,7 @@ import { Profile, JobMatch } from "@/types";
 import { AnimatedCounter } from "@/components/shared/AnimatedCounter";
 import { useReveal } from "@/components/shared/useReveal";
 import { AppShell } from "@/components/shell/AppShell";
+import PreferenceChat from "@/components/PreferenceChat";
 import "../shell.css";
 
 /* ─── HELPERS ─────────────────────────────────────────────── */
@@ -416,6 +417,14 @@ export default function DashboardPage() {
                </div>
              ))}
           </div>
+
+          {/* Zone 2.5 — Preference Recommendation Engine */}
+          {profile && (
+            <div style={{ marginBottom: 64 }}>
+              <div className="section-heading" style={{ fontSize: 24, marginBottom: 24 }}>AI Preference Search</div>
+              <PreferenceChat userId={profile.email || "default_user"} />
+            </div>
+          )}
 
           {/* Zones 3 + 4 — Main Content & Sidebar */}
           <div

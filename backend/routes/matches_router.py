@@ -109,12 +109,9 @@ def get_matches(
         
         # Map database jobs back to engine representation
         engine_jobs = []
-        job_map = {} # Store DB job objects by key to save matches later
         for dj in db_jobs:
-            job_key = (dj.title, dj.company)
-            job_map[job_key] = dj
-            
             engine_jobs.append({
+                "id": dj.id,
                 "job_title": dj.title,
                 "company": dj.company,
                 "stipend": dj.stipend,
@@ -137,12 +134,10 @@ def get_matches(
         db.query(Match).filter(Match.user_id == target_user.id).delete()
         
         for rm in ranked_matches:
-            job_obj = job_map.get((rm["job_title"], rm["company"]))
-            if job_obj:
-                rm["id"] = job_obj.id
+            if "id" in rm and rm["id"]:
                 db_match = Match(
                     user_id=target_user.id,
-                    job_id=job_obj.id,
+                    job_id=rm["id"],
                     score=rm["score"],
                     matched_skills=rm["matched_skills"],
                     missing_skills=rm["missing_skills"]
@@ -156,3 +151,19 @@ def get_matches(
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=500, detail=f"Error calculating matches: {e}")
+
+@router.get("/jobs/{job_id}")
+def get_job(job_id: int, db: Session = Depends(get_db)):
+    job = db.query(Job).filter(Job.id == job_id).first()
+    if not job:
+        raise HTTPException(status_code=404, detail="Job not found")
+    return {
+        "id": job.id,
+        "job_title": job.title,
+        "company": job.company,
+        "required_skills": job.skills,
+        "location": job.location,
+        "stipend": job.stipend,
+        "duration": job.duration,
+        "url": job.url
+    }

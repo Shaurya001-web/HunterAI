@@ -110,6 +110,31 @@ export const api = {
     return res.json();
   },
 
+  getJob: async (jobId: number) => {
+    const res = await fetch(`${BASE_URL}/jobs/${jobId}`, {
+      headers: getHeaders(),
+    });
+    if (!res.ok) throw new Error("Failed to load job details");
+    return res.json();
+  },
+
+  tailorResume: async (jobId: number) => {
+    const res = await fetch(`${BASE_URL}/api/tailor-resume`, {
+      method: "POST",
+      headers: { ...getHeaders(), "Content-Type": "application/json" },
+      body: JSON.stringify({ job_id: jobId })
+    });
+    if (!res.ok) {
+      let errDetail = "Failed to tailor resume";
+      try {
+        const errJson = await res.json();
+        errDetail = errJson.detail || errDetail;
+      } catch (e) {}
+      throw new Error(errDetail);
+    }
+    return res.json();
+  },
+
   chat: async (message: string) => {
     const res = await fetch(`${BASE_URL}/chat`, {
       method: "POST",
