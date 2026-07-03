@@ -20,16 +20,16 @@
   --border-strong: rgba(0, 0, 0, 0.08);
   
   /* Text */
-  --text-primary: #1A1A1A;
-  --text-secondary: #3A3A3C;
-  --text-muted: #6B6A68;
+  --text-primary: #0C1618;
+  --text-secondary: #111D1F;
+  --text-muted: #162527;
   
   /* Brand Accents */
-  --accent: #6C4FE0;
-  --accent-light: #EDE8FD;
-  --accent-hover: #5B43BC;
-  --accent-soft: rgba(108, 79, 224, 0.08);
-  --accent-border: rgba(108, 79, 224, 0.2);
+  --accent: #588B8B;
+  --accent-light: #6A9E9E;
+  --accent-hover: #497B7B;
+  --accent-soft: rgba(88, 139, 139, 0.08);
+  --accent-border: rgba(88, 139, 139, 0.2);
   
   /* Status Colors */
   --emerald: #10B981;
@@ -198,6 +198,25 @@ body::before {
 
 .input-base::placeholder {
   color: var(--text-muted);
+}
+
+.btn-dark:hover {
+  transform: scale(1.04) translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  opacity: 1;
+}
+.btn-dark:active {
+  transform: scale(0.96);
+}
+.btn-ghost:hover {
+  color: var(--text-primary) !important;
+  border-color: var(--text-primary) !important;
+  transform: scale(1.04) translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+  background: var(--bg-elevated);
+}
+.btn-ghost:active {
+  transform: scale(0.96);
 }
 
 /* Button primary */

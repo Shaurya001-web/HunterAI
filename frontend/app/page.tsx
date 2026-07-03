@@ -349,17 +349,17 @@ export default function Home() {
           --cream-2: #f0efe9;
           --cream-3: #e8e6df;
           --cream-4: #dddbd2;
-          --ink: #18181a;
-          --ink-2: #3a3a3c;
-          --ink-3: #6b6a68;
-          --ink-4: #9b9994;
-          --ink-5: #c4c2bc;
-          --purple: #6c4fe0;
-          --purple-light: #ede8fd;
-          --purple-mid: #b8a4f5;
-          --purple-dim: rgba(108,79,224,0.08);
-          --cyan: #0d9488;
-          --cyan-light: #e0f5f3;
+          --ink: #0C1618;
+          --ink-2: #111D1F;
+          --ink-3: #162527;
+          --ink-4: #192729;
+          --ink-5: #1C2B2E;
+          --purple: #588B8B;
+          --purple-light: #6A9E9E;
+          --purple-mid: #497B7B;
+          --purple-dim: rgba(88,139,139,0.08);
+          --cyan: #588B8B;
+          --cyan-light: #6A9E9E;
           --white: #ffffff;
           --r-sm: 6px;
           --r-md: 12px;
@@ -611,15 +611,16 @@ export default function Home() {
           className="hero-h1"
           id="hero-h1"
           style={{
-            fontFamily: "'Instrument Serif', serif",
-            fontSize: "clamp(56px,7.5vw,92px)",
-            fontWeight: 400,
+            fontFamily: "var(--font-display, 'Outfit', 'Inter', sans-serif)",
+            fontSize: "clamp(37px, 5vw, 73px)",
+            fontWeight: 800,
             lineHeight: 1.08,
             letterSpacing: "-0.025em",
             wordSpacing: "0.05em",
             color: "var(--ink)",
-            maxWidth: 1040,
+            maxWidth: "100%",
             margin: "0 auto 32px",
+            whiteSpace: "nowrap",
           }}
         >
           {heroLines.map((line, lineIdx) => {
@@ -759,81 +760,7 @@ export default function Home() {
           <AuthModal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} />
         </div>
 
-        <div
-          className="hero-metrics"
-          style={{
-            display: "flex",
-            gap: 56,
-            justifyContent: "center",
-            flexWrap: "wrap",
-            paddingTop: 52,
-            borderTop: "0.5px solid var(--cream-3)",
-          }}
-        >
-          <div className="metric">
-            <div
-              className="metric-num"
-              style={{
-                fontFamily: "'Instrument Serif', serif",
-                fontSize: 32,
-                letterSpacing: "-0.02em",
-                color: "var(--ink)",
-                lineHeight: 1,
-                marginBottom: 4,
-              }}
-            >
-              2.4M+
-            </div>
-            <div
-              className="metric-label"
-              style={{ fontSize: 12.5, color: "var(--ink-4)", letterSpacing: "0.01em" }}
-            >
-              Resumes analyzed
-            </div>
-          </div>
-          <div className="metric">
-            <div
-              className="metric-num"
-              style={{
-                fontFamily: "'Instrument Serif', serif",
-                fontSize: 32,
-                letterSpacing: "-0.02em",
-                color: "var(--ink)",
-                lineHeight: 1,
-                marginBottom: 4,
-              }}
-            >
-              340+
-            </div>
-            <div
-              className="metric-label"
-              style={{ fontSize: 12.5, color: "var(--ink-4)", letterSpacing: "0.01em" }}
-            >
-              Job platforms
-            </div>
-          </div>
-          <div className="metric">
-            <div
-              className="metric-num"
-              style={{
-                fontFamily: "'Instrument Serif', serif",
-                fontSize: 32,
-                letterSpacing: "-0.02em",
-                color: "var(--ink)",
-                lineHeight: 1,
-                marginBottom: 4,
-              }}
-            >
-              91%
-            </div>
-            <div
-              className="metric-label"
-              style={{ fontSize: 12.5, color: "var(--ink-4)", letterSpacing: "0.01em" }}
-            >
-              Match accuracy
-            </div>
-          </div>
-        </div>
+
       </section>
 
       <hr
