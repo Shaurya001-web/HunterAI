@@ -39,8 +39,6 @@ A modern, premium landing page designed to welcome users, showcase key statistic
 
 ![HunterAI Landing Page Hero](assets/landing_hero.png)
 
-*A clean, dark/light contrast footer motivates users to begin their journey in seconds.*
-![HunterAI Landing Page Footer](assets/landing_footer.png)
 
 ### AI-Powered Resume Parsing & Profile Management
 Simply upload a PDF resume, and HunterAI uses Large Language Models to generate a professional AI summary tailored to the candidate's profile.
