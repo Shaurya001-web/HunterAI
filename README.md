@@ -26,7 +26,7 @@ For the core parsing logic, check out the `backend/` engine directory and the `f
 
 HunterAI provides a low-level supporting infrastructure for *any* intelligent candidate evaluation workflow:
 
-*   **Intelligent Extraction** — Automatically parse user resumes using Gemini & Llama 3 to accurately extract profile details, skills, and projects without manual data entry.
+*   **Intelligent Extraction & Dealbreaker Analysis** — Automatically parse user resumes using Gemini & Llama 3 to accurately extract profile details, skills, and projects without manual data entry. Additionally, a one-time ingestion pipeline extracts hard constraints (education, remote/on-site, graduation dates) from jobs to instantly filter out structural mismatches.
 *   **Strict Semantic Matching** — Seamlessly cross-reference extracted skills with live job postings using a unidirectional satisfaction matrix to prevent basic skills from inflating match scores.
 *   **Actionable Insights** — Review exact match percentages, identify missing skill gaps, and access direct application links instantly.
 
@@ -47,8 +47,8 @@ Simply upload a PDF resume, and HunterAI uses Large Language Models to generate 
 
 ![AI Resume Parser & Profile View](assets/user_profile.png)
 
-### Smart Job Matching & Recommendations
-The recommendation engine displays Match Percentages, Matched vs Missing Skills, and Direct Apply Links to platforms like LinkedIn and Wellfound.
+### Smart Job Matching & Dynamic Filtering
+The recommendation engine displays Match Percentages, Matched vs Missing Skills, and Direct Apply Links to platforms like LinkedIn and Wellfound. Users can also dynamically filter their recommendations by minimum stipend, location, remote-only requirements, and minimum match score thresholds.
 
 ![Job Recommendations Dashboard](assets/job_recommendations.png)
 
