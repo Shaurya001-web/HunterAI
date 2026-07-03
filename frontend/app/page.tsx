@@ -504,6 +504,7 @@ export default function Home() {
           {(!user || user.isGuest) ? (
             <>
               <button
+                className="btn-ghost"
                 onClick={() => setIsAuthModalOpen(true)}
                 style={{
                   fontSize: 13,
@@ -514,7 +515,7 @@ export default function Home() {
                   border: "1px solid var(--cream-4)",
                   borderRadius: 999,
                   cursor: "pointer",
-                  transition: "opacity 0.2s, transform 0.2s",
+                  transition: "all 0.25s var(--ease)",
                   letterSpacing: "0.01em",
                 }}
               >
@@ -522,7 +523,7 @@ export default function Home() {
               </button>
               <Link href="/upload">
                 <button
-                  className="nav-pill"
+                  className="btn-dark"
                   style={{
                     fontSize: 13,
                     fontWeight: 500,
@@ -532,7 +533,7 @@ export default function Home() {
                     border: "none",
                     borderRadius: 999,
                     cursor: "pointer",
-                    transition: "opacity 0.2s, transform 0.2s",
+                    transition: "all 0.25s var(--ease)",
                     letterSpacing: "0.01em",
                   }}
                 >
@@ -543,7 +544,7 @@ export default function Home() {
           ) : (
             <Link href="/dashboard">
               <button
-                className="nav-pill"
+                className="btn-dark"
                 style={{
                   fontSize: 13,
                   fontWeight: 500,
@@ -553,7 +554,7 @@ export default function Home() {
                   border: "none",
                   borderRadius: 999,
                   cursor: "pointer",
-                  transition: "opacity 0.2s, transform 0.2s",
+                  transition: "all 0.25s var(--ease)",
                   letterSpacing: "0.01em",
                 }}
               >

@@ -84,11 +84,12 @@
 .nav-item:hover {
   color: var(--text-primary);
   background: var(--bg-elevated);
+  transform: scale(1.08);
 }
 
 .nav-item.active {
-  color: var(--accent);
-  background: var(--accent-light);
+  color: var(--text-primary);
+  background: var(--accent);
   border: 1px solid var(--accent);
 }
 
