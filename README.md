@@ -45,6 +45,11 @@ Simply upload a PDF resume, and HunterAI uses Large Language Models to generate 
 
 ![AI Resume Parser & Profile View](assets/user_profile.png)
 
+### Interactive AI Career Coach
+Engage in a two-way conversation with a personalized AI Career Coach (powered by Groq and LLaMA 3) to discuss your resume, identify skill gaps, and explore strategies to improve your candidacy.
+
+![Interactive AI Career Coach](assets/ai_career_coach.png)
+
 ### Smart Job Matching & Dynamic Filtering
 The recommendation engine displays Match Percentages, Matched vs Missing Skills, and Direct Apply Links to platforms like LinkedIn and Wellfound. Users can also dynamically filter their recommendations by minimum stipend, location, remote-only requirements, and minimum match score thresholds.
 
