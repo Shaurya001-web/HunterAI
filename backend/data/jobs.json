@@ -1,124 +1,346 @@
 [
     {
-        "job_title": "Content Creator & Video Editor",
-        "company": "THW - The Healthy World",
+        "job_title": "AI/Machine Learning Teaching Trainer",
+        "company": "Amigo Academy Private Limited",
         "location": "Remote",
-        "stipend": "\u20b9 8,000 - 10,000 /month",
-        "duration": "3 Months",
-        "required_skills": [
-            "Adobe After Effects",
-            "Adobe Photoshop",
-            "Adobe Premiere Pro",
-            "Canva",
-            "Capcut",
-            "Creative Thinking",
-            "Generative AI Tools",
-            "Photography",
-            "Video Editing"
-        ],
-        "url": "https://internshala.com/internship/detail/content-creator-video-editor-internship-in-pune-at-thw-the-healthy-world1778741151",
-        "source": "Internshala"
-    },
-    {
-        "job_title": "AI Content Creation",
-        "company": "Be Rolling Media",
-        "location": "Remote",
-        "stipend": "\u20b9 7,000 - 8,000 /month",
-        "duration": "4 Months",
-        "required_skills": [
-            "AI Image Generation",
-            "AI Video Generation",
-            "AI Voiceover",
-            "Generative AI Development",
-            "Generative AI Tools",
-            "Time Management"
-        ],
-        "url": "https://internshala.com/internship/detail/ai-content-creation-internship-in-delhi-at-be-rolling-media1779951171",
-        "source": "Internshala"
-    },
-    {
-        "job_title": "AI Automation & App Development",
-        "company": "Weaving Vibes",
-        "location": "Remote",
-        "stipend": "\u20b9 20,000 - 30,000 /month",
+        "stipend": "\u20b9 20,000 /month",
         "duration": "6 Months",
+        "url": "https://internshala.com/internship/detail/ai-machine-learning-teaching-assistant-internship-in-mumbai-at-amigo-academy-private-limited1782217630",
         "required_skills": [
-            "Data Analytics",
+            "Artificial Intelligence Markup Language (AIML)",
+            "Data Science",
             "Effective Communication",
-            "Generative AI Development",
-            "Generative AI Tools",
-            "Java",
+            "Google Colab",
+            "Jupyter Notebook",
             "Machine Learning",
-            "Machine Learning Operations (MLOps)",
-            "MS-Excel",
-            "Python"
-        ],
-        "url": "https://internshala.com/internship/detail/ai-automation-app-development-internship-in-bangalore-at-weaving-vibes1779260621",
-        "source": "Internshala"
-    },
-    {
-        "job_title": "Fast api Intern",
-        "company": "Google India",
-        "location": "Bengaluru (Hybrid)",
-        "stipend": "\u20b960,000 /month",
-        "duration": "6 months",
-        "required_skills": [
-            "Fast api",
+            "NumPy",
+            "Pandas",
             "Python",
-            "Git",
             "SQL"
         ],
-        "url": "https://www.linkedin.com/jobs/search/?keywords=fast%20api",
-        "source": "LinkedIn"
+        "description": "Selected intern's day-to-day responsibilities include:\n\n1. Assist faculty in conducting training sessions on Artificial Intelligence (AI), Machine Learning (ML), and Data Science.\n2. Support students during coding labs, practical sessions, and hands-on exercises.\n3. Guide students in completing Python programming assignments and projects.\n4. Assist in preparing datasets, presentations, coding exercises, and other learning materials.\n5. Monitor student attendance, progress, and performance records.\n6. Help students build and maintain project portfolios using Google Colab and GitHub.\n7. Participate in curriculum development, content creation, and other academic support activities.\n8. Conduct doubt-solving sessions under the guidance of senior trainers.\n9. Collaborate with the academic team to ensure an engaging and effective learning experience for students.\nOnly those candidates can apply who:\n\n                1. are available for full time (in-office) internship                    \n\n                2. can start the internship between 23rd Jun'26 and 28th Jul'26                    \n\n                3. are available for duration of 6 months                    \n\n                4. are from Mumbai only                    \n\n                5. have relevant skills and interests\n1. B.Tech, BCA, MCA, B.Sc IT, Computer Science, Data Science or related field.                \n\n                    2. Final-year students and recent graduates are encouraged to apply.                \n\n                    3. Strong interest in Artificial Intelligence, Machine Learning and Education.                \n\n                    4. Basic knowledge of Python programming is mandatory.                \n\n                    5. Good communication and presentation skills preferred.                \n\n                    6. Candidates willing to conduct a short teaching demo will be preferred.\nStipend Structure:\nFixed pay: \u20b9 5,000 /month\n                    \n\nIncentive pay: \u20b9 15,000 /month\n1\nWebsite\nAmigo Academy Mumbai is a specialist in aviation, ground staff, customer service, and travel for students seeking professional careers and/or advanced education in these areas.",
+        "constraints": {
+            "min_education": "none",
+            "requires_phd": false,
+            "work_mode": "onsite",
+            "location_city": null,
+            "stipend_min_val": null,
+            "duration_months": null,
+            "dealbreakers": []
+        },
+        "is_remote": true,
+        "stipend_min": null,
+        "duration_months": null
     },
     {
-        "job_title": "Junior Fast api Engineer",
-        "company": "Amazon",
-        "location": "Hyderabad (On-site)",
-        "stipend": "\u20b945,000 /month",
-        "duration": "3 months",
-        "required_skills": [
-            "Fast api",
-            "Python",
-            "Git",
-            "SQL",
-            "AWS"
-        ],
-        "url": "https://www.linkedin.com/jobs/search/?keywords=fast%20api",
-        "source": "LinkedIn"
-    },
-    {
-        "job_title": "AI & Fast api Intern",
-        "company": "NeuralStart.ai (YC)",
+        "job_title": "Python Development",
+        "company": "Basti Ki Pathshala Foundation",
         "location": "Remote",
-        "stipend": "$2,500 /month",
-        "duration": "6 months",
+        "stipend": "Unpaid",
+        "duration": "1 Month",
+        "url": "https://internshala.com/internship/detail/work-from-home-python-development-internship-at-basti-ki-pathshala-foundation1782969507",
         "required_skills": [
-            "Fast api",
+            "CSS",
+            "Django",
+            "Flask",
+            "HTML",
+            "Machine Learning",
             "Python",
-            "Git",
-            "SQL",
-            "LangChain",
-            "LLMs"
+            "REST API"
         ],
-        "url": "https://wellfound.com/jobs",
-        "source": "Wellfound"
+        "description": "Are you a Python enthusiast looking to make a difference in the world of education? Join us at Basti Ki Pathshala Foundation as a Python Development intern! \n\nKey Responsibilities:\n1. Collaborate with the development team to design and implement Python-based solutions for educational platforms.\n2. Assist in troubleshooting and debugging code to ensure optimal performance.\n3. Research and propose innovative ideas to enhance the functionality of our educational tools.\n4. Work on data analysis and visualization projects to improve student learning outcomes.\n5. Contribute to the development of automation tools to streamline processes within the organization.\n6. Participate in code reviews and provide constructive feedback to peers for continuous improvement.\n7. Stay updated on the latest trends and technologies in the Python development community to bring fresh ideas to the table.\n\nIf you are eager to learn, grow, and make a positive impact on education through Python development, apply now and be a part of our dynamic team!\nOnly those candidates can apply who:\n\n                1. are available for the work from home job/internship                    \n\n                2. can start the work from home job/internship between 2nd Jul'26 and 6th Aug'26                    \n\n                3. are available for duration of 1 month                    \n\n                4. have relevant skills and interests                    \n* Women wanting to start/restart their career can also apply.\n5\nNoida\nBasti Ki Pathshala Foundation is a Government-registered organization established under the Indian Societies Act of 1860. We are a grassroots organization dedicated to breaking the barriers of education in underserved communities. Founded with a mission to provide quality education to children living in slum areas, we strive to create a nurturing learning environment where every child has the opportunity to thrive. Through innovative teaching methods, community engagement, and partnerships, we empower children with the knowledge and skills they need to build a brighter future. Our commitment extends beyond the classroom as we work towards bridging the educational gap and fostering long-term sustainable change in the lives of marginalized families.",
+        "constraints": {
+            "min_education": null,
+            "requires_phd": false,
+            "work_mode": "remote",
+            "location_city": null,
+            "stipend_min_val": null,
+            "duration_months": 1,
+            "dealbreakers": [
+                "Must be available for the work from home job/internship",
+                "Must be able to start the work from home job/internship between 2nd Jul'26 and 6th Aug'26",
+                "Must be available for a duration of 1 month"
+            ]
+        },
+        "is_remote": true,
+        "stipend_min": null,
+        "duration_months": 1
     },
     {
-        "job_title": "Fast api Developer",
-        "company": "Codex Labs",
-        "location": "San Francisco (Remote)",
-        "stipend": "$3,000 /month",
-        "duration": "4 months",
+        "job_title": "PhD Research Sciences Intern",
+        "company": "Microsoft",
+        "location": "Remote",
+        "stipend": "Competitive stipend",
+        "duration": "3 Months",
+        "url": "https://internshala.com/internship/detail/phd-research-sciences-intern-internship-in-multiple-locations-at-microsoft1780914124",
         "required_skills": [
-            "Fast api",
+            "Artificial intelligence",
+            "Data Analysis",
+            "Data Science",
+            "Machine Learning",
             "Python",
-            "Git",
-            "SQL",
-            "FastAPI",
-            "Docker"
+            "Research and Analytics"
         ],
-        "url": "https://wellfound.com/jobs",
-        "source": "Wellfound"
+        "description": "Selected intern's day-to-day responsibilities include: \n\n1. Analyzing and improving the performance of advanced algorithms on large-scale datasets and cutting-edge research in machine intelligence and machine learning applications.\n\n2. Thinking through product scenarios and goals, identify key challenges, map requirements into Machine Learning (ML) tasks, and design experimental processes for iteration and optimization.\n\n3. Building and implementing working prototypes of scalable systems in artificial intelligence (AI) applications.\n\n4. Gaining a broad understanding of research areas, utilising applicable research techniques, staying updated on industry trends, and sharing knowledge with immediate team members.\n\n5. Reviewing data quality and technical constraints, preparing datasets for analysis, and actively troubleshooting data quality issues by deciding which data to include or exclude.\n\n6. Assisting with the development of usable datasets for modelling purposes and supporting the scaling of feature ideation and data preparation workflows.\n\n7. Cleaning and adapting processed data for machine learning purposes under the direct supervision and guidance of senior team members.\nOnly those candidates can apply who:\n\n                1. are available for full time (in-office) internship                    \n\n                2. are available for duration of 3 months                    \n\n                3. have relevant skills and interests\nOnly those candidates can apply who:                \n\n                    1. Are currently pursuing a Doctorate Degree (PhD) in Statistics, Econometrics, Computer Science, Electrical Engineering, Computer Engineering, or a highly related quantitative field.                \n\n                    2. Must have at least one additional quarter/semester of school remaining following the completion of this internship.                \n\n                    3. Are available for full-time, fully on-site work at one of Microsoft's India office locations.                \n\n                    4. Are open to less than 25% travel if required by the business group.\n1. Strong foundations in advanced algorithms, machine intelligence, and machine learning applications.\n\r\n2. Experience working with large-scale datasets and designing experimental processes for model optimization.\n\r\n3. Proficiency in implementing scalable AI prototypes and utilizing state-of-the-art data modeling tools.\n\r\n4. Deep analytical mindset with the ability to translate real-world business/product scenarios into structured ML tasks.\n\r\n5. Knowledge of data engineering concepts, feature ideation, data preparation, and data quality troubleshooting.\n\r\n6. Strong research capabilities with a keen interest in staying up-to-date with emerging tech and industry trends.\n\r\n7. Excellent collaboration and communication skills to share insights effectively within a global team framework.\n5\nInformation above is Internshala's interpretation and paraphrasing of what we found on the shared link.\nWebsite\nMicrosoft, founded in 1975 by Bill Gates and Paul Allen, is a global technology powerhouse headquartered in Redmond, Washington. With a market capitalization of around $3 trillion and annual revenue of $245 billion in 2023, Microsoft leads in cloud computing, AI, and enterprise solutions. In India, Microsoft Azure, Office 365, and LinkedIn play a crucial role in empowering businesses and professionals, while the company invests heavily in AI research, cybersecurity, and digital skilling programs. Microsoft\u2019s initiatives support startups, enterprises, and government organizations in accelerating digital transformation. Committed to sustainability and technological advancement, Microsoft continues to shape the future of computing while fostering digital innovation across India and the world.",
+        "constraints": {
+            "min_education": "phd",
+            "requires_phd": true,
+            "work_mode": "onsite",
+            "location_city": null,
+            "stipend_min_val": null,
+            "duration_months": 3,
+            "dealbreakers": [
+                "Must be available for full-time, fully on-site work",
+                "Must be currently pursuing a Doctorate Degree (PhD) in a related field",
+                "Must have at least one additional quarter/semester of school remaining",
+                "Must be open to less than 25% travel if required"
+            ]
+        },
+        "is_remote": true,
+        "stipend_min": null,
+        "duration_months": 3
+    },
+    {
+        "job_title": "Full Stack Development",
+        "company": "SANKALPTARU FOUNDATION",
+        "location": "Remote",
+        "stipend": "\u20b9 15,000 - 20,000 /month",
+        "duration": "2 Months",
+        "url": "https://internshala.com/internship/detail/full-stack-development-internship-in-dehradun-at-sankalptaru-foundation1783054153",
+        "required_skills": [
+            "HTML",
+            "Node.js",
+            "PHP",
+            "Python",
+            "React"
+        ],
+        "description": "Join us at Sankalptaru Foundation as a Full Stack Development intern and unleash your potential in creating innovative solutions that make a difference in the world! We are seeking a talented individual who is proficient in React, Node.js, PHP, Python, and HTML to join our dynamic team. \n\nSelected intern's day-to-day responsibilities include:\n\n1. Develop and maintain web applications using React, Node.js, PHP, Python, and HTML.\n2. Collaborate with cross-functional teams to design and implement new features.\n3. Optimize applications for maximum speed and scalability.\n4. Troubleshoot and debug applications to ensure seamless functionality.\n5. Stay updated on emerging technologies and trends in the industry.\n6. Assist in testing and deploying applications to production environments.\n7. Contribute to the overall success of the team by actively participating in team meetings and sharing ideas. \n\nIf you are passionate about using your skills to drive positive change and are eager to learn and grow in a supportive environment, then we want to hear from you! Apply now and be part of our mission to create a better world through technology.\nOnly those candidates can apply who:\n\n                1. are available for full time (in-office) internship                    \n\n                2. can start the internship between 2nd Jul'26 and 6th Aug'26                    \n\n                3. are available for duration of 2 months                    \n\n                4. have relevant skills and interests                    \n* Women wanting to start/restart their career can also apply.\n2\nWebsite\nSankalpTaru is a technology-enabled environmental non-profit committed to restoring ecosystems, strengthening rural livelihoods, and inspiring collective climate action. Working across India's diverse and challenging landscapes   including deserts, mountains, farmlands, mangroves, urban spaces, degraded lands, and community commons   SankalpTaru designs and implements holistic programs in agroforestry, community afforestation, urban greening, water conservation, and biodiversity restoration.\n\r\nIts work goes beyond tree plantation by combining community ownership, scientific planning, long-term stewardship, and digital transparency through geotagging, dashboards, satellite monitoring, IoT, and blockchain-enabled traceability. With millions of trees planted, thousands of communities supported, and partnerships with corporates, institutions, volunteers, and citizens, SankalpTaru continues to build a people-powered movement for a greener, healthier, and more resilient planet.",
+        "constraints": {
+            "min_education": null,
+            "requires_phd": false,
+            "work_mode": "remote",
+            "location_city": null,
+            "stipend_min_val": 15000,
+            "duration_months": 2,
+            "dealbreakers": [
+                "Must be available for full time (in-office) internship",
+                "Must be able to start the internship between 2nd Jul'26 and 6th Aug'26",
+                "Must be available for duration of 2 months"
+            ]
+        },
+        "is_remote": true,
+        "stipend_min": 15000,
+        "duration_months": 2
+    },
+    {
+        "job_title": "Full Stack Development",
+        "company": "Adex Media Hub",
+        "location": "Remote",
+        "stipend": "\u20b9 5,000 - 10,000 /month",
+        "duration": "3 Months",
+        "url": "https://internshala.com/internship/detail/full-stack-development-internship-in-pune-at-adex-media-hub1782989630",
+        "required_skills": [
+            "CSS",
+            "HTML",
+            "JavaScript",
+            "MySQL",
+            "PHP",
+            "Python"
+        ],
+        "description": "Selected intern's day-to-day responsibilities include: \n\nDevelop and maintain web applications.\nBuild responsive and user-friendly front-end interfaces.\nDevelop secure and efficient back-end systems.\nDesign and manage databases.\nIntegrate APIs and third-party services.\nTest, debug, and fix application issues.\nOptimize application performance and security.\nCollaborate with designers and other developers.\nMaintain code quality using version control (Git).\nDeploy and update applications on servers or cloud platforms.\nOnly those candidates can apply who:\n\n                1. are available for full time (in-office) internship                    \n\n                2. can start the internship between 2nd Jul'26 and 6th Aug'26                    \n\n                3. are available for duration of 3 months                    \n\n                4. are from Pune only                    \n\n                5. have relevant skills and interests                    \n* Women wanting to start/restart their career can also apply.\nIMMEDIATE\n2\nWebsite\nAt Adexmediahub, our mission is to revolutionize the digital marketing sphere by providing cutting-edge solutions that drive success for our clients. We aim to be the driving force behind your brand's online presence, enhancing visibility, engagement, and, ultimately, profitability.",
+        "constraints": {
+            "min_education": null,
+            "requires_phd": false,
+            "work_mode": "onsite",
+            "location_city": "Pune",
+            "stipend_min_val": 5000,
+            "duration_months": 3,
+            "dealbreakers": [
+                "Must be available for full-time (in-office) internship",
+                "Must be able to start the internship between 2nd Jul'26 and 6th Aug'26",
+                "Must be available for a duration of 3 months",
+                "Must be from Pune"
+            ]
+        },
+        "is_remote": true,
+        "stipend_min": 5000,
+        "duration_months": 3
+    },
+    {
+        "job_title": "Data Science",
+        "company": "OMNIDYA TECH LLP",
+        "location": "Remote",
+        "stipend": "\u20b9 10,000 - 15,000 /month",
+        "duration": "6 Months",
+        "url": "https://internshala.com/internship/detail/data-science-internship-in-ahmedabad-at-omnidya-tech-llp1782809683",
+        "required_skills": [
+            "Data Analysis",
+            "Data Science",
+            "Data Visualization",
+            "Git",
+            "Machine Learning Operations (MLOps)",
+            "MS-Excel",
+            "MS SQL Server",
+            "NumPy",
+            "Pandas",
+            "Power BI",
+            "Python",
+            "PyTorch",
+            "scikit-learn",
+            "SQL",
+            "Statistics",
+            "TensorFlow"
+        ],
+        "description": "Selected intern's day-to-day responsibilities include:\n\n1. Collect, clean, and preprocess datasets, perform exploratory data analysis (EDA), and identify meaningful trends and patterns.\n2. Assist in building, testing, and evaluating machine learning models while creating dashboards and visualizations to communicate insights.\n3. Write Python and SQL scripts, document project workflows, and collaborate with engineering and product teams on real-world data science projects.\nOnly those candidates can apply who:\n\n                1. are available for full time (in-office) internship                    \n\n                2. can start the internship between 30th Jun'26 and 4th Aug'26                    \n\n                3. are available for duration of 6 months                    \n\n                4. are from Ahmedabad only                    \n\n                5. have relevant skills and interests                    \n* Women wanting to start/restart their career can also apply.\n1. Candidates pursuing or recently completing B.Tech, B.E., M.Tech, MCA, BCA, B.Sc., M.Sc., Data Science, Computer Science, AI/ML, Statistics, Mathematics, or related disciplines are preferred.                \n\n                    2. Basic knowledge of Python, SQL, Machine Learning, Statistics, Pandas, NumPy, and Scikit-learn is required.                \n\n                    3. Experience with TensorFlow, PyTorch, Power BI/Tableau, Git, Kaggle, or personal ML projects will be an added advantage.\n6\nWebsite\nWe are an Ahmedabad-based AI tech company specializing in dashcams. Additionally, we are the Indian subsidiary of an already established US firm.",
+        "constraints": {
+            "min_education": "bachelors",
+            "requires_phd": false,
+            "work_mode": "onsite",
+            "location_city": "Ahmedabad",
+            "stipend_min_val": 10000,
+            "duration_months": 6,
+            "dealbreakers": [
+                "Must be available for full-time in-office internship",
+                "Must be available to start between 30th Jun'26 and 4th Aug'26",
+                "Must be available for a duration of 6 months",
+                "Must be from Ahmedabad"
+            ]
+        },
+        "is_remote": true,
+        "stipend_min": 10000,
+        "duration_months": 6
+    },
+    {
+        "job_title": "AI Engineer (Agents & Orchestration)",
+        "company": "Webbybutter Technologies",
+        "location": "Remote",
+        "stipend": "\u20b9 5,000 - 15,000 /month",
+        "duration": "6 Months",
+        "url": "https://internshala.com/internship/detail/ai-engineer-agents-orchestration-internship-in-vadodara-at-webbybutter-technologies1782818544",
+        "required_skills": [
+            "Artificial intelligence",
+            "LangChain",
+            "LLM evaluation",
+            "LLMOps",
+            "Machine Learning",
+            "NumPy",
+            "Python"
+        ],
+        "description": "You will design, build, and deploy AI agent systems that operate in real-world environments. This is a hands-on engineering role focused on agent orchestration, LLM integration, and solving reliability challenges that differentiate working prototypes from production-ready products.\n\nYou will learn quickly, take ownership of features end-to-end, and see your work deployed rapidly.\n\nSelected intern's day-to-day responsibilities include:\n\n1. Build and maintain AI agent workflows using Python, LangChain, and LangGraph.\n2. Implement agent orchestration logic, including state management, tool calling, memory, retries, and fallback mechanisms.\n3. Integrate LLMs with real-world infrastructure such as telephony, WhatsApp, email, CRMs, and vector databases.\n4. Debug and improve existing systems, including code developed by other team members.\n5. Monitor AI agents in production and resolve issues as they arise.\n6. Contribute ideas related to system architecture, scalability, and reliability.\n\nHow to Apply:\n\nSubmit your resume along with a GitHub profile link or a link to a working project you have built. A functional project is valued more than a polished CV.\n\nNote: This is an on-site role based in Vadodara. Remote or hybrid options are not available for this position.\nOnly those candidates can apply who:\n\n                1. are available for full time (in-office) internship                    \n\n                2. can start the internship between 30th Jun'26 and 4th Aug'26                    \n\n                3. are available for duration of 6 months                    \n\n                4. are from Vadodara only                    \n\n                5. have relevant skills and interests\nRequired Skills:                \n\n                    1. Working knowledge of Python.                \n\n                    2. Familiarity with LangChain and LangGraph; candidates should have built at least one working project using these technologies.                \n\n                    3. Understanding of AI agent concepts, including prompts, tool usage, control flow, and common failure scenarios.                \n\n                    4. Comfort working with APIs, Git, and independently reading technical documentation.                \n\n                    5. Genuine curiosity and willingness to learn quickly in a fast-paced environment.                \n\n                    Good to Have:                \n\n                    1. Exposure to RAG systems such as FAISS or Qdrant, or workflow automation tools like n8n.                \n\n                    2. Experience with voice AI platforms such as ElevenLabs, Twilio, or Exotel, or messaging integrations.                \n\n                    3. Familiarity with Next.js or Supabase for full-stack development.                \n\n                    4. Side projects, GitHub contributions, or experience building and deploying independent projects.\nWhat We Offer:\n\r\n1. Real ownership and production experience from day one.\r\n2. Direct mentorship and a flat, fast-moving team environment.\r\n3. Exposure to cutting-edge AI agent and voice AI technologies.\r\n4. A clear growth path as the company expands its vertical AI products.\n\r\nWhat We Don't Require:\n\r\n1. A perfect resume or a big college name.\r\n2. A long list of certifications.\n5\nWebsite\nWebbybutter Private Limited is a web and mobile app development company based in Vadodara, India. We specialize in delivering cutting-edge solutions across industries by combining strategic thinking, design expertise, and technological innovation. Our services include custom software development, UI/UX design, mobile app development, and enterprise solutions. We are committed to empowering businesses through technology and delivering high-quality digital experiences that drive measurable results.",
+        "constraints": {
+            "min_education": "none",
+            "requires_phd": false,
+            "work_mode": "onsite",
+            "location_city": null,
+            "stipend_min_val": null,
+            "duration_months": null,
+            "dealbreakers": []
+        },
+        "is_remote": true,
+        "stipend_min": null,
+        "duration_months": null
+    },
+    {
+        "job_title": "Business Analytics",
+        "company": "Career-Domain",
+        "location": "Remote",
+        "stipend": "\u20b9 2,000 - 5,000 /month",
+        "duration": "6 Months",
+        "url": "https://internshala.com/internship/detail/business-analytics-internship-in-nagpur-at-career-domain1782548509",
+        "required_skills": [
+            "Data Analytics",
+            "English Proficiency (Spoken)",
+            "English Proficiency (Written)",
+            "MS-Excel",
+            "MS-Office",
+            "Python",
+            "Research and Analytics",
+            "SQL"
+        ],
+        "description": "Selected intern's day-to-day responsibilities include: \n\n1. Collecting, cleaning, and analyzing business data to identify trends and insights\n2. Preparing daily and weekly performance reports and dashboards\n3. Monitoring key performance indicators (KPIs) and tracking business metrics\n4. Conducting market research and competitor analysis\n5. Assisting in data-driven decision-making and strategic planning\nOnly those candidates can apply who:\n\n                1. are available for full time (in-office) internship                    \n\n                2. can start the internship between 27th Jun'26 and 1st Aug'26                    \n\n                3. are available for duration of 6 months                    \n\n                4. are from Nagpur only                    \n\n                5. have relevant skills and interests\nBasic understanding of Business Analytics and data interpretation                \n\n                    Proficiency in MS Excel or Google Sheets (formulas, pivot tables, data analysis)                \n\n                    Familiarity with tools such as Power BI, Tableau, or basic SQL is a plus                \n\n                    Strong analytical and problem-solving skills                \n\n                    Good communication skills with the ability to present insights clearly                \n\n                    Detail-oriented with strong organizational abilities\n3\nCareer-Domain is an ed-tech start-up founded to educate, guide, and mentor students about the vast career opportunities available to them according to their behavior, skills, intuition, personality, passive choices, natural interest, and IQ. We are helping them find out their perfect career and the best way to achieve it.",
+        "constraints": {
+            "min_education": null,
+            "requires_phd": false,
+            "work_mode": "onsite",
+            "location_city": "Nagpur",
+            "stipend_min_val": 2000,
+            "duration_months": 6,
+            "dealbreakers": [
+                "Must be available for full-time (in-office) internship",
+                "Must be able to start the internship between 27th Jun'26 and 1st Aug'26",
+                "Must be available for a duration of 6 months",
+                "Must be from Nagpur"
+            ]
+        },
+        "is_remote": true,
+        "stipend_min": 2000,
+        "duration_months": 6
+    },
+    {
+        "job_title": "Robotics",
+        "company": "Discover Technologies",
+        "location": "Remote",
+        "stipend": "\u20b9 6,000 - 20,000 /month",
+        "duration": "6 Months",
+        "url": "https://internshala.com/internship/detail/robotics-internship-in-multiple-locations-at-discover-technologies1782995086",
+        "required_skills": [
+            "Arduino",
+            "English Proficiency (Spoken)",
+            "English Proficiency (Written)",
+            "Internet of Things (IoT)",
+            "MS-PowerPoint",
+            "Python",
+            "Robotics"
+        ],
+        "description": "Selected intern's day-to-day responsibilities include: \n\n1. Training kids in robotics and coding.\n2. Creating and maintaining technical documentation.\n3. Working with the team to manage, optimize, and customize multiple training sessions.\n4. Visiting schools and centers for robot demos.\nOnly those candidates can apply who:\n\n                1. are available for full time (in-office) internship                    \n\n                2. can start the internship between 2nd Jul'26 and 6th Aug'26                    \n\n                3. are available for duration of 6 months                    \n\n                4. are from Thane, Mira Bhayandar only                    \n\n                5. have relevant skills and interests                    \n* Women wanting to start/restart their career can also apply.\nJob offer: On successful conversion to a permanent employee, the candidate can expect a salary of \u20b9 200000 to 300000/year\n2\nWebsite\nWe are into embedded projects/product development, solar-based products and services, and IoT based projects/product development.",
+        "constraints": {
+            "min_education": null,
+            "requires_phd": false,
+            "work_mode": "onsite",
+            "location_city": "Thane, Mira Bhayandar",
+            "stipend_min_val": 6000,
+            "duration_months": 6,
+            "dealbreakers": [
+                "Must be available for full-time (in-office) internship",
+                "Must be able to start the internship between 2nd Jul'26 and 6th Aug'26",
+                "Must be available for a duration of 6 months",
+                "Must be from Thane, Mira Bhayandar"
+            ]
+        },
+        "is_remote": true,
+        "stipend_min": 6000,
+        "duration_months": 6
+    },
+    {
+        "job_title": "Backend Development",
+        "company": "EmpowerU (Promorph Solutions Private Limited)",
+        "location": "Remote",
+        "stipend": "\u20b9 3,000 - 5,000 /month",
+        "duration": "3 Months",
+        "url": "https://internshala.com/internship/detail/backend-development-internship-in-multiple-locations-at-empoweru-promorph-solutions-private-limited1782970717",
+        "required_skills": [
+            "Cloud Firestore",
+            "Computer Networks",
+            "Express.js",
+            "Git",
+            "Google Cloud Platforms (GCP)",
+            "MongoDB",
+            "Node.js",
+            "Python",
+            "REST API"
+        ],
+        "description": "Selected intern's day-to-day responsibilities include: \n\n1. Developing applications using Node.js and integrating AI/Machine learning algorithms.\n2. Understand project requirements, user interface designs, and user experience goals.\n3. Integrate with RESTful APIs, Firebase for backend web services, third-party libraries, and ad services to fetch and display data within the app.\nOnly those candidates can apply who:\n\n                1. are available for full time (in-office) internship                    \n\n                2. can start the internship between 2nd Jul'26 and 6th Aug'26                    \n\n                3. are available for duration of 3 months                    \n\n                4. are from Bokaro Steel City, Dhanbad, Jamshedpur, Ranchi, Ramgarh, Jharkhand only                    \n\n                5. have relevant skills and interests\nCandidates who have completed their degrees are preferred.\nJob offer: On successful conversion to a permanent employee, the candidate can expect a salary of \u20b9 200000 to 400000/year\n2\nWebsite\nEmpowerU (Promorph Solutions Pvt. Ltd.) is an education focused Data Intelligence company featured in Forbes 2019 for its game-changing work. The company was founded in 2015 and mentored by a team of data scientists and professors from IIT Kanpur. At Promorph, we are working on the vision of improving Quality of Public Education in India through our flagship product EmpowerU which is An Education Intelligence System based on cutting edge technologies. Till now, we have impacted the lives of around 1 million students studying in 7000 government schools.",
+        "constraints": {
+            "min_education": "none",
+            "requires_phd": false,
+            "work_mode": "onsite",
+            "location_city": null,
+            "stipend_min_val": null,
+            "duration_months": null,
+            "dealbreakers": []
+        },
+        "is_remote": true,
+        "stipend_min": null,
+        "duration_months": null
     }
 ]

@@ -66,8 +66,6 @@ function JobCard({
   isSaved: boolean;
   onToggleSave: () => void;
 }) {
-  const scoreColor =
-    match.score >= 70 ? "#00d68f" : match.score >= 40 ? "#ffd166" : "#ff4d6d";
 
   return (
     <div
@@ -338,12 +336,25 @@ export default function RecommendationsPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [minScore, setMinScore] = useState(0);
   const [showFilters, setShowFilters] = useState(false);
+  
+  // New backend filters
+  const [location, setLocation] = useState("");
+  const [remoteOnly, setRemoteOnly] = useState(false);
+  const [stipendMin, setStipendMin] = useState<number | "">("");
+  const [durationMax, setDurationMax] = useState<number | "">("");
 
   const fetchMatches = async (email: string, keyword?: string) => {
     setLoading(true);
     setError("");
     try {
-      const data = await api.getMatches(email, keyword);
+      const data = await api.getMatches(
+        email, 
+        keyword,
+        location || undefined,
+        remoteOnly,
+        stipendMin === "" ? undefined : stipendMin,
+        durationMax === "" ? undefined : durationMax
+      );
       setMatches(data || []);
     } catch (e: unknown) {
       const err = e as Error;
@@ -555,7 +566,16 @@ export default function RecommendationsPage() {
 
           <button
             type="button"
-            onClick={() => { setSearchQuery(""); fetchMatches(selectedEmail, ""); setMinScore(0); }}
+            onClick={() => { 
+              setSearchQuery(""); 
+              setLocation("");
+              setRemoteOnly(false);
+              setStipendMin("");
+              setDurationMax("");
+              setMinScore(0);
+              // Trigger a fetch without filters
+              api.getMatches(selectedEmail, "").then(setMatches).catch(e => setError(e.message)); 
+            }}
             style={{
               background: "none",
               border: "none",
@@ -578,37 +598,66 @@ export default function RecommendationsPage() {
             background: "var(--bg-surface)",
             border: "1px solid var(--border)",
             borderRadius: "14px",
-            padding: "16px 20px",
+            padding: "20px",
             marginBottom: "24px",
-            display: "flex",
-            alignItems: "center",
-            gap: "16px",
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
+            gap: "20px",
+            alignItems: "end"
           }}
         >
-          <span style={{ fontSize: "12px", fontWeight: 600, color: "var(--text-secondary)", whiteSpace: "nowrap" }}>Min match score:</span>
-          <input
-            type="range"
-            min="0"
-            max="100"
-            value={minScore}
-            onChange={(e) => setMinScore(Number(e.target.value))}
-            style={{ flex: 1, maxWidth: "200px", accentColor: "var(--accent)" }}
-          />
-          <span
-            style={{
-              fontSize: "13px",
-              fontWeight: 800,
-              fontFamily: "var(--font-body)",
-              color: "var(--accent)",
-              background: "var(--accent-light)",
-              padding: "4px 12px",
-              borderRadius: "8px",
-              minWidth: "44px",
-              textAlign: "center",
-            }}
-          >
-            {minScore}%
-          </span>
+          {/* Location */}
+          <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+            <label style={{ fontSize: "12px", fontWeight: 600, color: "var(--text-secondary)" }}>Location</label>
+            <input
+              type="text"
+              placeholder="e.g. Mumbai, Bengaluru..."
+              value={location}
+              onChange={(e) => setLocation(e.target.value)}
+              className="input-base"
+              style={{ background: "var(--bg-elevated)", border: "1px solid var(--border)", borderRadius: "8px", padding: "8px 12px", fontSize: "13px" }}
+            />
+          </div>
+
+          {/* Stipend */}
+          <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+            <label style={{ fontSize: "12px", fontWeight: 600, color: "var(--text-secondary)" }}>Min Stipend (₹/mo)</label>
+            <input
+              type="number"
+              placeholder="e.g. 10000"
+              value={stipendMin}
+              onChange={(e) => setStipendMin(e.target.value ? Number(e.target.value) : "")}
+              className="input-base"
+              style={{ background: "var(--bg-elevated)", border: "1px solid var(--border)", borderRadius: "8px", padding: "8px 12px", fontSize: "13px" }}
+            />
+          </div>
+
+          {/* Remote Only */}
+          <div style={{ display: "flex", alignItems: "center", gap: "10px", height: "35px" }}>
+            <input
+              type="checkbox"
+              id="remote-toggle"
+              checked={remoteOnly}
+              onChange={(e) => setRemoteOnly(e.target.checked)}
+              style={{ accentColor: "var(--accent)", width: "16px", height: "16px" }}
+            />
+            <label htmlFor="remote-toggle" style={{ fontSize: "13px", fontWeight: 500, color: "var(--text-primary)", cursor: "pointer" }}>
+              Remote Only
+            </label>
+          </div>
+
+          {/* Local Score Filter */}
+          <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+            <label style={{ fontSize: "12px", fontWeight: 600, color: "var(--text-secondary)" }}>Min Match Score: {minScore}%</label>
+            <input
+              type="range"
+              min="0"
+              max="100"
+              value={minScore}
+              onChange={(e) => setMinScore(Number(e.target.value))}
+              style={{ width: "100%", accentColor: "var(--accent)", marginTop: "8px" }}
+            />
+          </div>
         </div>
       )}
 

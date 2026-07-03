@@ -18,7 +18,7 @@ def get_current_user(
     # 1. Parse custom mock token if present (local development isolation)
     if authorization:
         try:
-            scheme, token = authorization.split(maxsplit=1)
+            scheme, token = str(authorization).split(maxsplit=1)
             if scheme.lower() == "bearer" and token.startswith("mock_token:"):
                 # Format: mock_token:<user_id>:<email>:<name>
                 # Use maxsplit=3 on the token part so names with colons are preserved
@@ -51,8 +51,11 @@ def get_current_user(
         raise HTTPException(status_code=401, detail="Missing Authorization header")
 
     # 3. Extract Bearer token for production Supabase auth
+    if not authorization:
+        raise HTTPException(status_code=401, detail="Missing Authorization header")
+        
     try:
-        scheme, token = authorization.split(maxsplit=1)
+        scheme, token = str(authorization).split(maxsplit=1)
         if scheme.lower() != "bearer":
             raise HTTPException(status_code=401, detail="Invalid authentication scheme")
     except ValueError:
@@ -75,11 +78,11 @@ def get_current_user(
         )
         user_id = payload.get("sub")
         email = payload.get("email")
-        user_metadata = payload.get("user_metadata", {})
-        name = user_metadata.get("full_name") or user_metadata.get("name") or email.split("@")[0]
-
         if not user_id or not email:
             raise HTTPException(status_code=401, detail="Invalid token payload")
+            
+        user_metadata = payload.get("user_metadata", {})
+        name = user_metadata.get("full_name") or user_metadata.get("name") or email.split("@")[0]
 
         db_user = db.query(User).filter(User.id == user_id).first()
         if not db_user:

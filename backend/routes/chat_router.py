@@ -89,6 +89,8 @@ async def chat_with_gemini(
         
         # Parse the JSON string response back to a dict so FastAPI can serialize it
         content = response.choices[0].message.content
+        if not content:
+            content = "{}"
         return json.loads(content)
     except Exception as e:
         print(f"Groq API Error: {e}")

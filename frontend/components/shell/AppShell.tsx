@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, User, Sparkles, Zap, Upload, LogOut, ChevronUp, Bookmark, Bot } from "lucide-react";
+import { LayoutDashboard, User, Sparkles, Upload, LogOut, Bookmark, Bot } from "lucide-react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { AuthModal } from "@/components/auth/AuthModal";
 
@@ -16,7 +16,7 @@ const NAV = [
   { href: "/chat",      label: "AI Chat",         icon: Bot },
 ];
 
-export function AppShell({ children, title }: { children: React.ReactNode; title: string }) {
+export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const { user, signOut } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);

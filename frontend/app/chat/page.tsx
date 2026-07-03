@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { AppShell } from "@/components/shell/AppShell";
 import { useAuth } from "@/components/auth/AuthProvider";
-import { Bot, Send, User as UserIcon, Loader2, Target, Lightbulb, AlertTriangle } from "lucide-react";
+import { Bot, Send, Loader2, Target, Lightbulb, AlertTriangle } from "lucide-react";
 import api from "@/lib/api";
 
 interface ActionItem {

@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { AppShell } from "@/components/shell/AppShell";
 import { useAuth } from "@/components/auth/AuthProvider";
-import { Sparkles, MapPin, Banknote, Bookmark as BookmarkIcon, CalendarDays, ExternalLink, RefreshCw } from "lucide-react";
+import { MapPin, Banknote, Bookmark as BookmarkIcon, CalendarDays, ExternalLink } from "lucide-react";
 import Link from "next/link";
 
 interface Job {

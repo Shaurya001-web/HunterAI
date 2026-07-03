@@ -22,10 +22,11 @@ class UserProfile(BaseModel):
 
 
 def extract_text(pdf_path: str) -> str:
-    with fitz.open(pdf_path) as Content:
+    with fitz.open(pdf_path) as doc:
         text=""
-        for text_pdf in Content:
-            text+=text_pdf.get_text()
+        for page_num in range(len(doc)):
+            page = doc.load_page(page_num)
+            text += str(page.get_text())
         return text
 
 async def parse_resume_to_json(pdf_path: str) -> dict:
@@ -122,7 +123,7 @@ Resume Text:
 
     if json_text:
         # Clean up possible markdown code fences
-        cleaned_json = json_text.strip()
+        cleaned_json = str(json_text).strip()
         if cleaned_json.startswith("```json"):
             cleaned_json = cleaned_json[7:]
         elif cleaned_json.startswith("```"):

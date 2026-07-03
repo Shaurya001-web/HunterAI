@@ -10,8 +10,12 @@ router = APIRouter()
 
 @router.get("/matches")
 def get_matches(
-    keyword: str = None,
-    email: str = None,
+    keyword: str | None = None,
+    location: str | None = None,
+    remote_only: bool = False,
+    stipend_min: int | None = None,
+    duration_max: int | None = None,
+    email: str | None = None,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
@@ -78,13 +82,30 @@ def get_matches(
                         stipend=sj.get("stipend"),
                         duration=sj.get("duration"),
                         url=sj.get("url"),
-                        source=sj.get("source")
+                        source=sj.get("source"),
+                        is_remote=sj.get("is_remote", False),
+                        stipend_min=sj.get("stipend_min", 0),
+                        duration_months=sj.get("duration_months", 0),
+                        constraints=sj.get("constraints", {})
                     )
                     db.add(new_job)
             db.commit()
         
-        # 3. Fetch all jobs from database to score against
-        db_jobs = db.query(Job).all()
+        # 3. Hybrid Filtering - Phase 1: Cheap SQL Filtering
+        query = db.query(Job)
+        
+        if remote_only:
+            query = query.filter(Job.is_remote == True)
+        elif location:
+            query = query.filter(Job.location.ilike(f"%{location}%"))
+            
+        if stipend_min:
+            query = query.filter(Job.stipend_min >= stipend_min)
+            
+        if duration_max:
+            query = query.filter(Job.duration_months > 0, Job.duration_months <= duration_max)
+            
+        db_jobs = query.all()
         
         # Map database jobs back to engine representation
         engine_jobs = []
@@ -101,7 +122,8 @@ def get_matches(
                 "duration": dj.duration,
                 "required_skills": dj.skills,
                 "url": dj.url,
-                "source": dj.source
+                "source": dj.source,
+                "constraints": dj.constraints
             })
             
         if not engine_jobs:

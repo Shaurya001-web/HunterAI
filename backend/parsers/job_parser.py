@@ -54,9 +54,12 @@ async def response_job_parser():
             Job Description:{job_description}
             """)
     
-    job_text_des = response.content
+    content = response.content
+    if not content:
+        content = "{}"
+        
     try:
-        data = json.loads(job_text_des)
+        data = json.loads(str(content))
         output_dir = os.path.join(project_root, "data")
         os.makedirs(output_dir, exist_ok=True)
         path = os.path.join(output_dir, "jobs.json")
@@ -64,9 +67,9 @@ async def response_job_parser():
         with open(path, "w") as f:
             json.dump([data], f, indent=4)
         print("Job description parsed and saved successfully ✅")
-    except json.JSONDecodeError:
-        print("Failed to parse response as JSON. Raw response:")
-        print(job_text_des)
+    except Exception as e:
+        print(f"Failed to parse job description: {e}")
+        return {"error": "Failed to extract fields", "raw_content": str(content)}
 
 if __name__ == "__main__":
     import asyncio

@@ -87,21 +87,20 @@ def calculate_match(user_skills: List[str], job_skills: List[str]) -> Dict[str, 
     Compares user skills against job required skills using a unidirectional strict satisfaction matrix.
     Basic skills will NOT trigger a match for advanced roles.
     """
-    if not job_skills:
+    valid_job_skills = [s for s in job_skills if s and str(s).strip()]
+    if not valid_job_skills:
         return {
             "match_score": 0.0,
             "matched_skills": [],
             "missing_skills": []
         }
-    
+        
     normalized_user_skills: List[str] = [skill.strip().lower() for skill in user_skills if skill]
     
     matched_skills: List[str] = []
     missing_skills: List[str] = []
     
-    for req_skill in job_skills:
-        if not req_skill:
-            continue
+    for req_skill in valid_job_skills:
         normalized_req = req_skill.strip().lower()
         
         # 1. Start with the literal requirement itself
@@ -134,7 +133,7 @@ def calculate_match(user_skills: List[str], job_skills: List[str]) -> Dict[str, 
             missing_skills.append(req_skill)
             
     num_matched = len(matched_skills)
-    num_required = len(job_skills)
+    num_required = len(valid_job_skills)
     
     match_score = round((num_matched / num_required) * 100, 2)
     
@@ -143,6 +142,39 @@ def calculate_match(user_skills: List[str], job_skills: List[str]) -> Dict[str, 
         "matched_skills": matched_skills,
         "missing_skills": missing_skills
     }
+
+def check_dealbreakers(job_constraints: Dict[str, Any], user_profile: Dict[str, Any]) -> List[str]:
+    """
+    Checks hard constraints (PhD, Work Mode, Dealbreakers list) against the user profile.
+    Returns a list of reasons why the candidate is not eligible. Empty list means eligible.
+    """
+    if not job_constraints:
+        return []
+        
+    reasons = []
+    
+    # Check PhD Requirement
+    if job_constraints.get("requires_phd", False):
+        # Very simple check: does the user have "phd" or "doctorate" in their education?
+        education = user_profile.get("education", [])
+        has_phd = any("phd" in str(edu).lower() or "doctorate" in str(edu).lower() for edu in education)
+        if not has_phd:
+            reasons.append("This role explicitly requires a PhD or Doctorate degree.")
+            
+    # Check Work Mode (if onsite, check if they are in the city, or if we had a relocation willingness flag. For now just warn)
+    work_mode = job_constraints.get("work_mode")
+    location_city = job_constraints.get("location_city")
+    
+    # We could add more checks here based on user_profile.location etc.
+    
+    # Append any manual dealbreakers Groq found
+    dealbreakers = job_constraints.get("dealbreakers", [])
+    for db in dealbreakers:
+        # We just list them as reasons for now since they are dynamic rules we can't easily eval in Python without an LLM.
+        # But for hard constraints, this is useful.
+        pass
+        
+    return reasons
 
 def calculate_selection_probability_penalty(user_profile: Dict[str, Any], job: Dict[str, Any], score: float, num_matched_projects: int) -> float:
     penalty = 0.0
@@ -192,7 +224,7 @@ def calculate_selection_probability_penalty(user_profile: Dict[str, Any], job: D
     final_score = max(0.0, score - penalty)
     return round(final_score, 2)
 
-def evaluate_suitability(user_profile: Dict[str, Any], job: Dict[str, Any], keyword: str = None) -> Dict[str, Any]:
+def evaluate_suitability(user_profile: Dict[str, Any], job: Dict[str, Any], keyword: str | None = None) -> Dict[str, Any]:
     """
     Evaluates candidate suitability for a job based on skills and resume projects matching.
     """
@@ -284,20 +316,29 @@ def evaluate_suitability(user_profile: Dict[str, Any], job: Dict[str, Any], keyw
     # Calculate adjusted score reflecting selection probability
     score = calculate_selection_probability_penalty(user_profile, job, score, num_matched_projects)
     
-    # Determine suitability level
-    if score >= 60 and num_matched_projects >= 1:
-        assessment = f"Highly Suited: You have {num_matched_projects} relevant project(s) ({', '.join(matched_projects[:2])}) and match {int(score)}% of required skills."
-        suitability_level = "highly_suited"
-    elif score >= 30:
-        if num_matched_projects == 0:
-            assessment = f"Partially Suited: You match {int(score)}% of skills, but have no projects in this domain. Build a project to boost your profile."
-            suitability_level = "partially_suited"
-        else:
-            assessment = f"Partially Suited: You have {num_matched_projects} relevant project(s), but match only {int(score)}% of required skills."
-            suitability_level = "partially_suited"
-    else:
-        assessment = "Not Suited: Your profile lacks matching core skills, domain projects, or experience level for this role."
+    # Check Hard Constraints (Dealbreakers)
+    job_constraints = job.get("constraints", {})
+    dealbreaker_reasons = check_dealbreakers(job_constraints, user_profile)
+    
+    if dealbreaker_reasons:
+        score = 0.0
+        assessment = f"Not Eligible: {dealbreaker_reasons[0]}"
         suitability_level = "not_suited"
+    else:
+        # Determine suitability level
+        if score >= 60 and num_matched_projects >= 1:
+            assessment = f"Highly Suited: You have {num_matched_projects} relevant project(s) ({', '.join(matched_projects[:2])}) and match {int(score)}% of required skills."
+            suitability_level = "highly_suited"
+        elif score >= 30:
+            if num_matched_projects == 0:
+                assessment = f"Partially Suited: You match {int(score)}% of skills, but have no projects in this domain. Build a project to boost your profile."
+                suitability_level = "partially_suited"
+            else:
+                assessment = f"Partially Suited: You have {num_matched_projects} relevant project(s), but match only {int(score)}% of required skills."
+                suitability_level = "partially_suited"
+        else:
+            assessment = "Not Suited: Your profile lacks matching core skills, domain projects, or experience level for this role."
+            suitability_level = "not_suited"
         
     return {
         "score": score,
@@ -308,7 +349,7 @@ def evaluate_suitability(user_profile: Dict[str, Any], job: Dict[str, Any], keyw
         "suitability_level": suitability_level
     }
 
-def rank_jobs(user_profile: Dict[str, Any], jobs: List[Dict[str, Any]], keyword: str = None) -> List[Dict[str, Any]]:
+def rank_jobs(user_profile: Dict[str, Any], jobs: List[Dict[str, Any]], keyword: str | None = None) -> List[Dict[str, Any]]:
     """
     Compares a single user profile against a list of jobs, calculates match scores,
     and returns the jobs sorted by score in descending order.

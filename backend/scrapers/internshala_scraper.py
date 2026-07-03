@@ -4,7 +4,8 @@ import json
 import os
 import urllib.parse
 import time
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Tuple
+from engine.constraint_extractor import extract_job_constraints
 
 # Resolve project root and save jobs.json correctly in the data/ folder
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -15,14 +16,14 @@ HEADERS = {
     "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
 }
 
-def get_job_skills(detail_url: str) -> List[str]:
+def get_job_details(detail_url: str) -> Tuple[List[str], str]:
     """
-    Navigates to the internship detail page to extract required skills.
+    Navigates to the internship detail page to extract required skills and the full job description.
     """
     try:
         response = requests.get(detail_url, headers=HEADERS, timeout=10)
         if response.status_code != 200:
-            return []
+            return [], ""
         
         soup = BeautifulSoup(response.text, 'html.parser')
         skills = []
@@ -54,10 +55,16 @@ def get_job_skills(detail_url: str) -> List[str]:
                         if val not in skills:
                             skills.append(val)
                         
-        return skills
+        # Extract full job description
+        description = ""
+        text_containers = soup.find_all('div', class_='text-container')
+        if text_containers:
+            description = "\n".join([c.text.strip() for c in text_containers])
+            
+        return skills, description
     except Exception as e:
-        print(f"Error fetching skills from {detail_url}: {e}")
-        return []
+        print(f"Error fetching details from {detail_url}: {e}")
+        return [], ""
 
 from concurrent.futures import ThreadPoolExecutor
 
@@ -104,9 +111,11 @@ def scrape_internshala(search_query: str, limit: int = 25) -> List[Dict[str, Any
                         duration = text
 
             # Form complete URL for detail page
+            href = link_el.get('href') if link_el else None
+            str_href = str(href) if href else ""
             link = ""
-            if link_el and link_el['href'].startswith('/internship/detail/'):
-                link = "https://internshala.com" + link_el['href']
+            if href and str_href.startswith('/internship/detail/'):
+                link = "https://internshala.com" + str_href
             
             if not link:
                 continue
@@ -123,22 +132,44 @@ def scrape_internshala(search_query: str, limit: int = 25) -> List[Dict[str, Any
         if not pre_jobs:
             return []
 
-        # Fetch required skills concurrently
-        def fetch_skills_task(job):
+        # Fetch required skills and description concurrently
+        def fetch_details_task(job):
             try:
-                required_skills = get_job_skills(job["url"])
+                required_skills, description = get_job_details(job["url"])
             except Exception as thread_err:
                 print(f"Thread fetch error for {job['url']}: {thread_err}")
                 required_skills = []
+                description = ""
                 
             if not required_skills:
                 required_skills = [search_query.capitalize()]
             job["required_skills"] = required_skills
+            job["description"] = description
+            
+            # Extract constraints using Groq
+            if description:
+                constraints = extract_job_constraints(
+                    job_title=job["job_title"],
+                    company=job["company"],
+                    location_str=job["location"],
+                    stipend_str=job["stipend"],
+                    description=description
+                )
+            else:
+                constraints = {}
+                
+            job["constraints"] = constraints
+            
+            # Derive structured fields for the database
+            job["is_remote"] = "remote" in str(job.get("location", "")).lower() or constraints.get("work_mode") == "remote"
+            job["stipend_min"] = constraints.get("stipend_min_val", 0)
+            job["duration_months"] = constraints.get("duration_months", 0)
+                
             return job
 
         # Use ThreadPoolExecutor for concurrent requests
         with ThreadPoolExecutor(max_workers=10) as executor:
-            jobs = list(executor.map(fetch_skills_task, pre_jobs))
+            jobs = list(executor.map(fetch_details_task, pre_jobs))
             
         return jobs
         

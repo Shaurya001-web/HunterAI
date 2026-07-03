@@ -35,11 +35,22 @@ export const api = {
     return res.json();
   },
 
-  getMatches: async (email?: string, keyword?: string) => {
+  getMatches: async (
+    email?: string, 
+    keyword?: string, 
+    location?: string, 
+    remoteOnly?: boolean, 
+    stipendMin?: number, 
+    durationMax?: number
+  ) => {
     let url = `${BASE_URL}/matches`;
     const params = new URLSearchParams();
     if (email) params.append("email", email);
     if (keyword) params.append("keyword", keyword);
+    if (location) params.append("location", location);
+    if (remoteOnly) params.append("remote_only", "true");
+    if (stipendMin) params.append("stipend_min", stipendMin.toString());
+    if (durationMax) params.append("duration_max", durationMax.toString());
     
     if (params.toString()) {
       url += `?${params.toString()}`;
