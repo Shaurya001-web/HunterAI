@@ -55,10 +55,12 @@ Here is the User's Original Resume Data:
         
     try:
         llm = init_chat_model(model="gemini-2.5-flash", model_provider="google_genai", temperature=0.2)
-    except Exception:
+        response = await llm.ainvoke(prompt)
+    except Exception as e:
+        print(f"Gemini failed: {e}. Falling back to Groq...")
         llm = init_chat_model("llama-3.3-70b-versatile", model_provider="groq", temperature=0.2)
+        response = await llm.ainvoke(prompt)
         
-    response = await llm.ainvoke(prompt)
     return str(response.content).strip()
 
 async def tailor_resume_json(user_profile: dict, job_data: dict, approved_plan: str = None) -> dict:
@@ -112,15 +114,17 @@ Reorder the "skills" array to put the skills most relevant to the target job fir
 Output the final optimized JSON matching the input User's Original Resume Data format EXACTLY.
 """
 
-    try:
-        llm = init_chat_model(model="gemini-2.5-flash", model_provider="google_genai", temperature=0)
-    except Exception:
-        llm = init_chat_model("llama-3.3-70b-versatile", model_provider="groq", temperature=0)
-    
     # Retry loop
     for attempt in range(3):
         try:
-            response = await llm.ainvoke(prompt)
+            try:
+                llm = init_chat_model(model="gemini-2.5-flash", model_provider="google_genai", temperature=0)
+                response = await llm.ainvoke(prompt)
+            except Exception as gemini_e:
+                print(f"Gemini failed in JSON generation: {gemini_e}. Falling back to Groq...")
+                llm = init_chat_model("llama-3.3-70b-versatile", model_provider="groq", temperature=0)
+                response = await llm.ainvoke(prompt)
+                
             raw = str(response.content).strip()
             
             # Clean possible markdown
