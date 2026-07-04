@@ -6,7 +6,8 @@ import { api } from "@/lib/api";
 import { AppShell } from "@/components/shell/AppShell";
 import { ArrowLeft, Download, FileText, CheckCircle, Target, Briefcase } from "lucide-react";
 import { ScoreRing } from "@/components/shared/ScoreRing";
-import { generateLatex } from "@/utils/generateLatex";
+import { PDFDownloadLink } from "@react-pdf/renderer";
+import { ResumeDocument } from "@/components/ResumeDocument";
 
 export default function TailorResumePage() {
   const params = useParams();
@@ -17,24 +18,6 @@ export default function TailorResumePage() {
   const [tailorResult, setTailorResult] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-
-  const handleDownloadLatex = () => {
-    if (!tailorResult?.tailored_profile) return;
-    
-    const latexString = generateLatex(tailorResult.tailored_profile);
-    const blob = new Blob([latexString], { type: "text/plain" });
-    const url = URL.createObjectURL(blob);
-    
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `Tailored_Resume_${job?.company?.replace(/\s+/g, '_') || 'Job'}.tex`;
-    document.body.appendChild(link);
-    link.click();
-    
-    // Cleanup
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -148,26 +131,33 @@ export default function TailorResumePage() {
               </div>
               
               {tailorResult && (
-                <button 
-                  onClick={handleDownloadLatex}
-                  style={{ 
-                    display: "flex", 
-                    alignItems: "center", 
-                    gap: "8px",
-                    padding: "8px 16px", 
-                    background: "#00b4d8", 
-                    color: "white", 
-                    border: "none", 
-                    borderRadius: "8px",
-                    cursor: "pointer",
-                    fontWeight: "bold",
-                    fontSize: "14px",
-                    transition: "opacity 0.2s"
-                  }}
+                <PDFDownloadLink 
+                  document={<ResumeDocument data={tailorResult.tailored_profile} />} 
+                  fileName={`Tailored_Resume_${job?.company?.replace(/\s+/g, '_') || 'Job'}.pdf`}
                 >
-                  <Download size={16} />
-                  Download LaTeX
-                </button>
+                  {({ blob, url, loading: pdfLoading, error }) => (
+                    <button 
+                      disabled={pdfLoading}
+                      style={{ 
+                        display: "flex", 
+                        alignItems: "center", 
+                        gap: "8px",
+                        padding: "8px 16px", 
+                        background: pdfLoading ? "var(--border)" : "#00b4d8", 
+                        color: "white", 
+                        border: "none", 
+                        borderRadius: "8px",
+                        cursor: pdfLoading ? "not-allowed" : "pointer",
+                        fontWeight: "bold",
+                        fontSize: "14px",
+                        transition: "opacity 0.2s"
+                      }}
+                    >
+                      <Download size={16} />
+                      {pdfLoading ? "Preparing PDF..." : "Download PDF"}
+                    </button>
+                  )}
+                </PDFDownloadLink>
               )}
             </div>
 
