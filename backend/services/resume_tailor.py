@@ -54,7 +54,7 @@ Here is the User's Original Resume Data:
         prompt += f"\n### USER FEEDBACK ON PREVIOUS PLAN:\nThe user has reviewed your previous plan and provided the following feedback. You MUST adjust your proposed plan to accommodate this feedback:\n<feedback>\n{feedback}\n</feedback>\n"
         
     try:
-        llm = init_chat_model(model="llama-3.3-70b-versatile", model_provider="groq", temperature=0.2)
+        llm = init_chat_model(model="mixtral-8x7b-32768", model_provider="groq", temperature=0.2)
         response = await llm.ainvoke(prompt)
     except Exception as groq_e:
         print(f"Groq failed: {groq_e}. Falling back to Gemini...")
@@ -121,7 +121,7 @@ Output the final optimized JSON matching the input User's Original Resume Data f
     for attempt in range(3):
         try:
             try:
-                llm = init_chat_model(model="llama-3.3-70b-versatile", model_provider="groq", temperature=0)
+                llm = init_chat_model(model="mixtral-8x7b-32768", model_provider="groq", temperature=0)
                 response = await llm.ainvoke(prompt)
             except Exception as groq_e:
                 print(f"Groq failed in JSON generation: {groq_e}. Falling back to Gemini...")

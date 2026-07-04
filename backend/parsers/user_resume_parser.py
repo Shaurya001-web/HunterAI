@@ -89,7 +89,7 @@ Resume Text:
     except Exception as gemini_err:
         print(f"Gemini API invocation failed or timed out: {gemini_err}. Attempting Groq fallback...")
         try:
-            llm_model = init_chat_model(model="llama-3.3-70b-versatile", model_provider="groq")
+            llm_model = init_chat_model(model="mixtral-8x7b-32768", model_provider="groq")
             res = await asyncio.wait_for(llm_model.ainvoke(prompt_text), timeout=15.0)
             json_text = res.content
         except Exception as groq_err:
