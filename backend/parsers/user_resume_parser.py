@@ -82,17 +82,17 @@ Resume Text:
 """
     json_text = ""
     try:
-        # Try primary Groq model
-        llm_model = init_chat_model(model="llama-3.3-70b-versatile", model_provider="groq")
+        # Try primary Gemini model
+        llm_model = init_chat_model(model="gemini-2.5-flash", model_provider="google_genai")
         res = await asyncio.wait_for(llm_model.ainvoke(prompt_text), timeout=15.0)
         json_text = res.content
-    except Exception as groq_err:
-        print(f"Groq API invocation failed: {groq_err}. Attempting Gemini fallback...")
+    except Exception as gemini_err:
+        print(f"Gemini API invocation failed or timed out: {gemini_err}. Attempting Groq fallback...")
         try:
-            llm_model = init_chat_model(model="gemini-2.5-flash", model_provider="google_genai")
+            llm_model = init_chat_model(model="llama-3.3-70b-versatile", model_provider="groq")
             res = await asyncio.wait_for(llm_model.ainvoke(prompt_text), timeout=15.0)
             json_text = res.content
-        except Exception as gemini_err:
+        except Exception as groq_err:
             raise Exception(f"Gemini Rate Limit Hit. Groq fallback also failed: {groq_err}. Please ensure GROQ_API_KEY is set in your Render environment variables.")
 
     if json_text:
