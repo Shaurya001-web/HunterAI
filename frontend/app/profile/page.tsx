@@ -507,7 +507,7 @@ export default function ProfilePage() {
   }));
 
   return (
-    <AppShell title="Profile">
+    <AppShell>
       {loading ? (
         <ProfileSkeleton />
       ) : error ? (

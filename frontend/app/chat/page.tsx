@@ -43,7 +43,7 @@ export default function ChatPage() {
 
   if (!user) {
     return (
-      <AppShell title="AI Insights">
+      <AppShell>
         <div className="card" style={{ padding: 48, textAlign: "center" }}>
           <p style={{ color: "var(--text-secondary)" }}>Please sign in to chat with Gemini.</p>
         </div>
@@ -52,7 +52,7 @@ export default function ChatPage() {
   }
 
   return (
-    <AppShell title="AI Insights">
+    <AppShell>
       <div className="fade-up">
         <h1 className="section-heading">AI Career Coach</h1>
         <p className="section-eyebrow">Powered by Groq (Llama 3)</p>

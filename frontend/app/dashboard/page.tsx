@@ -354,7 +354,7 @@ export default function DashboardPage() {
   const profileComplete = !noProfile && !!profile;
 
   return (
-    <AppShell title="Dashboard">
+    <AppShell>
       {loading ? (
         <DashboardSkeleton />
       ) : noProfile ? (

@@ -70,7 +70,7 @@ export default function UploadPage() {
   };
 
   return (
-    <AppShell title="Upload Resume">
+    <AppShell>
       <div
         style={{
           display: "flex",

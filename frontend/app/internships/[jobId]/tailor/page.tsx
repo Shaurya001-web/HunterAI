@@ -41,7 +41,7 @@ export default function TailorResumePage() {
   }, [jobId]);
 
   return (
-    <AppShell activePath="/recommendations">
+    <AppShell>
       <div style={{ maxWidth: "1200px", margin: "0 auto", padding: "20px" }}>
         
         <button 

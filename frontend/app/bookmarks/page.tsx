@@ -56,7 +56,7 @@ export default function BookmarksPage() {
 
   if (!user) {
     return (
-      <AppShell title="Saved Jobs">
+      <AppShell>
         <div className="card" style={{ padding: 48, textAlign: "center" }}>
           <p style={{ color: "var(--text-secondary)" }}>Please sign in to view saved jobs.</p>
         </div>
@@ -65,7 +65,7 @@ export default function BookmarksPage() {
   }
 
   return (
-    <AppShell title="Saved Jobs">
+    <AppShell>
       <div className="fade-up">
         <h1 className="section-heading">Saved Internships</h1>
         <p className="section-eyebrow">Your bookmarked opportunities</p>

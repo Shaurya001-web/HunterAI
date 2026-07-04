@@ -497,7 +497,7 @@ export default function RecommendationsPage() {
   }
 
   return (
-    <AppShell title="Recommendations">
+    <AppShell>
       {/* Subheader and profile selector */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "24px", flexWrap: "wrap", gap: "16px" }}>
         <p style={{ color: "var(--text-secondary)", fontSize: "13.5px", fontWeight: 500 }}>
