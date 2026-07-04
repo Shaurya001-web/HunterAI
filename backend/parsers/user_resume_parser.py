@@ -82,43 +82,18 @@ Resume Text:
 """
     json_text = ""
     try:
-        # Try primary Gemini model
-        llm_model = init_chat_model(model="gemini-2.5-flash", model_provider="google_genai")
+        # Try primary Groq model
+        llm_model = init_chat_model(model="llama-3.3-70b-versatile", model_provider="groq")
         res = await asyncio.wait_for(llm_model.ainvoke(prompt_text), timeout=15.0)
         json_text = res.content
-    except Exception as gemini_err:
-        print(f"Gemini API invocation failed or timed out: {gemini_err}. Attempting Groq fallback...")
-        groq_api_key = os.environ.get("GROQ_API_KEY")
-        if not groq_api_key:
-            print("GROQ_API_KEY environment variable is not set. Raising Gemini exception.")
-            raise gemini_err
-        
-        import httpx
-        url = "https://api.groq.com/openai/v1/chat/completions"
-        headers = {
-            "Authorization": f"Bearer {groq_api_key}",
-            "Content-Type": "application/json"
-        }
-        payload = {
-            "model": "llama-3.3-70b-versatile",
-            "messages": [
-                {
-                    "role": "user",
-                    "content": prompt_text
-                }
-            ],
-            "response_format": {"type": "json_object"}
-        }
-        
+    except Exception as groq_err:
+        print(f"Groq API invocation failed: {groq_err}. Attempting Gemini fallback...")
         try:
-            async with httpx.AsyncClient(timeout=20.0) as client:
-                response = await client.post(url, headers=headers, json=payload)
-                response.raise_for_status()
-                groq_res = response.json()
-                json_text = groq_res["choices"][0]["message"]["content"]
-                print("Successfully parsed resume using Groq fallback!")
-        except Exception as groq_err:
-            print(f"Groq API fallback also failed: {groq_err}")
+            llm_model = init_chat_model(model="gemini-2.5-flash", model_provider="google_genai")
+            res = await asyncio.wait_for(llm_model.ainvoke(prompt_text), timeout=15.0)
+            json_text = res.content
+        except Exception as gemini_err:
+            print(f"Gemini API fallback also failed: {gemini_err}")
             raise gemini_err
 
     if json_text:
