@@ -15,6 +15,52 @@ router = APIRouter()
 
 class TailorRequest(BaseModel):
     job_id: int
+    approved_plan: str | None = None
+
+class PlanRequest(BaseModel):
+    job_id: int
+    feedback: str | None = None
+
+@router.post("/tailor-resume/plan")
+async def generate_plan_endpoint(
+    req: PlanRequest,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    try:
+        from services.resume_tailor import generate_tailor_plan
+        
+        # 1. Fetch Profile and Job
+        profile = db.query(Profile).filter(Profile.user_id == current_user.id).first()
+        if not profile:
+            raise HTTPException(status_code=400, detail="Profile not found.")
+            
+        job = db.query(Job).filter(Job.id == req.job_id).first()
+        if not job:
+            raise HTTPException(status_code=404, detail="Job not found.")
+            
+        user_profile_dict = {
+            "name": current_user.name,
+            "skills": profile.skills,
+            "education": profile.education,
+            "experience": profile.experience,
+            "projects": profile.projects
+        }
+        
+        job_dict = {
+            "job_title": job.title,
+            "company": job.company,
+            "required_skills": job.skills,
+            "description": ""
+        }
+        
+        # Generate plan
+        plan = await generate_tailor_plan(user_profile_dict, job_dict, req.feedback)
+        
+        return {"plan": plan}
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/tailor-resume")
 async def tailor_resume_endpoint(
@@ -58,7 +104,7 @@ async def tailor_resume_endpoint(
             TailoredResume.profile_version_hash == profile_hash
         ).first()
         
-        if cached:
+        if cached and not req.approved_plan:
             return {
                 "tailored_profile": cached.tailored_json,
                 "ats_score_before": cached.ats_score_before,
@@ -70,7 +116,7 @@ async def tailor_resume_endpoint(
         ats_score_before = suitability_before.get("score", 0.0)
         
         # 4. Tailor Resume (LLM)
-        tailored_json = await tailor_resume_json(user_profile_dict, job_dict)
+        tailored_json = await tailor_resume_json(user_profile_dict, job_dict, req.approved_plan)
         
         # Re-attach name to tailored profile so it can be used for rendering
         tailored_json["name"] = current_user.name

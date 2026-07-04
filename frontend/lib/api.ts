@@ -118,11 +118,28 @@ export const api = {
     return res.json();
   },
 
-  tailorResume: async (jobId: number) => {
+  generateTailorPlan: async (jobId: number, feedback?: string) => {
+    const res = await fetch(`${BASE_URL}/api/tailor-resume/plan`, {
+      method: "POST",
+      headers: { ...getHeaders(), "Content-Type": "application/json" },
+      body: JSON.stringify({ job_id: jobId, feedback })
+    });
+    if (!res.ok) {
+      let errDetail = "Failed to generate tailor plan";
+      try {
+        const errJson = await res.json();
+        errDetail = errJson.detail || errDetail;
+      } catch (e) {}
+      throw new Error(errDetail);
+    }
+    return res.json();
+  },
+
+  tailorResume: async (jobId: number, approvedPlan?: string) => {
     const res = await fetch(`${BASE_URL}/api/tailor-resume`, {
       method: "POST",
       headers: { ...getHeaders(), "Content-Type": "application/json" },
-      body: JSON.stringify({ job_id: jobId })
+      body: JSON.stringify({ job_id: jobId, approved_plan: approvedPlan })
     });
     if (!res.ok) {
       let errDetail = "Failed to tailor resume";

@@ -19,6 +19,10 @@ export default function TailorResumePage() {
   const [tailorResult, setTailorResult] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  
+  const [plan, setPlan] = useState("");
+  const [planLoading, setPlanLoading] = useState(false);
+  const [feedback, setFeedback] = useState("");
 
   useEffect(() => {
     const fetchData = async () => {
@@ -28,18 +32,46 @@ export default function TailorResumePage() {
         const jobData = await api.getJob(jobId);
         setJob(jobData);
         
-        // 2. Trigger Tailoring
-        const result = await api.tailorResume(jobId);
-        setTailorResult(result);
+        // 2. Trigger Plan Generation instead of full tailoring
+        setPlanLoading(true);
+        const result = await api.generateTailorPlan(jobId);
+        setPlan(result.plan);
       } catch (err: any) {
-        setError(err.message || "Failed to tailor resume");
+        setError(err.message || "Failed to generate plan");
       } finally {
         setLoading(false);
+        setPlanLoading(false);
       }
     };
     
     if (jobId) fetchData();
   }, [jobId]);
+
+  const handleUpdatePlan = async () => {
+    if (!feedback.trim()) return;
+    try {
+      setPlanLoading(true);
+      const result = await api.generateTailorPlan(jobId, feedback);
+      setPlan(result.plan);
+      setFeedback("");
+    } catch (err: any) {
+      setError(err.message || "Failed to update plan");
+    } finally {
+      setPlanLoading(false);
+    }
+  };
+
+  const handleGenerateResume = async () => {
+    try {
+      setLoading(true);
+      const result = await api.tailorResume(jobId, plan);
+      setTailorResult(result);
+    } catch (err: any) {
+      setError(err.message || "Failed to tailor resume");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <AppShell>
@@ -123,12 +155,12 @@ export default function TailorResumePage() {
             )}
           </div>
 
-          {/* Right Column: Tailored Resume */}
+          {/* Right Column: Tailored Resume or Plan */}
           <div style={{ background: "var(--bg-elevated)", border: "1px solid var(--border)", borderRadius: "16px", padding: "24px", position: "relative" }}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "20px" }}>
               <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
                 <FileText size={20} color="#00b4d8" />
-                <h2 style={{ fontSize: "18px", margin: 0 }}>Tailored Resume</h2>
+                <h2 style={{ fontSize: "18px", margin: 0 }}>{tailorResult ? "Tailored Resume" : "Proposed Changes"}</h2>
               </div>
               
               {tailorResult && (
@@ -188,7 +220,7 @@ export default function TailorResumePage() {
               )}
             </div>
 
-            {loading ? (
+            {loading || planLoading ? (
               <div style={{ padding: "40px 0", textAlign: "center" }}>
                 <div style={{ 
                   width: "40px", 
@@ -199,12 +231,44 @@ export default function TailorResumePage() {
                   animation: "spin 1s linear infinite",
                   margin: "0 auto 20px"
                 }} />
-                <p style={{ color: "var(--text-secondary)", fontSize: "16px" }}>The AI is carefully rewriting your resume to maximize ATS match probability...</p>
+                <p style={{ color: "var(--text-secondary)", fontSize: "16px" }}>
+                  {planLoading ? "Analyzing job requirements and drafting a tailoring plan..." : "Executing approved plan to rewrite your resume..."}
+                </p>
                 <p style={{ color: "var(--text-muted)", fontSize: "14px" }}>This typically takes 10-15 seconds.</p>
               </div>
             ) : error ? (
               <div style={{ padding: "40px", textAlign: "center", color: "#ff4d6d", background: "rgba(255, 77, 109, 0.1)", borderRadius: "12px" }}>
                 {error}
+              </div>
+            ) : !tailorResult && plan ? (
+              <div>
+                <div style={{ background: "#f8f9fa", padding: "20px", borderRadius: "8px", border: "1px solid var(--border)", maxHeight: "400px", overflowY: "auto", marginBottom: "20px", fontSize: "14px", lineHeight: "1.6", whiteSpace: "pre-wrap" }}>
+                  {plan}
+                </div>
+                
+                <div style={{ display: "flex", flexDirection: "column", gap: "10px", marginBottom: "20px" }}>
+                  <label style={{ fontSize: "14px", fontWeight: "bold", color: "var(--text-primary)" }}>Suggest Changes (Optional)</label>
+                  <textarea 
+                    value={feedback}
+                    onChange={(e) => setFeedback(e.target.value)}
+                    placeholder="e.g. Focus more on my backend experience rather than frontend."
+                    style={{ padding: "12px", borderRadius: "8px", border: "1px solid var(--border)", minHeight: "80px", fontFamily: "inherit" }}
+                  />
+                  <button 
+                    onClick={handleUpdatePlan}
+                    disabled={!feedback.trim() || planLoading}
+                    style={{ alignSelf: "flex-end", padding: "8px 16px", background: "var(--bg-elevated)", border: "1px solid var(--border)", borderRadius: "8px", cursor: feedback.trim() ? "pointer" : "not-allowed", opacity: feedback.trim() ? 1 : 0.5 }}
+                  >
+                    Update Plan
+                  </button>
+                </div>
+
+                <button 
+                  onClick={handleGenerateResume}
+                  style={{ width: "100%", padding: "12px", background: "var(--accent)", color: "white", border: "none", borderRadius: "8px", fontSize: "16px", fontWeight: "bold", cursor: "pointer" }}
+                >
+                  Approve & Generate Resume
+                </button>
               </div>
             ) : tailorResult ? (
               <div style={{ background: "#ffffff", padding: "20px", borderRadius: "8px", border: "1px solid var(--border)", maxHeight: "600px", overflowY: "auto" }}>

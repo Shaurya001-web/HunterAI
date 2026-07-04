@@ -23,7 +23,54 @@ async def tailor_resume_json(user_profile: dict, job_data: dict) -> dict:
     
     job_data["description"] = job_desc
 
+async def generate_tailor_plan(user_profile: dict, job_data: dict, feedback: str = None) -> str:
     prompt = f"""
+You are an expert ATS (Applicant Tracking System) Resume Consultant.
+Your goal is to analyze the Target Job Information and the User's Original Resume Data, and propose a specific plan for tailoring the resume to maximize ATS compatibility.
+
+### STRICT RULES:
+1. Do not invent experience or add fake skills.
+2. Outline which keywords from the job description are missing but can be implicitly derived from the user's projects or experience, and state that you will add them to the skills section.
+3. Outline which bullet points in the experience or projects you will rewrite to better highlight relevance to the job.
+4. Output your plan in Markdown format. Keep it concise, actionable, and structured with headings (e.g. "Skills to Add", "Bullet Points to Rewrite").
+
+### INPUT DATA:
+Here is the Target Job Information:
+<job_data>
+{json.dumps(job_data)}
+</job_data>
+
+Here is the User's Original Resume Data:
+<user_data>
+{json.dumps({
+    "skills": user_profile.get("skills", []),
+    "projects": user_profile.get("projects", []),
+    "education": user_profile.get("education", []),
+    "experience": user_profile.get("experience", [])
+})}
+</user_data>
+"""
+    if feedback:
+        prompt += f"\n### USER FEEDBACK ON PREVIOUS PLAN:\nThe user has reviewed your previous plan and provided the following feedback. You MUST adjust your proposed plan to accommodate this feedback:\n<feedback>\n{feedback}\n</feedback>\n"
+        
+    try:
+        llm = init_chat_model(model="gemini-2.5-flash", model_provider="google_genai", temperature=0.2)
+    except Exception:
+        llm = init_chat_model("llama-3.3-70b-versatile", model_provider="groq", temperature=0.2)
+        
+    response = await llm.ainvoke(prompt)
+    return str(response.content).strip()
+
+async def tailor_resume_json(user_profile: dict, job_data: dict, approved_plan: str = None) -> dict:
+    # 1. Input sanitization (strip instructions)
+    # Simple sanitization of scraped text
+    job_desc = str(job_data.get("description", ""))
+    bad_phrases = ["ignore previous", "system:", "you are now"]
+    for phrase in bad_phrases:
+        if phrase in job_desc.lower():
+            job_desc = job_desc.lower().replace(phrase, "[redacted]")
+    
+    job_data["description"] = job_desc
 You are an expert ATS (Applicant Tracking System) Resume Consultant. 
 Your goal is to take a user's EXISTING parsed resume data and rewrite it to perfectly match a SPECIFIC target job description, ensuring maximum ATS compatibility.
 
@@ -50,7 +97,12 @@ Here is the User's Original Resume Data:
     "experience": user_profile.get("experience", [])
 })}
 </user_data>
-
+"""
+    
+    if approved_plan:
+        prompt += f"\n### APPROVED PLAN TO EXECUTE:\nYou MUST follow this approved plan strictly when generating the output JSON. Do not deviate from these planned changes:\n<approved_plan>\n{approved_plan}\n</approved_plan>\n"
+    else:
+        prompt += """
 ### TASK:
 Analyze the Target Job Information to determine what the employer values most. 
 Then, rewrite the "description" fields within the User's "experience" and "projects" arrays to highlight relevant metrics and action verbs. 
@@ -58,6 +110,7 @@ If any required skills are implicitly demonstrated in the user's experience/proj
 Reorder the "skills" array to put the skills most relevant to the target job first.
 Output the final optimized JSON matching the input User's Original Resume Data format EXACTLY.
 """
+
     try:
         llm = init_chat_model(model="gemini-2.5-flash", model_provider="google_genai", temperature=0)
     except Exception:
