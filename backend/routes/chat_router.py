@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from typing import List,Query,Literal
+from typing import List, Literal
 from pydantic import BaseModel, Field
 import json
 from groq import Groq

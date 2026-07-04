@@ -71,7 +71,8 @@ async def tailor_resume_json(user_profile: dict, job_data: dict, approved_plan: 
             job_desc = job_desc.lower().replace(phrase, "[redacted]")
     
     job_data["description"] = job_desc
-You are an expert ATS (Applicant Tracking System) Resume Consultant. 
+    prompt = f"""
+You are an expert ATS (Applicant Tracking System) Resume Consultant.
 Your goal is to take a user's EXISTING parsed resume data and rewrite it to perfectly match a SPECIFIC target job description, ensuring maximum ATS compatibility.
 
 ### STRICT RULES:
