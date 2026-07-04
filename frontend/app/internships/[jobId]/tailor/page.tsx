@@ -4,10 +4,11 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { api } from "@/lib/api";
 import { AppShell } from "@/components/shell/AppShell";
-import { ArrowLeft, Download, FileText, CheckCircle, Target, Briefcase } from "lucide-react";
+import { ArrowLeft, Download, FileText, CheckCircle, Target, Briefcase, ExternalLink } from "lucide-react";
 import { ScoreRing } from "@/components/shared/ScoreRing";
 import { PDFDownloadLink } from "@react-pdf/renderer";
 import { ResumeDocument } from "@/components/ResumeDocument";
+import { generateLatex } from "@/utils/generateLatex";
 
 export default function TailorResumePage() {
   const params = useParams();
@@ -131,10 +132,11 @@ export default function TailorResumePage() {
               </div>
               
               {tailorResult && (
-                <PDFDownloadLink 
-                  document={<ResumeDocument data={tailorResult.tailored_profile} />} 
-                  fileName={`Tailored_Resume_${job?.company?.replace(/\s+/g, '_') || 'Job'}.pdf`}
-                >
+                <div style={{ display: "flex", gap: "10px", marginTop: "10px" }}>
+                  <PDFDownloadLink 
+                    document={<ResumeDocument data={tailorResult.tailored_profile} />} 
+                    fileName={`Tailored_Resume_${job?.company?.replace(/\s+/g, '_') || 'Job'}.pdf`}
+                  >
                   {({ blob, url, loading: pdfLoading, error }) => (
                     <button 
                       disabled={pdfLoading}
@@ -158,6 +160,31 @@ export default function TailorResumePage() {
                     </button>
                   )}
                 </PDFDownloadLink>
+                
+                <form action="https://www.overleaf.com/docs" method="post" target="_blank" style={{ margin: 0 }}>
+                  <input type="hidden" name="snip" value={generateLatex(tailorResult.tailored_profile)} />
+                  <button 
+                    type="submit"
+                    style={{ 
+                      display: "flex", 
+                      alignItems: "center", 
+                      gap: "8px",
+                      padding: "8px 16px", 
+                      background: "#228b22", 
+                      color: "white", 
+                      border: "none", 
+                      borderRadius: "8px",
+                      cursor: "pointer",
+                      fontWeight: "bold",
+                      fontSize: "14px",
+                      transition: "opacity 0.2s"
+                    }}
+                  >
+                    <ExternalLink size={16} />
+                    Open in Overleaf
+                  </button>
+                </form>
+                </div>
               )}
             </div>
 
