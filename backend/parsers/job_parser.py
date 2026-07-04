@@ -5,8 +5,9 @@ path_env = os.path.dirname(os.path.abspath(__file__))
 project_root = os.path.dirname(path_env)
 load_path_dotenv = os.path.join(project_root, "config", ".env")
 load_dotenv(load_path_dotenv)
-llm_model=init_chat_model(
-    model="google_genai:gemini-2.5-flash"
+llm_model = init_chat_model(
+    model="gemini-2.5-flash",
+    model_provider="google_genai"
 )
 
 

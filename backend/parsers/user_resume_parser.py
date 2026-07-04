@@ -83,7 +83,7 @@ Resume Text:
     json_text = ""
     try:
         # Try primary Gemini model
-        llm_model = init_chat_model(model="google_genai:gemini-2.5-flash")
+        llm_model = init_chat_model(model="gemini-2.5-flash", model_provider="google_genai")
         res = await asyncio.wait_for(llm_model.ainvoke(prompt_text), timeout=15.0)
         json_text = res.content
     except Exception as gemini_err:
