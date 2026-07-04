@@ -23,7 +23,14 @@ export const api = {
       headers: getHeaders(),
       body: formData,
     });
-    if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+    if (!res.ok) {
+      let errDetail = `HTTP error! status: ${res.status}`;
+      try {
+        const errJson = await res.json();
+        errDetail = errJson.detail || errDetail;
+      } catch (e) {}
+      throw new Error(errDetail);
+    }
     return res.json();
   },
 
