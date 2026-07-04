@@ -56,11 +56,14 @@ Here is the User's Original Resume Data:
     try:
         llm = init_chat_model(model="llama-3.3-70b-versatile", model_provider="groq", temperature=0.2)
         response = await llm.ainvoke(prompt)
-    except Exception as e:
-        print(f"Groq failed: {e}. Falling back to Gemini...")
-        llm = init_chat_model(model="gemini-2.5-flash", model_provider="google_genai", temperature=0.2)
-        response = await llm.ainvoke(prompt)
-        
+    except Exception as groq_e:
+        print(f"Groq failed: {groq_e}. Falling back to Gemini...")
+        try:
+            llm = init_chat_model(model="gemini-2.5-flash", model_provider="google_genai", temperature=0.2)
+            response = await llm.ainvoke(prompt)
+        except Exception as gemini_e:
+            raise Exception(f"Gemini Rate Limit Hit. Groq fallback also failed: {groq_e}. Please ensure GROQ_API_KEY is set in your Render environment variables.")
+            
     return str(response.content).strip()
 
 async def tailor_resume_json(user_profile: dict, job_data: dict, approved_plan: str = None) -> dict:
@@ -122,9 +125,12 @@ Output the final optimized JSON matching the input User's Original Resume Data f
                 response = await llm.ainvoke(prompt)
             except Exception as groq_e:
                 print(f"Groq failed in JSON generation: {groq_e}. Falling back to Gemini...")
-                llm = init_chat_model(model="gemini-2.5-flash", model_provider="google_genai", temperature=0)
-                response = await llm.ainvoke(prompt)
-                
+                try:
+                    llm = init_chat_model(model="gemini-2.5-flash", model_provider="google_genai", temperature=0)
+                    response = await llm.ainvoke(prompt)
+                except Exception as gemini_e:
+                    raise Exception(f"Gemini Rate Limit Hit. Groq fallback also failed: {groq_e}. Please ensure GROQ_API_KEY is set in your Render environment variables.")
+                    
             raw = str(response.content).strip()
             
             # Clean possible markdown

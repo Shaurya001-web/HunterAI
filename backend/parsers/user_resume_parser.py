@@ -93,8 +93,7 @@ Resume Text:
             res = await asyncio.wait_for(llm_model.ainvoke(prompt_text), timeout=15.0)
             json_text = res.content
         except Exception as gemini_err:
-            print(f"Gemini API fallback also failed: {gemini_err}")
-            raise gemini_err
+            raise Exception(f"Gemini Rate Limit Hit. Groq fallback also failed: {groq_err}. Please ensure GROQ_API_KEY is set in your Render environment variables.")
 
     if json_text:
         # Clean up possible markdown code fences
