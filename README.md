@@ -85,7 +85,7 @@ The recommendation engine displays Match Percentages, Matched vs Missing Skills,
 
 *   **Frontend**: Next.js, React, Tailwind CSS
 *   **Backend**: FastAPI (Python 3.11), SQLAlchemy, Uvicorn, UV package manager
-*   **AI Engine**: Google Gemini API, Groq (Llama 3)
+*   **AI Engine**: Google Gemini API, Groq -> (Llama 3)
 *   **Database & Auth**: Supabase (PostgreSQL, Supabase Authentication, Supabase Storage)
 
 ---
@@ -95,3 +95,5 @@ The recommendation engine displays Match Percentages, Matched vs Missing Skills,
 Production configurations and `Dockerfile`s are provided for both the frontend and backend. 
 *   **Frontend**: Easily deployable to platforms like Vercel or Netlify.
 *   **Backend**: Deployable to services like Railway, Render, or any standard container hosting provider.
+
+
