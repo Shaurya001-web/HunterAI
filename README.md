@@ -75,3 +75,55 @@ npm run dev
 ## Deployment
 
 The `dist/` folder is production-ready after `npm run build`. Deploy to any static host (Vercel, Netlify, Cloudflare Pages, etc.).
+![AI Resume Parser & Profile View](assets/user_profile.png)
+
+### Interactive AI Career Coach
+Engage in a two-way conversation with a personalized AI Career Coach (powered by Groq and LLaMA 3) to discuss your resume, identify skill gaps, and explore strategies to improve your candidacy.
+
+![Interactive AI Career Coach](assets/ai_career_coach.png)
+
+### Smart Job Matching & Dynamic Filtering
+The recommendation engine displays Match Percentages, Matched vs Missing Skills, and Direct Apply Links to platforms like LinkedIn and Wellfound. Users can also dynamically filter their recommendations by minimum stipend, location, remote-only requirements, and minimum match score thresholds.
+
+![Job Recommendations Dashboard](assets/job_recommendations.png)
+
+---
+
+## 🚀 Getting Started
+
+### Local Development Setup
+
+1. **Configure Environment Variables**
+   Copy `.env.example` to your `.env` files in both the frontend and backend directories and populate your API credentials (Supabase, Gemini, Groq).
+
+2. **Start the Backend Service (Python 3.11+)**
+   ```bash
+   cd backend
+   uv run python main.py
+   ```
+   *The API will boot up on `http://127.0.0.1:8000`*
+
+3. **Start the Frontend Application (Node v18+)**
+   ```bash
+   cd frontend
+   npm install
+   npm run dev
+   ```
+   *The client will run locally on `http://localhost:3000`*
+
+---
+
+## 🛠️ Tech Stack
+
+*   **Frontend**: Next.js, React, Tailwind CSS
+*   **Backend**: FastAPI (Python 3.11), SQLAlchemy, Uvicorn, UV package manager
+*   **AI Engine**: Google Gemini API, Groq -> (Llama 3)
+*   **Database & Auth**: Supabase (PostgreSQL, Supabase Authentication, Supabase Storage)
+
+---
+
+## 🌐 Deployment
+
+Production configurations and `Dockerfile`s are provided for both the frontend and backend. 
+*   **Frontend**: Easily deployable to platforms like Vercel or Netlify.
+*   **Backend**: Deployable to services like Railway, Render, or any standard container hosting provider.
