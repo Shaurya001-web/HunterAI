@@ -404,7 +404,13 @@ body::before {
 .landing-body .hero-proximity {
   display: inline-block;
   line-height: inherit;
-  white-space: nowrap;
+  white-space: normal;
+}
+
+@media (min-width: 640px) {
+  .landing-body .hero-proximity {
+    white-space: nowrap;
+  }
 }
 
 .landing-body .odometer-counter {
