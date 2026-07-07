@@ -139,7 +139,7 @@ function DashboardMock({ countersActive }: { countersActive: boolean }) {
 }
 
 export default function Home() {
-  const { user } = useAuth();
+  const { user, signOut } = useAuth();
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const root = useRef<HTMLDivElement>(null);
   const heroMatchRef = useRef<HTMLSpanElement>(null);
@@ -266,8 +266,8 @@ export default function Home() {
         </a>
 
         <nav className="fixed top-0 left-0 right-0 z-50 bg-white/90 border-b border-[var(--line)]">
-          <div className="relative mx-auto flex h-16 max-w-7xl items-center justify-between px-6 md:px-12">
-            <Link href="/" className="text-4xl font-black tracking-tight md:text-3xl">
+          <div className="relative mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 md:px-12">
+            <Link href="/" className="text-2xl font-black tracking-tight md:text-3xl">
               HunterAI
             </Link>
             <div className="hidden items-center gap-10 text-sm font-bold uppercase md:flex absolute left-1/2 -translate-x-1/2">
@@ -275,30 +275,39 @@ export default function Home() {
               <a href="#features" className="hover:opacity-70">Features</a>
 
             </div>
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-3 sm:gap-4">
               {(!user || user.isGuest) ? (
                 <>
                   <button
                     onClick={() => setIsAuthModalOpen(true)}
-                    className="hidden border font-bold border-gray-400 rounded-full hover:bg-gray-600 hover:text-white hover:shadow-2xl px-6 py-2 items-center gap-2 text-sm hover:opacity-70 sm:flex cursor-pointer"
+                    className="border font-bold border-gray-400 rounded-full hover:bg-gray-600 hover:text-white hover:shadow-2xl px-3 py-1.5 sm:px-6 sm:py-2 flex items-center gap-1 sm:gap-2 text-xs sm:text-sm hover:opacity-70 cursor-pointer whitespace-nowrap"
                   >
                     Sign in
                   </button>
 
                   <Link
                     href="/upload"
-                    className="rounded-full bg-black px-5 py-2 text-sm font-semibold text-white shadow-md md:text-base"
+                    className="rounded-full bg-black px-3.5 py-1.5 sm:px-5 sm:py-2 text-xs sm:text-sm font-semibold text-white shadow-md md:text-base whitespace-nowrap"
                   >
                     Upload Resume
                   </Link>
                 </>
               ) : (
-                <Link
-                  href="/dashboard"
-                  className="rounded-full bg-black px-5 py-2 text-sm font-semibold text-white shadow-md md:text-base"
-                >
-                  Go to Dashboard
-                </Link>
+                <>
+                  <button
+                    onClick={() => signOut()}
+                    className="border font-bold border-gray-400 rounded-full hover:bg-gray-600 hover:text-white hover:shadow-2xl px-3 py-1.5 sm:px-6 sm:py-2 flex items-center gap-1 sm:gap-2 text-xs sm:text-sm hover:opacity-70 cursor-pointer whitespace-nowrap"
+                  >
+                    Sign out
+                  </button>
+
+                  <Link
+                    href="/dashboard"
+                    className="rounded-full bg-black px-3.5 py-1.5 sm:px-5 sm:py-2 text-xs sm:text-sm font-semibold text-white shadow-md md:text-base whitespace-nowrap"
+                  >
+                    Go to Dashboard
+                  </Link>
+                </>
               )}
             </div>
           </div>
@@ -310,7 +319,7 @@ export default function Home() {
           <div className="relative z-10 mx-auto max-w-[112rem] px-5 pt-20 text-center md:px-10 md:pt-24">
             <p className="hero-kicker text-sm font-semibold uppercase tracking-[.08em] text-[var(--stone)]">Career intelligence reimagined</p>
             <div className="mt-5 overflow-hidden pb-6">
-              <div className="hero-title text-balance text-8xl tracking-loose font-semibold leading-[1.0]" role="heading" aria-level={1}>
+              <div className="hero-title text-6xl sm:text-7xl md:text-8xl tracking-loose font-semibold leading-[1.1] sm:leading-[1.0]" role="heading" aria-level={1}>
                 <span className="block text-[var(--silver)]">A new standard in</span>
                 <span ref={heroMatchRef} className="block text-[var(--black)]">
                   <VariableProximity

@@ -911,8 +911,8 @@ function App() {
       </a>
 
       <nav className="fixed top-0 left-0 right-0 z-50 bg-white/90">
-        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6 md:px-12">
-          <a href="#" className="text-4xl font-black tracking-tight md:text-3xl">
+        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 md:px-12">
+          <a href="#" className="text-2xl font-black tracking-tight md:text-3xl">
             HunterAI
           </a>
           <div className="hidden items-center gap-10 text-sm font-bold uppercase md:flex">
@@ -920,17 +920,17 @@ function App() {
             <a href="#features" className="hover:opacity-70">Features</a>
             <a href="#closing" className="hover:opacity-70">Stories</a>
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3 sm:gap-4">
             <a
               href="#dashboard"
-              className="hidden border font-bold border-gray-400 rounded-full hover:bg-gray-600 hover:text-white hover:shadow-2xl hover:zoom-110 px-6 py-2 items-center gap-2 text-sm hover:opacity-70 sm:flex"
+              className="border font-bold border-gray-400 rounded-full hover:bg-gray-600 hover:text-white hover:shadow-2xl hover:zoom-110 px-3 py-1.5 sm:px-6 sm:py-2 flex items-center gap-1 sm:gap-2 text-xs sm:text-sm hover:opacity-70 whitespace-nowrap"
             >
               Sign in
             </a>
 
             <a
               href="#dashboard"
-              className="rounded-full bg-black px-5 py-2 text-sm font-semibold text-white shadow-md md:text-base"
+              className="rounded-full bg-black px-3.5 py-1.5 sm:px-5 sm:py-2 text-xs sm:text-sm font-semibold text-white shadow-md md:text-base whitespace-nowrap"
             >
               Launch app
             </a>
@@ -945,7 +945,7 @@ function App() {
         <div className="relative z-10 mx-auto max-w-[112rem] px-5 pt-20 text-center md:px-10 md:pt-24">
           <p className="hero-kicker text-sm font-semibold uppercase tracking-[.08em] text-[var(--stone)]">Career intelligence reimagined</p>
           <div className="mt-5 overflow-hidden">
-            <h1 className="hero-title text-balance text-8xl tracking-loose font-semibold leading-[.92]">
+            <h1 className="hero-title text-6xl sm:text-7xl md:text-8xl tracking-loose font-semibold leading-[1.1] sm:leading-[.92]">
               <span className="block text-[var(--silver)]">A new standard in</span>
               <span className="block text-[var(--black)]">career matching</span>
             </h1>
@@ -996,7 +996,7 @@ function App() {
                 <div className="grid gap-6 rounded-2xl bg-white/58 p-7 shadow-[inset_0_1px_0_rgba(255,255,255,.78)] md:grid-cols-[8rem_1fr] md:p-8">
                   <h3 className="text-5xl font-semibold tracking-tight md:text-6xl">{steps[0][0]}</h3>
                   <div className="self-end">
-                    <p className="text-lg mx-18 leading-8 text-[var(--muted)]">{steps[0][1]}</p>
+                    <p className="text-lg leading-8 text-[var(--muted)]">{steps[0][1]}</p>
                     <div className="mt-6 grid grid-cols-2 gap-3 text-sm text-[var(--charcoal)]">
                       <span className="rounded-lg bg-[var(--paper)] px-3 py-2">PDF</span>
                       <span className="rounded-lg bg-[var(--paper)] px-3 py-2">LinkedIn</span>
