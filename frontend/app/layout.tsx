@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Script from "next/script";
 import { AuthProvider } from "@/components/auth/AuthProvider";
 import "./globals.css";
 import "./shell.css";
@@ -16,6 +17,21 @@ export default function RootLayout({
   return (
     <html lang="en" data-theme="dark">
       <body className="min-h-screen bg-[var(--bg-base)] text-[var(--text-primary)]">
+        {/* Google tag (gtag.js) */}
+        <Script
+          async
+          src="https://www.googletagmanager.com/gtag/js?id=G-8KTHLB80TF"
+          strategy="afterInteractive"
+        />
+        <Script id="google-analytics" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+
+            gtag('config', 'G-8KTHLB80TF');
+          `}
+        </Script>
         <AuthProvider>
           {children}
         </AuthProvider>
