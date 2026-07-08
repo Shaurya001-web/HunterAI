@@ -22,6 +22,8 @@ interface AuthContextType {
   signUp: (email: string, pass: string) => Promise<boolean>;
   signOut: () => Promise<void>;
   enterSandboxMode: () => void;
+  signInWithGoogle: () => Promise<void>;
+  updateProfile: (newName: string) => Promise<boolean>;
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -35,6 +37,8 @@ const AuthContext = createContext<AuthContextType>({
   signUp: async () => false,
   signOut: async () => {},
   enterSandboxMode: () => {},
+  signInWithGoogle: async () => {},
+  updateProfile: async () => false,
 });
 
 export const useAuth = () => useContext(AuthContext);
@@ -289,6 +293,96 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const signInWithGoogle = async (): Promise<void> => {
+    setAuthError("");
+    setAuthLoading(true);
+    try {
+      if (isSupabaseConfigured) {
+        const { error } = await supabase!.auth.signInWithOAuth({
+          provider: "google",
+          options: {
+            redirectTo: `${window.location.origin}/dashboard`
+          }
+        });
+        if (error) throw error;
+      } else {
+        // Mock Google sign in
+        const newUser = {
+          id: "mock_google_user",
+          email: "google_user@example.com",
+          name: "Google User",
+          isGuest: false
+        };
+        const t = `mock_token:${newUser.id}:${newUser.email}:${newUser.name}`;
+        setUser(newUser);
+        setToken(t);
+        api.setToken(t);
+        localStorage.setItem("mock_auth_user", JSON.stringify(newUser));
+
+        const guestId = localStorage.getItem("guest_user_id");
+        if (guestId && guestId !== newUser.id) {
+          try { await api.migrateProfile(guestId); localStorage.removeItem("guest_user_id"); } catch {}
+        }
+      }
+    } catch (err) {
+      const errorMsg = err instanceof Error ? err.message : "Failed to sign in with Google";
+      setAuthError(errorMsg);
+    } finally {
+      setAuthLoading(false);
+    }
+  };
+
+  const updateProfile = async (newName: string): Promise<boolean> => {
+    if (!newName) return false;
+    setAuthLoading(true);
+    try {
+      if (isSupabaseConfigured) {
+        const { data, error } = await supabase!.auth.updateUser({
+          data: { name: newName, full_name: newName }
+        });
+        if (error) throw error;
+        if (data.user) {
+          const updatedUser = {
+            id: data.user.id,
+            email: data.user.email ?? "",
+            name: newName,
+            isGuest: false
+          };
+          setUser(updatedUser);
+          try {
+            await api.saveProfile({ name: newName });
+          } catch (e) {
+            console.error("Failed to sync profile name with backend:", e);
+          }
+          return true;
+        }
+      } else {
+        if (user) {
+          const updatedUser = { ...user, name: newName };
+          setUser(updatedUser);
+          if (!user.isGuest) {
+            localStorage.setItem("mock_auth_user", JSON.stringify(updatedUser));
+            const t = `mock_token:${updatedUser.id}:${updatedUser.email}:${updatedUser.name}`;
+            setToken(t);
+            api.setToken(t);
+          }
+          try {
+            await api.saveProfile({ name: newName });
+          } catch (e) {
+            console.error("Failed to sync profile name with backend:", e);
+          }
+          return true;
+        }
+      }
+    } catch (err) {
+      const errorMsg = err instanceof Error ? err.message : "Failed to update profile";
+      console.error(errorMsg);
+    } finally {
+      setAuthLoading(false);
+    }
+    return false;
+  };
+
   const signOut = async () => {
     setLoading(true);
     if (isSupabaseConfigured) {
@@ -329,7 +423,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, token, loading, authError, authLoading, setAuthError, signIn, signUp, signOut, enterSandboxMode }}>
+    <AuthContext.Provider value={{ user, token, loading, authError, authLoading, setAuthError, signIn, signUp, signOut, enterSandboxMode, signInWithGoogle, updateProfile }}>
       {children}
     </AuthContext.Provider>
   );

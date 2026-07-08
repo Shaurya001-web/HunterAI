@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException, Depends
 from sqlalchemy.orm import Session
-from typing import Dict, Any
+from typing import Dict, Any, Optional
 import hashlib
 import json
 
@@ -15,11 +15,11 @@ router = APIRouter()
 
 class TailorRequest(BaseModel):
     job_id: int
-    approved_plan: str | None = None
+    approved_plan: Optional[str] = None
 
 class PlanRequest(BaseModel):
     job_id: int
-    feedback: str | None = None
+    feedback: Optional[str] = None
 
 @router.post("/tailor-resume/plan")
 async def generate_plan_endpoint(

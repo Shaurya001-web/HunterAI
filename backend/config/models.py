@@ -1,13 +1,15 @@
+from __future__ import annotations
 from sqlalchemy import String, Integer, Float, ForeignKey, DateTime, JSON, Boolean
 from sqlalchemy.orm import relationship, Mapped, mapped_column
 from datetime import datetime
 from config.database import Base
+from typing import Optional
 
 class User(Base):
     __tablename__ = "users"
 
     id: Mapped[str] = mapped_column(String, primary_key=True, index=True) # Matches Supabase auth user ID
-    name: Mapped[str | None] = mapped_column(String, nullable=True)
+    name: Mapped[Optional[str]] = mapped_column(String, nullable=True)
     email: Mapped[str] = mapped_column(String, unique=True, index=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
@@ -34,18 +36,18 @@ class Job(Base):
     title: Mapped[str] = mapped_column(String, nullable=False)
     company: Mapped[str] = mapped_column(String, nullable=False)
     skills: Mapped[list] = mapped_column(JSON, default=list)
-    location: Mapped[str | None] = mapped_column(String, nullable=True)
-    stipend: Mapped[str | None] = mapped_column(String, nullable=True)
-    duration: Mapped[str | None] = mapped_column(String, nullable=True)
+    location: Mapped[Optional[str]] = mapped_column(String, nullable=True)
+    stipend: Mapped[Optional[str]] = mapped_column(String, nullable=True)
+    duration: Mapped[Optional[str]] = mapped_column(String, nullable=True)
     
     # New Hybrid Filtering Columns
     is_remote: Mapped[bool] = mapped_column(Boolean, default=False)
-    stipend_min: Mapped[int | None] = mapped_column(Integer, nullable=True)
-    duration_months: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    stipend_min: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
+    duration_months: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
     constraints: Mapped[dict] = mapped_column(JSON, default=dict)
 
-    url: Mapped[str | None] = mapped_column(String, nullable=True)
-    source: Mapped[str | None] = mapped_column(String, nullable=True)
+    url: Mapped[Optional[str]] = mapped_column(String, nullable=True)
+    source: Mapped[Optional[str]] = mapped_column(String, nullable=True)
 
     matches: Mapped[list["Match"]] = relationship("Match", back_populates="job", cascade="all, delete-orphan")
 

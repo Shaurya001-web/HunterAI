@@ -6,16 +6,18 @@ from routes.auth import get_current_user
 from config.models import User, Profile, Job, Match
 from config.database import get_db
 
+from typing import Optional
+
 router = APIRouter()
 
 @router.get("/matches")
 def get_matches(
-    keyword: str | None = None,
-    location: str | None = None,
+    keyword: Optional[str] = None,
+    location: Optional[str] = None,
     remote_only: bool = False,
-    stipend_min: int | None = None,
-    duration_max: int | None = None,
-    email: str | None = None,
+    stipend_min: Optional[int] = None,
+    duration_max: Optional[int] = None,
+    email: Optional[str] = None,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
