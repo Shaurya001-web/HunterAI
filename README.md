@@ -1,129 +1,94 @@
-# Hunter AI
+<h1 align="center">Hunter AI</h1>
 
-A career intelligence platform that transforms resumes into living skill profiles, ranked role matches, and clearer applications in real time.
+<p align="center">
+  <strong>An AI-powered career intelligence platform that transforms resumes into living skill profiles, provides granular ATS analysis, and streamlines the application workflow.</strong>
+</p>
 
-## Stack
+Hunter AI solves the two biggest bottlenecks in the modern job search: the excessive time it takes to manually tailor resumes for individual job applications, and the noise of standard job portals where irrelevant listings bury the right opportunities. By combining a high-performance React frontend with an AI-driven FastAPI backend, Hunter AI acts as your personal, automated career agent.
 
+---
+
+## Table of Contents
+
+- [Core Features](#core-features)
+- [Architecture & Tech Stack](#architecture--tech-stack)
+- [Project Structure](#project-structure)
+- [Getting Started](#getting-started)
+  - [Prerequisites](#prerequisites)
+  - [Backend Setup](#backend-setup)
+  - [Frontend Setup](#frontend-setup)
+- [Deployment](#deployment)
+- [Design System](#design-system)
+
+---
+
+## Core Features
+
+### 1. Dynamic Preference Filtering (The Likability Slider)
+Say goodbye to rigid dropdown filters. Input your preferences in natural language (e.g., remote status, location, specific skills, salary range).
+- **Priority Stack:** Your preferences are ranked by importance.
+- **The Slider:** A dynamic UI slider filters jobs in real-time. As you decrease the slider, lower-priority constraints are dropped off, ensuring your absolute must-haves remain active while broadening the search net.
+
+### 2. ATS Score Breakdown & Visualization
+When clicking on a job card, you get a detailed, visual breakdown of your ATS (Applicant Tracking System) score:
+- **Match Indicator:** A dynamic percentage ring indicating overall match strength.
+- **Keyword & Skill Analysis:** Highlights matching skills in green and missing skills in grey, with an expanding dropdown for exact job description keyword matches.
+- **Semantic Experience Check:** AI evaluates your past roles and responsibilities against the job description to calculate true relevance, rather than just keyword stuffing.
+- **Deficit Analytics:** A bar chart showing exactly where points were lost (Education, Formatting, Experience) out of the total 100%.
+
+### 3. AI LaTeX Tailoring Workspace (Split-Pane Editor)
+A Claude-style workspace dedicated to live resume generation:
+- **Chat Interface:** A built-in chat UI where you can prompt the AI to make specific edits (e.g., *"Highlight my machine learning experience for this role"*).
+- **Smart Patching:** The AI doesn't rewrite the whole document; it patches specific LaTeX blocks back into the source, drastically speeding up rendering time.
+- **Live PDF Preview:** See your newly tailored PDF rendered instantly on the right side of the screen. 
+- **Auto-Cleaning Storage:** Automatically manages your tailored resumes, keeping only the most recent generations to prevent download folder clutter.
+
+### 4. Smart Application Tracker
+- **Duplicate Guard:** Generates unique cryptographic keys based on internship/job metadata to ensure you never see a job you've already applied to.
+- **Automated Logging:** Downloading a tailored PDF or flagging a card automatically syncs the job to your SQLite/Postgres database.
+
+---
+
+## Architecture & Tech Stack
+
+Hunter AI is built using a modern, decoupled architecture designed for speed, type safety, and seamless AI integration.
+
+### Frontend
 | Layer | Technology |
 |-------|------------|
 | **Framework** | React 19 |
 | **Language** | TypeScript |
 | **Build Tool** | Vite 8 |
-| **Styling** | Tailwind CSS v4 (with custom design system) |
+| **Styling** | Tailwind CSS v4 (with custom design tokens) |
 | **Animation** | GSAP 3 + ScrollTrigger |
-| **Linting** | ESLint 10 + TypeScript ESLint |
-| **Package Manager** | npm |
+
+### Backend & AI
+| Layer | Technology |
+|-------|------------|
+| **Framework** | FastAPI |
+| **Language** | Python 3.11+ |
+| **AI Orchestration** | LangChain Core & Community |
+| **LLM Providers** | Google GenAI, Groq |
+| **Database** | SQLAlchemy (PostgreSQL / SQLite) |
+| **Document Processing**| PyMuPDF |
+
+---
 
 ## Project Structure
 
-```
-src/
-├── App.tsx              # Main application with all sections
-├── main.tsx             # Entry point
-├── index.css            # Tailwind v4 + custom design tokens & utilities
-├── assets/              # Static assets
-└── vite-env.d.ts        # Vite types
-```
-
-## Design System
-
-Custom CSS variables defined in `src/index.css`:
-
-```css
-:root {
-  --paper: #e9e9e9;
-  --silver: #b7b7b7;
-  --stone: #8f8f8d;
-  --charcoal: #535351;
-  --black: #050505;
-  --white: #fbfbfa;
-  --line: rgba(5, 5, 5, 0.1);
-  --muted: rgba(5, 5, 5, 0.52);
-}
-```
-
-- **Typography**: Outfit / Avenir Next system stack
-- **Motion**: GSAP context + ScrollTrigger for scroll-linked animations
-- **Reduced motion**: Respects `prefers-reduced-motion`
-
-## Key Features
-
-- **Animated workflow visualization** — SVG path drawing + scroll progress
-- **Interactive skill graph** — Floating nodes with real-time line sync
-- **Glass-morphism dashboard mock** — Backdrop filter panels
-- **Staggered entrance animations** — GSAP timelines
-- **Scroll-triggered reveals** — IntersectionObserver + GSAP
-
-## Scripts
-
-```bash
-npm run dev      # Start dev server
-npm run build    # Type-check + production build
-npm run lint     # ESLint
-npm run preview  # Preview production build
-```
-
-## Getting Started
-
-```bash
-git clone https://github.com/jagwalansh/ui-hunter-ai.git
-cd ui-hunter-ai
-npm install
-npm run dev
-```
-
-## Deployment
-
-The `dist/` folder is production-ready after `npm run build`. Deploy to any static host (Vercel, Netlify, Cloudflare Pages, etc.).
-![AI Resume Parser & Profile View](assets/user_profile.png)
-
-### Interactive AI Career Coach
-Engage in a two-way conversation with a personalized AI Career Coach (powered by Groq and LLaMA 3) to discuss your resume, identify skill gaps, and explore strategies to improve your candidacy.
-
-![Interactive AI Career Coach](assets/ai_career_coach.png)
-
-### Smart Job Matching & Dynamic Filtering
-The recommendation engine displays Match Percentages, Matched vs Missing Skills, and Direct Apply Links to platforms like LinkedIn and Wellfound. Users can also dynamically filter their recommendations by minimum stipend, location, remote-only requirements, and minimum match score thresholds.
-
-![Job Recommendations Dashboard](assets/job_recommendations.png)
-
----
-
-## 🚀 Getting Started
-
-### Local Development Setup
-
-1. **Configure Environment Variables**
-   Copy `.env.example` to your `.env` files in both the frontend and backend directories and populate your API credentials (Supabase, Gemini, Groq).
-
-2. **Start the Backend Service (Python 3.11+)**
-   ```bash
-   cd backend
-   uv run python main.py
-   ```
-   *The API will boot up on `http://127.0.0.1:8000`*
-
-3. **Start the Frontend Application (Node v18+)**
-   ```bash
-   cd frontend
-   npm install
-   npm run dev
-   ```
-   *The client will run locally on `http://localhost:3000`*
-
----
-
-## 🛠️ Tech Stack
-
-*   **Frontend**: Next.js, React, Tailwind CSS
-*   **Backend**: FastAPI (Python 3.11), SQLAlchemy, Uvicorn, UV package manager
-*   **AI Engine**: Google Gemini API, Groq -> (Llama 3)
-*   **Database & Auth**: Supabase (PostgreSQL, Supabase Authentication, Supabase Storage)
-
----
-
-## 🌐 Deployment
-
-Production configurations and `Dockerfile`s are provided for both the frontend and backend. 
-*   **Frontend**: Easily deployable to platforms like Vercel or Netlify.
-*   **Backend**: Deployable to services like Railway, Render, or any standard container hosting provider.
+```text
+hunter-ai/
+├── backend/                  # FastAPI Application
+│   ├── routes/               # API Endpoints (e.g., matches_router.py)
+│   ├── models/               # SQLAlchemy Database Models
+│   ├── services/             # AI & LLM business logic
+│   └── pyproject.toml        # Python dependencies (uv/pip)
+│
+├── frontend/                 # React UI Application
+│   ├── app/                  # Application routing and global CSS
+│   ├── components/           # Reusable UI components (e.g., AppShell.tsx)
+│   ├── lib/                  # Utilities and Supabase clients
+│   ├── package.json          # Node dependencies
+│   └── vite.config.ts        # Vite configuration
+│
+└── assets/                   # Static assets & dummy PDFs
