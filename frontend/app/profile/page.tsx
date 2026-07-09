@@ -459,7 +459,6 @@ function NoProfileState() {
 /* ─── PAGE ─────────────────────────────────────────────────── */
 export default function ProfilePage() {
   const [profile, setProfile] = useState<Profile | null>(null);
-  const [allProfiles, setAllProfiles] = useState<Profile[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [matchCount] = useState(3);
@@ -471,13 +470,9 @@ export default function ProfilePage() {
     setError("");
     try {
       const data = await api.getProfiles();
-      setAllProfiles(data || []);
+      // Since it's Option B (one user = one profile), getProfiles returns a list but we just take the first/only one
       if (data?.length > 0) {
-        const saved = localStorage.getItem("selectedProfileEmail");
-        const matched = data.find((p: Profile) => p.email === saved);
-        const selected = matched || data[data.length - 1];
-        setProfile(selected);
-        localStorage.setItem("selectedProfileEmail", selected.email);
+        setProfile(data[0]);
       }
     } catch (e: unknown) {
       const err = e as Error;
@@ -549,37 +544,7 @@ export default function ProfilePage() {
             gap: 10,
             marginBottom: 32,
           }}>
-            {allProfiles.length > 1 && (
-              <div style={{
-                position: "relative",
-                background: "var(--surface)",
-                border: "0.5px solid var(--border)",
-                borderRadius: 8,
-              }}>
-                <select
-                  value={profile.email}
-                  onChange={(e) => {
-                    const sel = allProfiles.find((p) => p.email === e.target.value);
-                    if (sel) { setProfile(sel); localStorage.setItem("selectedProfileEmail", sel.email); }
-                  }}
-                  style={{
-                    background: "transparent", border: "none", outline: "none",
-                    padding: "7px 32px 7px 12px",
-                    fontSize: 13, color: "var(--text-primary)",
-                    cursor: "pointer", fontFamily: "var(--font-body)",
-                    appearance: "none",
-                  }}
-                >
-                  {allProfiles.map((p, i) => (
-                    <option key={i} value={p.email}>{p.name}</option>
-                  ))}
-                </select>
-                <ChevronDown size={13} color="var(--text-muted)" style={{
-                  position: "absolute", right: 10, top: "50%",
-                  transform: "translateY(-50%)", pointerEvents: "none",
-                }} />
-              </div>
-            )}
+
             <button
               onClick={fetchProfiles}
               style={{

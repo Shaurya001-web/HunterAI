@@ -360,8 +360,7 @@ export default function RecommendationsPage() {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [savedJobIds, setSavedJobIds] = useState<number[]>([]);
   const [matches, setMatches] = useState<JobMatch[]>([]);
-  const [profiles, setProfiles] = useState<Profile[]>([]);
-  const [selectedEmail, setSelectedEmail] = useState("");
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
@@ -374,12 +373,12 @@ export default function RecommendationsPage() {
   const [stipendMin, setStipendMin] = useState<number | "">("");
   const [durationMax, setDurationMax] = useState<number | "">("");
 
-  const fetchMatches = async (email: string, keyword?: string) => {
+  const fetchMatches = async (keyword?: string) => {
     setLoading(true);
     setError("");
     try {
       const data = await api.getMatches(
-        email, 
+        undefined,
         keyword,
         location || undefined,
         remoteOnly,
@@ -431,14 +430,9 @@ export default function RecommendationsPage() {
     setError("");
     try {
       const profs = await api.getProfiles();
-      setProfiles(profs || []);
-      if (profs?.length) {
-        const saved = localStorage.getItem("selectedProfileEmail");
-        const p = profs.find((x: Profile) => x.email === saved) || profs[profs.length - 1];
-        setSelectedEmail(p.email);
-        localStorage.setItem("selectedProfileEmail", p.email);
+      if (profs?.length > 0) {
         await Promise.all([
-          fetchMatches(p.email),
+          fetchMatches(),
           fetchSaved()
         ]);
       } else {
@@ -459,22 +453,18 @@ export default function RecommendationsPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
-  const handleProfileChange = async (email: string) => {
-    setSelectedEmail(email);
-    localStorage.setItem("selectedProfileEmail", email);
-    await fetchMatches(email, searchQuery);
-  };
+
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    fetchMatches(selectedEmail, searchQuery);
+    fetchMatches(searchQuery);
   };
 
   const filtered = matches.filter((m) => {
     return m.score >= minScore;
   });
 
-  if (profiles.length === 0 && !loading) {
+  if (matches.length === 0 && !loading && !searchQuery && !location && !remoteOnly && !stipendMin && !durationMax) {
     return (
       <div style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "100vh", padding: "40px" }}>
         <div style={{ background: "var(--bg-surface)", border: "1px solid var(--border)", borderRadius: "20px", padding: "52px 40px", textAlign: "center", maxWidth: "380px", boxShadow: "0 12px 32px rgba(0,0,0,0.06)" }}>
@@ -504,38 +494,7 @@ export default function RecommendationsPage() {
           {loading ? "Searching opportunities..." : `${filtered.length} matches found, evaluated against skills & projects`}
         </p>
 
-        {/* Profile selector */}
-        {profiles.length > 1 && (
-          <div
-            style={{
-              background: "var(--bg-surface)",
-              border: "1px solid var(--border)",
-              borderRadius: "10px",
-              position: "relative",
-            }}
-          >
-            <select
-              value={selectedEmail}
-              onChange={(e) => handleProfileChange(e.target.value)}
-              style={{
-                background: "transparent",
-                border: "none",
-                outline: "none",
-                padding: "9px 36px 9px 14px",
-                fontSize: "13px",
-                color: "var(--text-primary)",
-                cursor: "pointer",
-                fontFamily: "var(--font-body)",
-                appearance: "none",
-              }}
-            >
-              {profiles.map((p, i) => (
-                <option key={i} value={p.email}>{p.name}</option>
-              ))}
-            </select>
-            <ChevronDown size={14} color="var(--text-muted)" style={{ position: "absolute", right: "12px", top: "50%", transform: "translateY(-50%)", pointerEvents: "none" }} />
-          </div>
-        )}
+
       </div>
 
       {/* Search + Filter bar */}
@@ -605,7 +564,7 @@ export default function RecommendationsPage() {
               setDurationMax("");
               setMinScore(0);
               // Trigger a fetch without filters
-              api.getMatches(selectedEmail, "").then(setMatches).catch(e => setError(e.message)); 
+              api.getMatches(undefined, "").then(setMatches).catch(e => setError(e.message));
             }}
             style={{
               background: "none",
@@ -709,7 +668,7 @@ export default function RecommendationsPage() {
         >
           <p style={{ color: "#ff4d6d", fontSize: "13.5px", marginBottom: "16px" }}>{error}</p>
           <button
-            onClick={() => fetchMatches(selectedEmail, searchQuery)}
+            onClick={() => fetchMatches(searchQuery)}
             style={{ display: "inline-flex", alignItems: "center", gap: "6px", background: "var(--bg-surface)", border: "1px solid var(--border)", borderRadius: "8px", padding: "8px 16px", color: "var(--text-secondary)", fontSize: "13px", cursor: "pointer", fontFamily: "var(--font-body)" }}
           >
             <RefreshCw size={13} /> Retry

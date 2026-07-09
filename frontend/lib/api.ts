@@ -1,26 +1,24 @@
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
 
-let authToken: string | null = null;
-
-const getHeaders = (customHeaders: Record<string, string> = {}) => {
+const getHeaders = async (customHeaders: Record<string, string> = {}) => {
   const headers: Record<string, string> = { ...customHeaders };
-  if (authToken) {
-    headers["Authorization"] = `Bearer ${authToken}`;
+  const { createClient } = await import('@/lib/supabase/client');
+  const supabase = createClient();
+  const { data: { session } } = await supabase.auth.getSession();
+  if (session?.access_token) {
+    headers["Authorization"] = `Bearer ${session.access_token}`;
   }
   return headers;
 };
 
 export const api = {
-  setToken: (token: string | null) => {
-    authToken = token;
-  },
 
   uploadResume: async (file: File) => {
     const formData = new FormData();
     formData.append("file", file);
     const res = await fetch(`${BASE_URL}/file/upload/resume`, {
       method: "POST",
-      headers: getHeaders(),
+      headers: await getHeaders(),
       body: formData,
     });
     if (!res.ok) {
@@ -36,7 +34,7 @@ export const api = {
 
   getProfiles: async () => {
     const res = await fetch(`${BASE_URL}/profiles`, {
-      headers: getHeaders(),
+      headers: await getHeaders(),
     });
     if (!res.ok) throw new Error("Failed to load profiles");
     return res.json();
@@ -63,7 +61,7 @@ export const api = {
       url += `?${params.toString()}`;
     }
     const res = await fetch(url, {
-      headers: getHeaders(),
+      headers: await getHeaders(),
     });
     if (res.status === 400) return [];
     if (!res.ok) throw new Error("Failed to load matches");
@@ -73,7 +71,7 @@ export const api = {
   saveProfile: async (payload: unknown) => {
     const res = await fetch(`${BASE_URL}/profile`, {
       method: "POST",
-      headers: getHeaders({ "Content-Type": "application/json" }),
+      headers: await getHeaders({ "Content-Type": "application/json" }),
       body: JSON.stringify(payload),
     });
     if (!res.ok) throw new Error("Failed to save profile");
@@ -83,7 +81,7 @@ export const api = {
   migrateProfile: async (guestUserId: string) => {
     const res = await fetch(`${BASE_URL}/profile/migrate`, {
       method: "POST",
-      headers: getHeaders({ "Content-Type": "application/json" }),
+      headers: await getHeaders({ "Content-Type": "application/json" }),
       body: JSON.stringify({ guest_user_id: guestUserId }),
     });
     if (!res.ok) throw new Error("Failed to migrate profile");
@@ -92,7 +90,7 @@ export const api = {
 
   getSavedInternships: async () => {
     const res = await fetch(`${BASE_URL}/profile/saved`, {
-      headers: getHeaders(),
+      headers: await getHeaders(),
     });
     if (!res.ok) throw new Error("Failed to load saved internships");
     return res.json();
@@ -101,7 +99,7 @@ export const api = {
   saveInternship: async (jobId: number) => {
     const res = await fetch(`${BASE_URL}/profile/saved`, {
       method: "POST",
-      headers: getHeaders({ "Content-Type": "application/json" }),
+      headers: await getHeaders({ "Content-Type": "application/json" }),
       body: JSON.stringify({ job_id: jobId }),
     });
     if (!res.ok) throw new Error("Failed to save internship");
@@ -111,7 +109,7 @@ export const api = {
   unsaveInternship: async (jobId: number) => {
     const res = await fetch(`${BASE_URL}/profile/saved/${jobId}`, {
       method: "DELETE",
-      headers: getHeaders(),
+      headers: await getHeaders(),
     });
     if (!res.ok) throw new Error("Failed to unsave internship");
     return res.json();
@@ -119,7 +117,7 @@ export const api = {
 
   getJob: async (jobId: number) => {
     const res = await fetch(`${BASE_URL}/jobs/${jobId}`, {
-      headers: getHeaders(),
+      headers: await getHeaders(),
     });
     if (!res.ok) throw new Error("Failed to load job details");
     return res.json();
@@ -128,7 +126,7 @@ export const api = {
   generateTailorPlan: async (jobId: number, feedback?: string) => {
     const res = await fetch(`${BASE_URL}/api/tailor-resume/plan`, {
       method: "POST",
-      headers: { ...getHeaders(), "Content-Type": "application/json" },
+      headers: { ...(await getHeaders()), "Content-Type": "application/json" },
       body: JSON.stringify({ job_id: jobId, feedback })
     });
     if (!res.ok) {
@@ -145,7 +143,7 @@ export const api = {
   tailorResume: async (jobId: number, approvedPlan?: string) => {
     const res = await fetch(`${BASE_URL}/api/tailor-resume`, {
       method: "POST",
-      headers: { ...getHeaders(), "Content-Type": "application/json" },
+      headers: { ...(await getHeaders()), "Content-Type": "application/json" },
       body: JSON.stringify({ job_id: jobId, approved_plan: approvedPlan })
     });
     if (!res.ok) {
@@ -162,7 +160,7 @@ export const api = {
   chat: async (message: string) => {
     const res = await fetch(`${BASE_URL}/chat`, {
       method: "POST",
-      headers: getHeaders({ "Content-Type": "application/json" }),
+      headers: await getHeaders({ "Content-Type": "application/json" }),
       body: JSON.stringify({ message }),
     });
     if (!res.ok) throw new Error("Failed to chat");

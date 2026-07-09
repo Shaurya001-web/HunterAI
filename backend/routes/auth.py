@@ -62,18 +62,17 @@ def get_current_user(
         raise HTTPException(status_code=401, detail="Invalid Authorization header format")
 
     # 4. Decode and verify Supabase JWT
-    jwt_secret = _get_jwt_secret()
-    if not jwt_secret:
-        raise HTTPException(
-            status_code=401,
-            detail="Supabase JWT secret not configured. Use mock auth (sign in via the app) for local development."
-        )
-
+    supabase_url = os.getenv("SUPABASE_URL") or os.getenv("NEXT_PUBLIC_SUPABASE_URL") or "https://utgwalgerpgifhhkwutd.supabase.co"
+    jwks_url = f"{supabase_url.rstrip('/')}/auth/v1/.well-known/jwks.json"
+    
     try:
+        jwks_client = jwt.PyJWKClient(jwks_url)
+        signing_key = jwks_client.get_signing_key_from_jwt(token)
+        
         payload = jwt.decode(
             token,
-            jwt_secret,
-            algorithms=["HS256"],
+            signing_key.key,
+            algorithms=["HS256", "RS256", "ES256"],
             options={"verify_aud": False}
         )
         user_id = payload.get("sub")
