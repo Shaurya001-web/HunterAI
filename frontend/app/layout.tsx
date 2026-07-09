@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Script from "next/script";
-import { Analytics } from "@vercel/analytics/next";
+import { Analytics } from "@vercel/analytics/react";
 import { AuthProvider } from "@/components/auth/AuthProvider";
 import "./globals.css";
 import "./shell.css";

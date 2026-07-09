@@ -1,9 +1,10 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef } from "react";
 import { useAuth } from "./AuthProvider";
-import { Zap, X, ShieldCheck, Mail, Lock } from "lucide-react";
+import { Zap, X, ShieldCheck, Chrome } from "lucide-react";
 import { isSupabaseConfigured } from "@/lib/supabase";
+import { createClient } from "@/lib/supabase/client";
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -12,10 +13,8 @@ interface AuthModalProps {
 
 export function AuthModal({ isOpen, onClose }: AuthModalProps) {
   const dialogRef = useRef<HTMLDialogElement>(null);
-  const { authError, authLoading, signIn, signUp, enterSandboxMode, setAuthError } = useAuth();
-  const [isSignUp, setIsSignUp] = useState(false);
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const { authError, authLoading, enterSandboxMode, setAuthError } = useAuth();
+  const supabase = createClient();
 
   useEffect(() => {
     const dialog = dialogRef.current;
@@ -27,8 +26,6 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
       }
       setTimeout(() => {
         setAuthError("");
-        setEmail("");
-        setPassword("");
       }, 0);
     } else {
       if (dialog.open) {
@@ -42,23 +39,18 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
     const dialog = dialogRef.current;
     if (!dialog) return;
     
-    // Check if click was on the backdrop
     if (e.target === dialog) {
       onClose();
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    let success = false;
-    if (isSignUp) {
-      success = await signUp(email, password);
-    } else {
-      success = await signIn(email, password);
-    }
-    if (success) {
-      onClose();
-    }
+  const handleGoogleLogin = async () => {
+    await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback`,
+      },
+    });
   };
 
   return (
@@ -152,84 +144,32 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
             <Zap size={20} color="white" />
           </div>
           <h2 style={{ fontFamily: "var(--font-display)", fontSize: "22px", fontWeight: 800, marginBottom: "6px" }}>
-            {isSignUp ? "Create an account" : "Welcome back"}
+            Welcome to HunterAI
           </h2>
           <p style={{ fontSize: "13px", color: "var(--text-secondary)" }}>
-            {isSignUp ? "Sign up to track and save your matches" : "Sign in to access your saved internships"}
+            Sign in to track your matches and automate applications
           </p>
         </div>
 
-        {/* Form */}
-        <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-          <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-            <label style={{ fontSize: "12px", fontWeight: 600, color: "var(--text-secondary)" }}>Email Address</label>
-            <div style={{ position: "relative" }}>
-              <Mail size={16} color="var(--text-muted)" style={{ position: "absolute", left: "12px", top: "50%", transform: "translateY(-50%)" }} />
-              <input
-                type="email"
-                required
-                placeholder="you@example.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="input-base"
-                style={{ paddingLeft: "38px" }}
-              />
-            </div>
-          </div>
+        {authError && (
+          <p style={{ color: "var(--rose)", fontSize: "12.5px", textAlign: "center", lineHeight: 1.4 }}>
+            {authError}
+          </p>
+        )}
 
-          <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-            <label style={{ fontSize: "12px", fontWeight: 600, color: "var(--text-secondary)" }}>Password</label>
-            <div style={{ position: "relative" }}>
-              <Lock size={16} color="var(--text-muted)" style={{ position: "absolute", left: "12px", top: "50%", transform: "translateY(-50%)" }} />
-              <input
-                type="password"
-                required
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="input-base"
-                style={{ paddingLeft: "38px" }}
-              />
-            </div>
-          </div>
-
-          {authError && (
-            <p style={{ color: "var(--rose)", fontSize: "12.5px", textAlign: "center", lineHeight: 1.4 }}>
-              {authError}
-            </p>
-          )}
-
-          <button
-            type="submit"
-            disabled={authLoading}
-            className="btn-primary"
-            style={{
-              padding: "12px",
-              marginTop: "8px",
-              fontSize: "14px",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
-            {authLoading ? "Please wait..." : isSignUp ? "Create Account" : "Sign In"}
-          </button>
-        </form>
-
-        {/* Toggle */}
-        <p style={{ fontSize: "13px", color: "var(--text-secondary)", textAlign: "center", marginTop: "4px" }}>
-          {isSignUp ? "Already have an account?" : "Don't have an account?"}{" "}
-          <button
-            onClick={() => { setIsSignUp(!isSignUp); setAuthError(""); }}
-            style={{ background: "none", border: "none", color: "var(--accent)", fontWeight: 600, cursor: "pointer", padding: 0 }}
-          >
-            {isSignUp ? "Sign In" : "Sign Up"}
-          </button>
-        </p>
+        {/* Google OAuth Button */}
+        <button
+          onClick={handleGoogleLogin}
+          disabled={authLoading}
+          className="flex w-full items-center justify-center gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 hover:border-slate-300 shadow-sm"
+        >
+          <Chrome className="h-5 w-5 text-indigo-600" />
+          Continue with Google
+        </button>
 
         {/* Mock Sandbox Helper */}
         {!isSupabaseConfigured && (
-          <div style={{ borderTop: "1px solid var(--border)", paddingTop: "16px" }}>
+          <div style={{ borderTop: "1px solid var(--border)", paddingTop: "16px", marginTop: "16px" }}>
             <button
               onClick={() => {
                 enterSandboxMode();

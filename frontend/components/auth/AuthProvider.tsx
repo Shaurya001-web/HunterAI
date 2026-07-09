@@ -85,21 +85,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
       }
 
-      // Default: load or generate Guest session
-      let guestId = localStorage.getItem("guest_user_id");
-      if (!guestId) {
-        guestId = "guest_" + Math.random().toString(36).substring(2, 11);
-        localStorage.setItem("guest_user_id", guestId);
-      }
-      const guestUser = {
-        id: guestId,
-        email: `${guestId}@hunterai.local`,
-        name: "Guest User",
-        isGuest: true
-      };
-      const guestToken = `mock_token:${guestUser.id}:${guestUser.email}:${guestUser.name}`;
-      setUser(guestUser);
-      setToken(guestToken);
+      // Default: not logged in
+      setUser(null);
+      setToken(null);
       setLoading(false);
     };
 
