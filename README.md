@@ -4,6 +4,15 @@
   <strong>An AI-powered career intelligence platform that transforms resumes into living skill profiles, provides granular ATS analysis, and streamlines the application workflow.</strong>
 </p>
 
+<p align="center">
+  <img src="https://img.shields.io/badge/version-v0.1.0-blue.svg?style=flat-square" alt="Version" />
+  <img src="https://img.shields.io/badge/build-passing-brightgreen.svg?style=flat-square" alt="Build" />
+  <img src="https://img.shields.io/badge/status-active_development-success.svg?style=flat-square" alt="Status" />
+  <img src="https://img.shields.io/badge/license-MIT-green.svg?style=flat-square" alt="License" />
+  <img src="https://img.shields.io/badge/React-19-61dafb.svg?style=flat-square&logo=react&logoColor=black" alt="React" />
+  <img src="https://img.shields.io/badge/FastAPI-0.136-009688.svg?style=flat-square&logo=fastapi&logoColor=white" alt="FastAPI" />
+</p>
+
 Hunter AI solves the two biggest bottlenecks in the modern job search: the excessive time it takes to manually tailor resumes for individual job applications, and the noise of standard job portals where irrelevant listings bury the right opportunities. By combining a high-performance React frontend with an AI-driven FastAPI backend, Hunter AI acts as your personal, automated career agent.
 
 ---
