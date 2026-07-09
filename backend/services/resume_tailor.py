@@ -1,5 +1,6 @@
 import json
 import asyncio
+import re
 from typing import Dict, Any
 from pydantic import BaseModel, ConfigDict
 from langchain.chat_models import init_chat_model
@@ -54,7 +55,7 @@ Here is the User's Original Resume Data:
         prompt += f"\n### USER FEEDBACK ON PREVIOUS PLAN:\nThe user has reviewed your previous plan and provided the following feedback. You MUST adjust your proposed plan to accommodate this feedback:\n<feedback>\n{feedback}\n</feedback>\n"
         
     try:
-        llm = init_chat_model(model="mixtral-8x7b-32768", model_provider="groq", temperature=0.2)
+        llm = init_chat_model(model="llama-3.3-70b-versatile", model_provider="groq", temperature=0.2)
         response = await llm.ainvoke(prompt)
     except Exception as groq_e:
         print(f"Groq failed: {groq_e}. Falling back to Gemini...")
@@ -121,7 +122,7 @@ Output the final optimized JSON matching the input User's Original Resume Data f
     for attempt in range(3):
         try:
             try:
-                llm = init_chat_model(model="mixtral-8x7b-32768", model_provider="groq", temperature=0)
+                llm = init_chat_model(model="llama-3.3-70b-versatile", model_provider="groq", temperature=0)
                 response = await llm.ainvoke(prompt)
             except Exception as groq_e:
                 print(f"Groq failed in JSON generation: {groq_e}. Falling back to Gemini...")
@@ -133,12 +134,20 @@ Output the final optimized JSON matching the input User's Original Resume Data f
                     
             raw = str(response.content).strip()
             
-            # Clean possible markdown
-            if raw.startswith("```json"): raw = raw[7:]
-            if raw.startswith("```"): raw = raw[3:]
-            if raw.endswith("```"): raw = raw[:-3]
+            # Use regex to find a JSON block if it exists
+            json_match = re.search(r'```(?:json)?\s*(\{.*?\})\s*```', raw, re.DOTALL)
+            if json_match:
+                cleaned = json_match.group(1).strip()
+            else:
+                # Fallback if no markdown blocks are used, try to find the first { and last }
+                start = raw.find('{')
+                end = raw.rfind('}')
+                if start != -1 and end != -1:
+                    cleaned = raw[start:end+1].strip()
+                else:
+                    cleaned = raw.strip()
             
-            parsed = json.loads(raw.strip())
+            parsed = json.loads(cleaned)
             
             # Validate with Pydantic
             validated = TailoredProfile(**parsed)

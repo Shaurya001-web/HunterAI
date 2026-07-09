@@ -46,9 +46,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [authError, setAuthError] = useState("");
   const [authLoading, setAuthLoading] = useState(false);
 
-  useEffect(() => {
-    api.setToken(token);
-  }, [token]);
+
 
   // Load guest user or saved auth user on mount
   useEffect(() => {
@@ -63,7 +61,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setUser(parsed);
           const t = `mock_token:${parsed.id}:${parsed.email}:${parsed.name}`;
           setToken(t);
-          api.setToken(t);
           setLoading(false);
           return;
         } catch {
@@ -76,7 +73,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (session) {
           const t = session.access_token;
           setToken(t);
-          api.setToken(t);
           const parsedUser = {
             id: session.user.id,
             email: session.user.email ?? "",
@@ -104,7 +100,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const guestToken = `mock_token:${guestUser.id}:${guestUser.email}:${guestUser.name}`;
       setUser(guestUser);
       setToken(guestToken);
-      api.setToken(guestToken);
       setLoading(false);
     };
 
@@ -115,7 +110,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (session) {
           const t = session.access_token;
           setToken(t);
-          api.setToken(t);
           const parsedUser = {
             id: session.user.id,
             email: session.user.email ?? "",
@@ -155,7 +149,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (data.session && data.user) {
           const t = data.session.access_token;
           setToken(t);
-          api.setToken(t);
           const newUser = {
             id: data.user.id,
             email: data.user.email ?? "",
@@ -182,7 +175,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const t = `mock_token:${newUser.id}:${newUser.email}:${newUser.name}`;
         setUser(newUser);
         setToken(t);
-        api.setToken(t);
         localStorage.setItem("mock_auth_user", JSON.stringify(newUser));
 
         // Migrate profile
@@ -221,7 +213,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (data.session && data.user) {
           const t = data.session.access_token;
           setToken(t);
-          api.setToken(t);
           const newUser = {
             id: data.user.id,
             email: data.user.email ?? "",
@@ -250,7 +241,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const t = `mock_token:${newUser.id}:${newUser.email}:${newUser.name}`;
         setUser(newUser);
         setToken(t);
-        api.setToken(t);
         localStorage.setItem("mock_auth_user", JSON.stringify(newUser));
 
         const guestId = localStorage.getItem("guest_user_id");
@@ -278,7 +268,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const t = `mock_token:${sandboxUser.id}:${sandboxUser.email}:${sandboxUser.name}`;
     setUser(sandboxUser);
     setToken(t);
-    api.setToken(t);
     localStorage.setItem("mock_auth_user", JSON.stringify(sandboxUser));
 
     const guestId = localStorage.getItem("guest_user_id");
@@ -299,7 +288,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Clear token & regenerate guest session
     setUser(null);
     setToken(null);
-    api.setToken(null);
     
     const guestId = "guest_" + Math.random().toString(36).substring(2, 11);
     localStorage.setItem("guest_user_id", guestId);
@@ -313,7 +301,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const guestToken = `mock_token:${guestUser.id}:${guestUser.email}:${guestUser.name}`;
     setUser(guestUser);
     setToken(guestToken);
-    api.setToken(guestToken);
     setLoading(false);
   };
 

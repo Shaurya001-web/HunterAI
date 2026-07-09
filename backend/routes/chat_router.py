@@ -79,7 +79,7 @@ async def chat_with_gemini(
 
     try:
         response = client.chat.completions.create(
-            model="mixtral-8x7b-32768",
+            model="llama-3.3-70b-versatile",
             messages=[
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": request.message}
