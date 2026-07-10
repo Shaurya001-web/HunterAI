@@ -68,8 +68,8 @@ async def upload_file(
         profile_data = await parse_resume_to_json(file_path)
         
         # Sync name if user didn't have one set in auth
-        if not current_user.name and profile_data.get("name"):
-            current_user.name = profile_data["name"]
+        if not current_user.username and profile_data.get("name"):
+            current_user.username = profile_data["name"]
             db.add(current_user)
             
         # Update or create Profile in database
@@ -95,7 +95,7 @@ async def upload_file(
         # Standardize return object to match what frontend expects
         formatted_profile = {
             "user_id": current_user.id,
-            "name": current_user.name or profile_data.get("name", ""),
+            "name": current_user.username or profile_data.get("name", ""),
             "email": current_user.email,
             "skills": db_profile.skills,
             "education": db_profile.education,
