@@ -228,7 +228,7 @@ def calculate_selection_probability_penalty(user_profile: Dict[str, Any], job: D
     final_score = max(0.0, score - penalty)
     return round(final_score, 2)
 
-def evaluate_suitability(user_profile: Dict[str, Any], job: Dict[str, Any], keyword: str | None = None) -> Dict[str, Any]:
+def evaluate_suitability(user_profile: Dict[str, Any], job: Dict[str, Any], keyword: Optional[str] = None) -> Dict[str, Any]:
     """
     Evaluates candidate suitability for a job based on an industry-standard ATS scoring algorithm (100 points max).
     - Keyword Match: 45%
@@ -363,7 +363,7 @@ def evaluate_suitability(user_profile: Dict[str, Any], job: Dict[str, Any], keyw
         "suitability_level": suitability_level
     }
 
-def rank_jobs(user_profile: Dict[str, Any], jobs: List[Dict[str, Any]], keyword: str | None = None) -> List[Dict[str, Any]]:
+def rank_jobs(user_profile: Dict[str, Any], jobs: List[Dict[str, Any]], keyword: Optional[str] = None) -> List[Dict[str, Any]]:
     """
     Compares a single user profile against a list of jobs, calculates match scores,
     and returns the jobs sorted by score in descending order.

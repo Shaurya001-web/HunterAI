@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { LayoutDashboard, User, Sparkles, Upload, LogOut, Bookmark, Bot } from "lucide-react";
@@ -9,19 +9,51 @@ import { AuthModal } from "@/components/auth/AuthModal";
 
 const NAV = [
   { href: "/dashboard", label: "Dashboard",       icon: LayoutDashboard },
-  { href: "/upload",    label: "Upload",          icon: Upload },
   { href: "/profile",   label: "Profile",          icon: User },
-  { href: "/recommendations", label: "Matches", icon: Sparkles },
-  { href: "/bookmarks", label: "Saved",           icon: Bookmark },
-  { href: "/chat",      label: "AI Chat",         icon: Bot },
 ];
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const { user, signOut } = useAuth();
+  const { user, signOut, updateProfile } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [nameInput, setNameInput] = useState("");
+  const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved">("idle");
+  const [copied, setCopied] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (user?.username) {
+      setNameInput(user.username);
+    }
+  }, [user]);
+
+  useEffect(() => {
+    const handleOutsideClick = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setMenuOpen(false);
+      }
+    };
+    if (menuOpen) {
+      document.addEventListener("mousedown", handleOutsideClick);
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleOutsideClick);
+    };
+  }, [menuOpen]);
+
+  const handleSaveName = async () => {
+    if (!nameInput.trim()) return;
+    setSaveStatus("saving");
+    const success = await updateProfile(nameInput.trim());
+    if (success) {
+      setSaveStatus("saved");
+      setTimeout(() => setSaveStatus("idle"), 1500);
+    } else {
+      setSaveStatus("idle");
+    }
+  };
 
   useEffect(() => {
     const handleScroll = () => {
@@ -31,8 +63,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const initials = user?.name
-    ? user.name.split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase()
+  const initials = user?.username
+    ? user.username.split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase()
     : user?.email?.slice(0, 2).toUpperCase() || "??";
 
   return (
@@ -77,38 +109,135 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
             <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
               {user && !user.isGuest ? (
-                <div style={{ position: "relative" }}>
+                <div style={{ position: "relative" }} ref={dropdownRef}>
                   {menuOpen && (
                     <div style={{
                       position: "absolute",
-                      top: "120%",
+                      top: "125%",
                       right: 0,
-                      width: "200px",
+                      width: "250px",
                       background: "var(--bg-surface)",
-                      border: "1px solid var(--border)",
+                      border: "1px solid var(--border-strong)",
                       borderRadius: "16px",
                       padding: "16px",
-                      boxShadow: "0 12px 32px rgba(0,0,0,0.06)",
+                      boxShadow: "0 16px 36px rgba(12, 22, 24, 0.12)",
                       zIndex: 60,
                       display: "flex",
                       flexDirection: "column",
-                      gap: "12px"
+                      gap: "14px"
                     }}>
-                      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                        <div style={{ minWidth: 0 }}>
-                          <div style={{ fontSize: 14, fontWeight: 600, color: "var(--text-primary)", textOverflow: "ellipsis", overflow: "hidden", whiteSpace: "nowrap" }}>
-                            {user.name}
-                          </div>
-                          <div style={{ fontSize: 12, color: "var(--text-secondary)", textOverflow: "ellipsis", overflow: "hidden", whiteSpace: "nowrap" }}>
-                            {user.email}
-                          </div>
+                      {/* Name Editing Section */}
+                      <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                        <span style={{ fontSize: "11px", fontWeight: 600, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.05em" }}>Username</span>
+                        <div style={{ display: "flex", gap: "8px" }}>
+                          <input
+                            type="text"
+                            value={nameInput}
+                            onChange={(e) => setNameInput(e.target.value)}
+                            style={{
+                              flex: 1,
+                              height: "32px",
+                              borderRadius: "8px",
+                              border: "1px solid var(--border)",
+                              background: "var(--bg-base)",
+                              color: "var(--text-primary)",
+                              padding: "0 8px",
+                              fontSize: "12.5px",
+                              outline: "none"
+                            }}
+                          />
+                          <button
+                            onClick={handleSaveName}
+                            disabled={saveStatus === "saving"}
+                            style={{
+                              padding: "0 10px",
+                              borderRadius: "8px",
+                              background: "var(--text-primary)",
+                              color: "var(--bg-surface)",
+                              border: "none",
+                              fontSize: "11px",
+                              fontWeight: 600,
+                              cursor: "pointer",
+                              transition: "opacity 0.2s"
+                            }}
+                          >
+                            {saveStatus === "saving" ? "..." : saveStatus === "saved" ? "✓" : "Save"}
+                          </button>
                         </div>
                       </div>
+
+                      {/* User ID Section */}
+                      <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                        <span style={{ fontSize: "11px", fontWeight: 600, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.05em" }}>User ID</span>
+                        <div style={{
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "space-between",
+                          background: "var(--bg-elevated)",
+                          borderRadius: "8px",
+                          padding: "6px 8px",
+                          border: "1px solid var(--border)"
+                        }}>
+                          <span style={{
+                            fontSize: "11.5px",
+                            fontFamily: "monospace",
+                            color: "var(--text-secondary)",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                            whiteSpace: "nowrap",
+                            maxWidth: "160px"
+                          }}>
+                            {user.id}
+                          </span>
+                          <button
+                            onClick={() => {
+                              navigator.clipboard.writeText(user.id);
+                              setCopied(true);
+                              setTimeout(() => setCopied(false), 2000);
+                            }}
+                            style={{
+                              background: "none",
+                              border: "none",
+                              cursor: "pointer",
+                              fontSize: "10px",
+                              color: copied ? "var(--accent)" : "var(--text-muted)",
+                              padding: 0
+                            }}
+                          >
+                            {copied ? "copied" : "copy"}
+                          </button>
+                        </div>
+                      </div>
+
+                      <div style={{ height: "1px", background: "var(--border)" }} />
+
+                      {/* Sign Out Button */}
                       <button
-                        onClick={() => signOut()}
+                        onClick={() => {
+                          setMenuOpen(false);
+                          signOut();
+                        }}
                         style={{
-                          padding: "8px", borderRadius: "8px", background: "var(--bg-elevated)", color: "var(--rose)",
-                          border: "none", fontSize: "12px", fontWeight: 600, cursor: "pointer", width: "100%"
+                          padding: "8px 12px",
+                          borderRadius: "10px",
+                          background: "var(--rose-soft, #FFF0F2)",
+                          color: "var(--rose, #E63946)",
+                          border: "1px solid var(--rose-border, #FFD2D7)",
+                          fontSize: "12px",
+                          fontWeight: 600,
+                          cursor: "pointer",
+                          width: "100%",
+                          transition: "all 0.2s"
+                        }}
+                        onMouseEnter={(e) => {
+                          (e.currentTarget as HTMLElement).style.background = "var(--rose)";
+                          (e.currentTarget as HTMLElement).style.color = "white";
+                          (e.currentTarget as HTMLElement).style.borderColor = "var(--rose)";
+                        }}
+                        onMouseLeave={(e) => {
+                          (e.currentTarget as HTMLElement).style.background = "var(--rose-soft, #FFF0F2)";
+                          (e.currentTarget as HTMLElement).style.color = "var(--rose, #E63946)";
+                          (e.currentTarget as HTMLElement).style.borderColor = "var(--rose-border, #FFD2D7)";
                         }}
                       >
                         Sign Out
@@ -119,17 +248,16 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                   <div
                     onClick={() => setMenuOpen(!menuOpen)}
                     style={{
-                      width: 44, height: 44, borderRadius: "22px",
-                      background: "var(--accent-light)",
+                      width: 40, height: 40, borderRadius: "50%",
+                      background: "var(--bg-elevated)",
+                      border: menuOpen ? "1px solid var(--text-primary)" : "1px solid var(--border-strong)",
                       display: "flex", alignItems: "center", justifyContent: "center",
-                      fontSize: 13, fontWeight: 700, color: "var(--accent)",
-                      fontFamily: "var(--font-display)",
+                      color: "var(--text-primary)",
                       cursor: "pointer", userSelect: "none",
-                      border: menuOpen ? "1px solid var(--accent)" : "1px solid transparent",
-                      transition: "border 0.2s"
+                      transition: "all 0.2s"
                     }}
                   >
-                    {initials}
+                    <User size={18} style={{ opacity: 0.8 }} />
                   </div>
                 </div>
               ) : (
