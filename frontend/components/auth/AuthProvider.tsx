@@ -77,6 +77,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (session) {
           const t = session.access_token;
           setToken(t);
+          api.setToken(t);
           const parsedUser = {
             id: session.user.id,
             email: session.user.email ?? "",
@@ -115,6 +116,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (session) {
           const t = session.access_token;
           setToken(t);
+          api.setToken(t);
           const parsedUser = {
             id: session.user.id,
             email: session.user.email ?? "",
@@ -143,6 +145,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (data.session && data.user) {
           const t = data.session.access_token;
           setToken(t);
+          api.setToken(t);
           const newUser = {
             id: data.user.id,
             email: data.user.email ?? "",
@@ -163,6 +166,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const t = `mock_token:${newUser.id}:${newUser.email}:${newUser.username}`;
         setUser(newUser);
         setToken(t);
+        api.setToken(t);
         localStorage.setItem("mock_auth_user", JSON.stringify(newUser));
         return true;
       }
@@ -196,6 +200,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (data.session && data.user) {
           const t = data.session.access_token;
           setToken(t);
+          api.setToken(t);
           const newUser = {
             id: data.user.id,
             email: data.user.email ?? "",
@@ -219,6 +224,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const t = `mock_token:${newUser.id}:${newUser.email}:${newUser.username}`;
         setUser(newUser);
         setToken(t);
+        api.setToken(t);
         localStorage.setItem("mock_auth_user", JSON.stringify(newUser));
         return true;
       }
@@ -241,6 +247,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const t = `mock_token:${sandboxUser.id}:${sandboxUser.email}:${sandboxUser.username}`;
     setUser(sandboxUser);
     setToken(t);
+    api.setToken(t);
     localStorage.setItem("mock_auth_user", JSON.stringify(sandboxUser));
   };
 
