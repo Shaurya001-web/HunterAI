@@ -50,7 +50,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [authError, setAuthError] = useState("");
   const [authLoading, setAuthLoading] = useState(false);
 
-
+  // Sync token state to the api client automatically
+  useEffect(() => {
+    api.setToken(token);
+  }, [token]);
 
   // Load guest user or saved auth user on mount
   useEffect(() => {
