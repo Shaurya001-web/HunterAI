@@ -44,7 +44,7 @@ async def chat_with_gemini(
 
     # Construct the context
     resume_context = f"""
-    User Name: {current_user.name}
+    User Name: {current_user.username}
     Skills: {', '.join(profile.skills) if profile.skills else 'None listed'}
     Education: {profile.education}
     Experience: {profile.experience}

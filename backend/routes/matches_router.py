@@ -39,7 +39,7 @@ def get_matches(
             raise HTTPException(status_code=400, detail="No profile found. Please upload a resume first.")
         
         user_profile_dict = {
-            "name": target_user.name or "",
+            "name": target_user.username or "",
             "email": target_user.email,
             "skills": profile.skills,
             "education": profile.education,

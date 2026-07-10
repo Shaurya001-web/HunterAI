@@ -40,7 +40,7 @@ async def generate_plan_endpoint(
             raise HTTPException(status_code=404, detail="Job not found.")
             
         user_profile_dict = {
-            "name": current_user.name,
+            "name": current_user.username,
             "skills": profile.skills,
             "education": profile.education,
             "experience": profile.experience,
@@ -79,7 +79,7 @@ async def tailor_resume_endpoint(
             raise HTTPException(status_code=404, detail="Job not found.")
             
         user_profile_dict = {
-            "name": current_user.name,
+            "name": current_user.username,
             "skills": profile.skills,
             "education": profile.education,
             "experience": profile.experience,
@@ -119,7 +119,7 @@ async def tailor_resume_endpoint(
         tailored_json = await tailor_resume_json(user_profile_dict, job_dict, req.approved_plan)
         
         # Re-attach name to tailored profile so it can be used for rendering
-        tailored_json["name"] = current_user.name
+        tailored_json["name"] = current_user.username
         
         # 5. Calculate new ATS score
         suitability_after = evaluate_suitability(tailored_json, job_dict)
