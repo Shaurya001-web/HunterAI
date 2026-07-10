@@ -64,12 +64,29 @@ def get_current_user(
     supabase_anon_key = os.getenv("SUPABASE_ANON_KEY") or os.getenv("NEXT_PUBLIC_SUPABASE_ANON_KEY")
 
     payload = None
+
+    # Dynamically extract Supabase URL from the token's 'iss' claim if it is not configured in the environment.
+    # This enables robust JWKS signature verification even when env vars are missing.
+    extracted_supabase_url = supabase_url
+    if not extracted_supabase_url:
+        try:
+            unverified_payload = jwt.decode(token, options={"verify_signature": False})
+            iss = unverified_payload.get("iss")
+            if iss and ("supabase.co" in iss or "supabase.net" in iss or "localhost" in iss or "127.0.0.1" in iss):
+                if "/auth/v1" in iss:
+                    extracted_supabase_url = iss.split("/auth/v1")[0]
+                else:
+                    extracted_supabase_url = iss
+        except Exception as e:
+            print(f"Could not extract issuer from token: {e}")
     
     # Try JWKS asymmetric verification (highly recommended for new projects signed with ECC/ES256)
-    if supabase_url and supabase_anon_key:
+    if extracted_supabase_url:
         try:
-            jwks_url = f"{supabase_url.rstrip('/')}/auth/v1/.well-known/jwks.json"
-            jwks_client = jwt.PyJWKClient(jwks_url, headers={"apikey": supabase_anon_key})
+            jwks_url = f"{extracted_supabase_url.rstrip('/')}/auth/v1/.well-known/jwks.json"
+            # Supabase JWKS is publicly accessible, but we can pass api key headers if configured
+            headers = {"apikey": supabase_anon_key} if supabase_anon_key else {}
+            jwks_client = jwt.PyJWKClient(jwks_url, headers=headers)
             signing_key = jwks_client.get_signing_key_from_jwt(token)
             payload = jwt.decode(
                 token,
