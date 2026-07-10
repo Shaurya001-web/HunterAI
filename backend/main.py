@@ -16,6 +16,7 @@ from routes.matches_router import router as matches_router
 from routes.chat_router import router as chat_router
 from routes.recommendations import router as recommendations_router
 from routes.tailor_router import router as tailor_router
+from routes.resume_ai_router import router as resume_ai_router
 from config.database import engine, Base
 import config.models # Ensure models are loaded
 
@@ -52,6 +53,7 @@ app.include_router(matches_router, tags=["Matches"])
 app.include_router(chat_router, tags=["Chat"])
 app.include_router(recommendations_router, tags=["Recommendations"])
 app.include_router(tailor_router, prefix="/api", tags=["Tailor"])
+app.include_router(resume_ai_router)
 
 @app.get("/")
 def home():

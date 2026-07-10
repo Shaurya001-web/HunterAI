@@ -15,11 +15,31 @@ export function generateLatex(data: any): string {
       .replace(/\\/g, "\\textbackslash{}");
   };
 
-  const name = escapeLatex(data.name || "SHAURYA MISHRA").toUpperCase();
+  const name = escapeLatex(data.name || "YOUR NAME").toUpperCase();
   
+  const location = escapeLatex(data.city ? `${data.city}${data.country ? `, ${data.country}` : ''}` : '');
+  const phone = escapeLatex(data.phone || '');
+  const email = escapeLatex(data.email || '');
+  
+  const contactItems = [];
+  if (location) contactItems.push(location);
+  if (phone) contactItems.push(`\\faPhone\\ ${phone}`);
+  if (email) contactItems.push(`\\faEnvelope\\ \\href{mailto:${data.email}}{${email}}`);
+  if (data.linkedin) contactItems.push(`\\faLinkedin\\ \\href{${data.linkedin}}{LinkedIn}`);
+  if (data.github) contactItems.push(`\\faGithub\\ \\href{${data.github}}{GitHub}`);
+  if (data.portfolio) contactItems.push(`\\faGlobe\\ \\href{${data.portfolio}}{Portfolio}`);
+
+  const contactStr = contactItems.join(' \\;|\\; ');
+
+  // Format Summary
+  let summarySection = "";
+  if (data.summary) {
+    summarySection = `\\section*{Profile}\n\\small ${escapeLatex(data.summary)}\n`;
+  }
+
   // Format Skills
   const skillsStr = data.skills ? escapeLatex(data.skills.join(", ")) : "";
-  const skillsSection = skillsStr ? `\\section*{Skills}\n\\textbf{Technical Skills:} ${skillsStr}\\\\` : "";
+  const skillsSection = skillsStr ? `\\section*{Skills}\n\\textbf{Technical Skills:} ${skillsStr}\\\\\\vspace{0.15cm}\n\n` : "";
 
   // Format Experience
   let experienceSection = "";
@@ -30,9 +50,12 @@ export function generateLatex(data: any): string {
       if (exp.duration) {
         experienceSection += `\\textit{${escapeLatex(exp.duration)}}\\\\\n`;
       }
-      experienceSection += `\\begin{itemize}\n`;
-      experienceSection += `    \\item ${escapeLatex(exp.description)}\n`;
-      experienceSection += `\\end{itemize}\n\n\\vspace{0.15cm}\n\n`;
+      if (exp.description) {
+        experienceSection += `\\begin{itemize}\n`;
+        experienceSection += `    \\item ${escapeLatex(exp.description)}\n`;
+        experienceSection += `\\end{itemize}\n\n`;
+      }
+      experienceSection += `\\vspace{0.15cm}\n\n`;
     });
   }
 
@@ -41,14 +64,20 @@ export function generateLatex(data: any): string {
   if (data.projects && data.projects.length > 0) {
     projectsSection = "\\section*{Projects}\n\n";
     data.projects.forEach((proj: any) => {
-      projectsSection += `\\textbf{${escapeLatex(proj.title)}}\\\\\n`;
+      projectsSection += `\\textbf{${escapeLatex(proj.title || proj.name)}}\\\\\n`;
       if (proj.technologies) {
         const techStr = Array.isArray(proj.technologies) ? proj.technologies.join(", ") : proj.technologies;
         projectsSection += `\\textit{Tech Stack: ${escapeLatex(techStr)}}\\\\\n`;
+      } else if (proj.techStack) {
+        const techStr = Array.isArray(proj.techStack) ? proj.techStack.join(", ") : proj.techStack;
+        projectsSection += `\\textit{Tech Stack: ${escapeLatex(techStr)}}\\\\\n`;
       }
-      projectsSection += `\\begin{itemize}\n`;
-      projectsSection += `    \\item ${escapeLatex(proj.description)}\n`;
-      projectsSection += `\\end{itemize}\n\n\\vspace{0.15cm}\n\n`;
+      if (proj.description) {
+        projectsSection += `\\begin{itemize}\n`;
+        projectsSection += `    \\item ${escapeLatex(proj.description)}\n`;
+        projectsSection += `\\end{itemize}\n\n`;
+      }
+      projectsSection += `\\vspace{0.15cm}\n\n`;
     });
   }
 
@@ -60,6 +89,26 @@ export function generateLatex(data: any): string {
       educationSection += `\\textbf{${escapeLatex(edu.degree)}} \\hfill ${escapeLatex(edu.year || "")}\\\\\n`;
       educationSection += `${escapeLatex(edu.institution)}\\\\\n\n\\vspace{0.1cm}\n\n`;
     });
+  }
+
+  // Format Achievements
+  let achievementsSection = "";
+  if (data.achievements && data.achievements.length > 0) {
+    achievementsSection = "\\section*{Achievements}\n\\begin{itemize}\n";
+    data.achievements.forEach((ach: string) => {
+      achievementsSection += `    \\item ${escapeLatex(ach)}\n`;
+    });
+    achievementsSection += "\\end{itemize}\n\\vspace{0.15cm}\n\n";
+  }
+
+  // Format Certifications
+  let certificationsSection = "";
+  if (data.certifications && data.certifications.length > 0) {
+    certificationsSection = "\\section*{Certifications}\n\\begin{itemize}\n";
+    data.certifications.forEach((cert: string) => {
+      certificationsSection += `    \\item ${escapeLatex(cert)}\n`;
+    });
+    certificationsSection += "\\end{itemize}\n\\vspace{0.15cm}\n\n";
   }
 
   return `\\documentclass[11pt,a4paper]{article}
@@ -91,57 +140,18 @@ export function generateLatex(data: any): string {
 %==================== HEADER ====================%
 \\begin{center}
     {\\fontsize{18}{20}\\selectfont \\textbf{${name}}}\\\\[4pt]
-    \\small Prayagraj, Uttar Pradesh, India \\;|\\;
-    \\faPhone\\ +91 77558 98628 \\;|\\;
-    \\faEnvelope\\ \\href{mailto:mishrashaurya2008@gmail.com}{mishrashaurya2008@gmail.com}\\\\
-    \\faLinkedin\\ \\href{https://www.linkedin.com/in/shaurya-mishra-33a564370/}{LinkedIn} \\;|\\;
-    \\faGithub\\ \\href{https://github.com/Shaurya001-web}{GitHub} \\;|\\;
-    \\faCode\\ \\href{https://leetcode.com/u/MrRabbit_011/}{LeetCode}
+    \\small ${contactStr}
 \\end{center}
 
 \\vspace{-0.1cm}
 
-%==================== CAREER OBJECTIVE ====================%
-\\section*{Career Objective}
-\\small Execution-focused Computer Science and Engineering student specializing in AI/ML and Full-Stack development. Possesses hands-on technical expertise building multi-agent AI systems, production-style backend APIs, structured data pipelines, and NLP classifiers. Proficient in Next.js, FastAPI, Supabase, and machine learning frameworks. Seeking an engineering internship to contribute to active repositories and deploy scalable software solutions.
-
-%==================== EDUCATION ====================%
-${educationSection || `\\section*{Education}
-
-\\textbf{Bachelor of Engineering in Computer Science \\& Engineering (AI \\& ML)} \\hfill (2025--2029)\\\\
-Chandigarh University, Mohali, Punjab \\hfill SGPA: 7.63 / 10.0
-
-\\vspace{0.1cm}
-
-\\textbf{Senior Secondary Education (Class XII) --- CBSE Board} \\hfill (2024--2025)\\\\
-Sadhguru Public Hr. Secondary School, Uttar Pradesh \\hfill Percentage: 73\\%
-
-\\vspace{0.1cm}
-
-\\textbf{Secondary Education (Class X) --- CBSE Board} \\hfill (2022--2023)\\\\
-Sadhguru Public Hr. Secondary School, Uttar Pradesh \\hfill Percentage: 86\\%`}
-
-%==================== PROJECTS ====================%
+${summarySection}
+${educationSection}
 ${projectsSection}
-
-%==================== SKILLS ====================%
 ${skillsSection}
-
-%==================== ACHIEVEMENTS ====================%
-\\section*{Achievements}
-\\begin{itemize}
-    \\item Selected for the \\textbf{Data Science / AI Engineer} internship selection track at Unessa Foundation through a competitive profile screening on Internshala (May 2026).
-    \\item Contributed to an open-source \\textbf{Google Summer of Code (GSoC)} organization repository by submitting a verified pull request.
-\\end{itemize}
-
-%==================== CERTIFICATIONS ====================%
-\\section*{Certifications}
-\\begin{itemize}
-    \\item Microsoft Certified: Azure AI Fundamentals (AI-900) --- Microsoft
-    \\item Programming Foundations with JavaScript, HTML and CSS --- Duke University
-    \\item Introduction to Artificial Intelligence --- Intel Corporation
-    \\item Generative Artificial Intelligence --- LinkedIn
-\\end{itemize}
+${experienceSection}
+${achievementsSection}
+${certificationsSection}
 
 \\end{document}
 `;

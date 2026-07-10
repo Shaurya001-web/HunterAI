@@ -76,17 +76,17 @@ export const ResumeDocument = ({ data }: ResumeDocumentProps) => (
       <View style={styles.header}>
         <Text style={styles.name}>{data.name || 'SHAURYA MISHRA'}</Text>
         <Text style={styles.contact}>
-          Prayagraj, Uttar Pradesh, India | +91 77558 98628 | mishrashaurya2008@gmail.com
+          {data.city ? `${data.city}${data.country ? `, ${data.country}` : ''}` : 'Prayagraj, Uttar Pradesh, India'} | {data.phone || '+91 77558 98628'} | {data.email || 'mishrashaurya2008@gmail.com'}
         </Text>
         <Text style={styles.contact}>
-          LinkedIn | GitHub | LeetCode
+          {data.linkedin || 'LinkedIn'} | {data.github || 'GitHub'} | {data.portfolio || 'LeetCode'}
         </Text>
       </View>
 
       {/* Career Objective */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Career Objective</Text>
-        <Text>Execution-focused Computer Science and Engineering student specializing in AI/ML and Full-Stack development. Possesses hands-on technical expertise building multi-agent AI systems, production-style backend APIs, structured data pipelines, and NLP classifiers. Proficient in Next.js, FastAPI, Supabase, and machine learning frameworks. Seeking an engineering internship to contribute to active repositories and deploy scalable software solutions.</Text>
+        <Text>{data.summary || 'Execution-focused Computer Science and Engineering student specializing in AI/ML and Full-Stack development. Possesses hands-on technical expertise building multi-agent AI systems, production-style backend APIs, structured data pipelines, and NLP classifiers. Proficient in Next.js, FastAPI, Supabase, and machine learning frameworks. Seeking an engineering internship to contribute to active repositories and deploy scalable software solutions.'}</Text>
       </View>
 
       {/* Education */}
