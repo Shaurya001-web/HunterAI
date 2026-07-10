@@ -191,7 +191,7 @@ export const api = {
   generateResumeWithAI: async (payload: import('@/types/resume').GenerateResumeRequest): Promise<import('@/types/resume').ResumeData> => {
     const res = await fetch(`${BASE_URL}/resume-ai/generate`, {
       method: 'POST',
-      headers: getHeaders({ 'Content-Type': 'application/json' }),
+      headers: await getHeaders({ 'Content-Type': 'application/json' }),
       body: JSON.stringify(payload),
     });
     if (!res.ok) {
@@ -208,7 +208,7 @@ export const api = {
   improveSectionWithAI: async (payload: import('@/types/resume').ImproveSectionRequest): Promise<string[]> => {
     const res = await fetch(`${BASE_URL}/resume-ai/improve-section`, {
       method: 'POST',
-      headers: getHeaders({ 'Content-Type': 'application/json' }),
+      headers: await getHeaders({ 'Content-Type': 'application/json' }),
       body: JSON.stringify(payload),
     });
     if (!res.ok) {

@@ -38,11 +38,11 @@ export function StepPersonal({ data, onChange }: Props) {
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
         <div>
           <label htmlFor="firstName" style={labelStyle}>First Name</label>
-          <input id="firstName" name="firstName" value={data.firstName} onChange={handleChange} style={inputStyle} autocomplete="given-name" />
+          <input id="firstName" name="firstName" value={data.firstName} onChange={handleChange} style={inputStyle} autoComplete="given-name" />
         </div>
         <div>
           <label htmlFor="lastName" style={labelStyle}>Last Name</label>
-          <input id="lastName" name="lastName" value={data.lastName} onChange={handleChange} style={inputStyle} autocomplete="family-name" />
+          <input id="lastName" name="lastName" value={data.lastName} onChange={handleChange} style={inputStyle} autoComplete="family-name" />
         </div>
       </div>
       
@@ -54,11 +54,11 @@ export function StepPersonal({ data, onChange }: Props) {
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
         <div>
           <label htmlFor="email" style={labelStyle}>Email</label>
-          <input id="email" type="email" name="email" value={data.email} onChange={handleChange} style={inputStyle} autocomplete="email" />
+          <input id="email" type="email" name="email" value={data.email} onChange={handleChange} style={inputStyle} autoComplete="email" />
         </div>
         <div>
           <label htmlFor="phone" style={labelStyle}>Phone</label>
-          <input id="phone" type="tel" name="phone" value={data.phone} onChange={handleChange} style={inputStyle} autocomplete="tel" />
+          <input id="phone" type="tel" name="phone" value={data.phone} onChange={handleChange} style={inputStyle} autoComplete="tel" />
         </div>
       </div>
 
