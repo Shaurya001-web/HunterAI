@@ -3,7 +3,7 @@
 import { useEffect, useState, useRef } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, User, Sparkles, Upload, LogOut, Bookmark, Bot } from "lucide-react";
+import { LayoutDashboard, User, Sparkles, Upload, LogOut, Bookmark, Bot, FileEdit } from "lucide-react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { AuthModal } from "@/components/auth/AuthModal";
 
@@ -14,6 +14,7 @@ const NAV = [
   { href: "/recommendations", label: "Matches", icon: Sparkles },
   { href: "/bookmarks", label: "Saved",           icon: Bookmark },
   { href: "/chat",      label: "AI Chat",         icon: Bot },
+  { href: "/resume-builder", label: "Resume Builder", icon: FileEdit },
 ];
 
 export function AppShell({ children }: { children: React.ReactNode }) {
