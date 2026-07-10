@@ -1,753 +1,411 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { RefreshCw, Upload, ChevronDown } from "lucide-react";
-import Link from "next/link";
 import { api } from "@/lib/api";
 import { Profile } from "@/types";
-import { WordReveal } from "@/components/shared/WordReveal";
-import { useReveal } from "@/components/shared/useReveal";
 import { AppShell } from "@/components/shell/AppShell";
+import { useAuth } from "@/components/auth/AuthProvider";
+import { User, Mail, Calendar, Linkedin, Github, Globe, Save, Trash2, PlusCircle, CheckCircle } from "lucide-react";
 import "../shell.css";
 
-/* ─── SKILL GROUP TYPES ───────────────────────────────────── */
-const SKILL_GROUPS: Record<string, string[]> = {
-  Backend: ["fastapi", "django", "flask", "express", "node", "rest", "api", "spring", "ruby", "rails", "graphql", "grpc"],
-  "AI / ML": ["machine learning", "deep learning", "pytorch", "tensorflow", "scikit", "keras", "nlp", "huggingface", "langchain", "llm", "opencv", "pandas", "numpy"],
-  Frontend: ["react", "vue", "angular", "next", "svelte", "html", "css", "tailwind", "typescript", "javascript", "webpack", "vite"],
-  Databases: ["postgresql", "mysql", "mongodb", "redis", "sqlite", "oracle", "sql", "elasticsearch", "firebase", "supabase"],
-  Tools: ["git", "docker", "kubernetes", "aws", "gcp", "azure", "linux", "ci/cd", "github", "gitlab", "terraform", "nginx"],
-};
-
-/* ─── SKILL MATCH HELPER ───────────────────────────────────── */
-function matchSkillKeyword(skill: string, keyword: string): boolean {
-  const s = skill.toLowerCase().trim();
-  const k = keyword.toLowerCase().trim();
-  
-  if (k.length <= 4) {
-    // For short words like api, rest, git, ml, nlp - do word boundary match
-    const regex = new RegExp(`\\b${k}\\b`, 'i');
-    return regex.test(s);
-  }
-  return s.includes(k);
-}
-
-function categorizeSkills(skills: string[]): Record<string, string[]> {
-  const grouped: Record<string, string[]> = {};
-  const used = new Set<string>();
-
-  for (const [group, keywords] of Object.entries(SKILL_GROUPS)) {
-    const matched = skills.filter((s) =>
-      keywords.some((k) => matchSkillKeyword(s, k))
-    );
-    if (matched.length > 0) {
-      grouped[group] = matched;
-      matched.forEach((s) => used.add(s));
-    }
-  }
-
-  const other = skills.filter((s) => !used.has(s));
-  if (other.length > 0) grouped["Other"] = other;
-
-  return grouped;
-}
-
-function getProficiency(skillIndex: number, total: number): number {
-  return Math.max(0.25, 1 - (skillIndex / Math.max(1, total - 1)) * 0.7);
-}
-
-/* ─── STRENGTH PILLS ─────────────────────────────────────── */
-const STRENGTH_DEFS = [
-  { label: "Backend",    keys: ["fastapi", "django", "flask", "node", "api"], dots: 5 },
-  { label: "AI / ML",   keys: ["machine", "pytorch", "tensorflow", "nlp", "langchain"], dots: 5 },
-  { label: "Frontend",  keys: ["react", "vue", "html", "css", "typescript"], dots: 5 },
-];
-
-function computeStrength(skills: string[], keys: string[], maxDots: number): number {
-  const count = skills.filter((s) =>
-    keys.some((k) => matchSkillKeyword(s, k))
-  ).length;
-  return Math.min(maxDots, Math.round((count / 3) * maxDots));
-}
-
-function StrengthPill({ label, filled, total }: { label: string; filled: number; total: number }) {
-  return (
-    <div className="strength-pill">
-      <span style={{ fontFamily: "var(--font-body)", fontSize: 12, color: "var(--text-secondary)" }}>
-        {label}
-      </span>
-      <div className="strength-dots">
-        {Array.from({ length: total }).map((_, i) => (
-          <div
-            key={i}
-            className="strength-dot"
-            style={{
-              background: i < filled ? "var(--accent)" : "var(--border-strong)",
-              opacity: i < filled ? 1 : 0.4,
-            }}
-          />
-        ))}
-      </div>
-    </div>
-  );
-}
-
-/* ─── AI SUMMARY BLOCK ────────────────────────────────────── */
-function AiSummaryBlock({ profile }: { profile: Profile }) {
-  const [regen, setRegen] = useState(false);
-
-  const summaryText = (() => {
-    const candidateName = profile.name?.split(" ")[0] ?? "This candidate";
-    const skills = profile.skills?.slice(0, 4) ?? [];
-    const projCount = profile.projects?.length ?? 0;
-    const topSkills = skills.slice(0, 2).join(" and ") || "technical tools";
-    const hasML = skills.some(s => s.toLowerCase().includes("machine") || s.toLowerCase().includes("ml") || s.toLowerCase().includes("pytorch"));
-    const hasBackend = skills.some(s => s.toLowerCase().includes("api") || s.toLowerCase().includes("fastapi") || s.toLowerCase().includes("django"));
-
-    const pronoun = candidateName === "This candidate" ? "They" : candidateName;
-    const displays = candidateName === "This candidate" ? "demonstrate" : "demonstrates";
-
-    if (hasML && hasBackend) {
-      return `${candidateName} is a strong backend and machine learning candidate with demonstrated depth in ${topSkills}. Across ${projCount || "multiple"} shipped projects, ${pronoun.toLowerCase() === "they" ? "they show" : `${pronoun} shows`} clear evidence of production-grade thinking and applied research experience. Particularly well-suited for roles at the intersection of systems engineering and applied AI.`;
-    } else if (hasML) {
-      return `${candidateName} is an applied machine learning candidate with solid foundations in ${topSkills}. ${projCount > 0 ? `${projCount} project${projCount > 1 ? "s" : ""} ${displays} hands-on modelling experience` : "Research and implementation experience"} — positioned for ML engineering and data science roles. Skill depth increases meaningfully with deployment and systems exposure.`;
-    } else {
-      return `${candidateName} is a technically versatile candidate with experience in ${topSkills}. ${projCount > 0 ? `${projCount} project${projCount > 1 ? "s" : ""} reflect end-to-end product thinking` : "Portfolio reflects consistent technical output"} and cross-functional capability. Well-suited for software engineering and full-stack roles requiring rapid adaptation.`;
-    }
-  })();
-
-  return (
-    <div>
-      <div className="section-eyebrow" style={{ marginBottom: 12 }}>AI summary</div>
-      <p className="ai-summary-text">
-        <WordReveal text={summaryText} delay={200} />
-      </p>
-      <button
-        onClick={() => setRegen(!regen)}
-        style={{
-          marginTop: 14,
-          background: "none",
-          border: "none",
-          fontFamily: "var(--font-body)",
-          fontSize: 12,
-          color: "var(--accent)",
-          cursor: "pointer",
-          padding: 0,
-          textDecoration: "underline",
-          textUnderlineOffset: 3,
-        }}
-      >
-        Regenerate
-      </button>
-    </div>
-  );
-}
-
-/* ─── SKILL GROUP SECTION ─────────────────────────────────── */
-function SkillGroups({ skills }: { skills: string[] }) {
-  const { ref, visible } = useReveal(100);
-  const grouped = categorizeSkills(skills);
-
-  return (
-    <div ref={ref} className={`reveal ${visible ? "visible" : ""}`}>
-      <div className="section-heading">Skills</div>
-      {Object.entries(grouped).map(([group, groupSkills], gi) => (
-        <div key={group} className="skill-group">
-          <div className="skill-group-label">{group}</div>
-          <div className="skill-group-pills">
-            {groupSkills.map((skill, si) => {
-              const origIdx = skills.indexOf(skill);
-              const prof = getProficiency(origIdx, skills.length);
-              const isTop = si < 3 && gi === 0;
-              return (
-                <span
-                  key={skill}
-                  className={`skill-pill ${isTop ? "skill-pill-lg" : ""}`}
-                  style={{
-                    background: `rgba(108, 79, 224, ${prof * 0.12})`,
-                    borderLeftColor: `rgba(108, 79, 224, ${prof})`,
-                    color: "var(--text-primary)",
-                    animationDelay: `${gi * 150 + si * 30}ms`,
-                  }}
-                >
-                  {skill}
-                </span>
-              );
-            })}
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-/* ─── PROJECT BLOCK ───────────────────────────────────────── */
-interface ProjectType {
-  title?: string;
-  name?: string;
-  projectName?: string;
-  project_name?: string;
-  projectTitle?: string;
-  project_title?: string;
-  project?: string;
-  description?: string | string[];
-  desc?: string | string[];
-  details?: string | string[];
-  detail?: string | string[];
-  summary?: string | string[];
-  about?: string | string[];
-  work?: string | string[];
-  technologies?: string[];
-  tech?: string[];
-  techs?: string[];
-  techStack?: string[];
-  tech_stack?: string[];
-  stack?: string[];
-  tools?: string[];
-}
-
-function ProjectBlock({ proj, index, totalMatches }: {
-  proj: ProjectType;
-  index: number;
-  totalMatches: number;
-}) {
-  const { ref, visible } = useReveal(index * 120);
-
-  const title = proj.title || proj.name || proj.projectName || proj.project_name || proj.projectTitle || proj.project_title || proj.project || "Unnamed Project";
-  const rawDescription = proj.description || proj.desc || proj.details || proj.detail || proj.summary || proj.about || proj.work || "";
-  const description = Array.isArray(rawDescription)
-    ? rawDescription.join(" ")
-    : rawDescription;
-  const technologies = proj.technologies || proj.tech || proj.techs || proj.techStack || proj.tech_stack || proj.stack || proj.tools || [];
-
-  return (
-    <div ref={ref} className={`reveal project-block ${visible ? "visible" : ""}`}>
-      <div className="project-title">{title}</div>
-      {description && (
-        <p style={{
-          fontFamily: "var(--font-body)",
-          fontSize: 13,
-          color: "var(--text-secondary)",
-          lineHeight: 1.6,
-          marginBottom: 8,
-        }}>
-          {description}
-        </p>
-      )}
-      {technologies?.length ? (
-        <div style={{ display: "flex", flexWrap: "wrap", gap: 5, marginBottom: 8 }}>
-          {technologies.map((t: string) => (
-            <span
-              key={t}
-              style={{
-                fontFamily: "var(--font-body)",
-                fontSize: 11,
-                padding: "3px 8px",
-                borderRadius: 4,
-                background: "var(--surface-2)",
-                color: "var(--text-muted)",
-                border: "0.5px solid var(--border)",
-              }}
-            >
-              {t}
-            </span>
-          ))}
-        </div>
-      ) : null}
-      {totalMatches > 0 && (
-        <span style={{
-          fontFamily: "var(--font-body)",
-          fontSize: 11,
-          color: "var(--accent-cyan)",
-          fontStyle: "italic",
-        }}>
-          Relevant to {Math.min(totalMatches, 3)} match{totalMatches !== 1 ? "es" : ""} ↗
-        </span>
-      )}
-    </div>
-  );
-}
-
-/* ─── EDU / EXP COLUMNS ───────────────────────────────────── */
-function EduExpSection({ profile }: { profile: Profile }) {
-  const { ref, visible } = useReveal(200);
-  return (
-    <div
-      ref={ref}
-      className={`reveal ${visible ? "visible" : ""}`}
-      style={{
-        borderTop: "0.5px solid var(--border)",
-        paddingTop: 40,
-        marginTop: 40,
-        display: "grid",
-        gridTemplateColumns: "1fr 1fr",
-        gap: 48,
-      }}
-    >
-      {/* Education */}
-      <div>
-        <div className="section-eyebrow">Education</div>
-        {profile.education?.length ? (
-          profile.education.map((item, i) => {
-            const rawEdu = item as unknown as Record<string, unknown>;
-            const institution = (rawEdu.institution || rawEdu.school || rawEdu.university || "Unknown Institution") as string;
-            const degree = (rawEdu.degree || rawEdu.course || rawEdu.program || "Degree") as string;
-            const year = (rawEdu.year || rawEdu.date || rawEdu.dates || rawEdu.yearOfPassing || "") as string;
-            return (
-              <div key={i} className="entry-row">
-                <div style={{ flex: 1 }}>
-                  <div style={{
-                    fontFamily: "var(--font-body)",
-                    fontSize: 13,
-                    fontWeight: 500,
-                    color: "var(--text-primary)",
-                    marginBottom: 2,
-                  }}>
-                    {institution}
-                  </div>
-                  <div style={{
-                    fontFamily: "var(--font-body)",
-                    fontSize: 13,
-                    color: "var(--text-secondary)",
-                  }}>
-                    {degree}
-                  </div>
-                </div>
-                {year && (
-                  <span style={{
-                    fontFamily: "var(--font-body)",
-                    fontSize: 11,
-                    color: "var(--text-muted)",
-                    flexShrink: 0,
-                  }}>
-                    {year}
-                  </span>
-                )}
-              </div>
-            );
-          })
-        ) : (
-          <p style={{ fontFamily: "var(--font-body)", fontSize: 13, color: "var(--text-muted)", fontStyle: "italic" }}>
-            No education listed.
-          </p>
-        )}
-      </div>
-
-      {/* Experience */}
-      <div>
-        <div className="section-eyebrow">Experience</div>
-        {profile.experience?.length ? (
-          profile.experience.map((item, i) => {
-            const rawExp = item as unknown as Record<string, unknown>;
-            const company = (rawExp.company || rawExp.organization || rawExp.employer || "Unknown Company") as string;
-            const role = (rawExp.role || rawExp.title || rawExp.designation || "Role") as string;
-            const duration = (rawExp.duration || rawExp.date || rawExp.dates || rawExp.period || "") as string;
-            return (
-              <div key={i} className="entry-row">
-                <div style={{ flex: 1 }}>
-                  <div style={{
-                    fontFamily: "var(--font-body)",
-                    fontSize: 13,
-                    fontWeight: 500,
-                    color: "var(--text-primary)",
-                    marginBottom: 2,
-                  }}>
-                    {company}
-                  </div>
-                  <div style={{
-                    fontFamily: "var(--font-body)",
-                    fontSize: 13,
-                    color: "var(--text-secondary)",
-                  }}>
-                    {role}
-                  </div>
-                </div>
-                {duration && (
-                  <span style={{
-                    fontFamily: "var(--font-body)",
-                    fontSize: 11,
-                    color: "var(--text-muted)",
-                    flexShrink: 0,
-                  }}>
-                    {duration}
-                  </span>
-                )}
-              </div>
-            );
-          })
-        ) : (
-          <p style={{ fontFamily: "var(--font-body)", fontSize: 13, color: "var(--text-muted)", fontStyle: "italic" }}>
-            No experience listed.
-          </p>
-        )}
-      </div>
-    </div>
-  );
-}
-
-/* ─── LOADING SKELETON ────────────────────────────────────── */
-function ProfileSkeleton() {
-  return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 32 }}>
-      <div style={{ display: "flex", gap: 40, paddingBottom: 40, borderBottom: "0.5px solid var(--border)" }}>
-        <div style={{ flex: "0 0 240px" }}>
-          <div style={{ width: 72, height: 72, borderRadius: "50%", background: "var(--surface-2)", marginBottom: 16 }} />
-          <div style={{ width: 180, height: 32, background: "var(--surface-2)", borderRadius: 6, marginBottom: 8 }} />
-          <div style={{ width: 140, height: 14, background: "var(--surface-2)", borderRadius: 4, marginBottom: 16 }} />
-          <div style={{ display: "flex", gap: 6 }}>
-            {[0,1,2].map(i => <div key={i} style={{ width: 80, height: 26, background: "var(--surface-2)", borderRadius: 20 }} />)}
-          </div>
-        </div>
-        <div style={{ flex: 1 }}>
-          <div style={{ width: 60, height: 11, background: "var(--surface-2)", borderRadius: 4, marginBottom: 14 }} />
-          {[100, 90, 80].map((w, i) => (
-            <div key={i} style={{ width: `${w}%`, height: 14, background: "var(--surface-2)", borderRadius: 4, marginBottom: 10 }} />
-          ))}
-        </div>
-      </div>
-      <div style={{ display: "grid", gridTemplateColumns: "55fr 45fr", gap: 48 }}>
-        <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-          {[0,1,2].map(i => <div key={i} style={{ height: 100, background: "var(--surface)", border: "0.5px solid var(--border)", borderRadius: 8 }} />)}
-        </div>
-        <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
-          {[0,1].map(i => <div key={i} style={{ height: 130, background: "var(--surface)", border: "0.5px solid var(--border)", borderRadius: 8 }} />)}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/* ─── NO PROFILE STATE ────────────────────────────────────── */
-function NoProfileState() {
-  return (
-    <div style={{ textAlign: "center", padding: "80px 40px", maxWidth: 420, margin: "0 auto" }}>
-      <div style={{
-        fontFamily: "var(--font-display)",
-        fontSize: 28,
-        color: "var(--text-primary)",
-        letterSpacing: "-0.02em",
-        marginBottom: 12,
-        lineHeight: 1.2,
-      }}>
-        No profile found.
-      </div>
-      <div style={{
-        fontFamily: "var(--font-body)",
-        fontSize: 14,
-        color: "var(--text-secondary)",
-        lineHeight: 1.65,
-        marginBottom: 28,
-      }}>
-        Upload your resume PDF and our AI will extract your skills, projects, and experience to build a comprehensive talent profile.
-      </div>
-      <Link
-        href="/upload"
-        style={{
-          display: "inline-flex", alignItems: "center", gap: 8,
-          textDecoration: "none",
-          fontFamily: "var(--font-body)", fontSize: 14, fontWeight: 500,
-          color: "white", padding: "11px 24px", borderRadius: 8,
-          background: "var(--accent)",
-        }}
-      >
-        <Upload size={14} /> Upload Resume
-      </Link>
-    </div>
-  );
-}
-
-/* ─── PAGE ─────────────────────────────────────────────────── */
 export default function ProfilePage() {
+  const { user, updateProfile } = useAuth();
   const [profile, setProfile] = useState<Profile | null>(null);
-  const [allProfiles, setAllProfiles] = useState<Profile[]>([]);
   const [loading, setLoading] = useState(true);
+  const [saveLoading, setSaveLoading] = useState(false);
+  const [saveSuccess, setSaveSuccess] = useState(false);
   const [error, setError] = useState("");
-  const [matchCount] = useState(3);
 
-  const { ref: heroRef, visible: heroVisible } = useReveal(0);
+  // Form states
+  const [username, setUsername] = useState("");
+  const [linkedin, setLinkedin] = useState("");
+  const [github, setGithub] = useState("");
+  const [portfolio, setPortfolio] = useState("");
+  
+  // Custom links state
+  const [customLinks, setCustomLinks] = useState<{ label: string; url: string }[]>([]);
+  const [newLinkLabel, setNewLinkLabel] = useState("");
+  const [newLinkUrl, setNewLinkUrl] = useState("");
 
-  const fetchProfiles = async () => {
-    setLoading(true);
-    setError("");
-    try {
-      const data = await api.getProfiles();
-      setAllProfiles(data || []);
-      if (data?.length > 0) {
-        const saved = localStorage.getItem("selectedProfileEmail");
-        const matched = data.find((p: Profile) => p.email === saved);
-        const selected = matched || data[data.length - 1];
-        setProfile(selected);
-        localStorage.setItem("selectedProfileEmail", selected.email);
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        setLoading(true);
+        const data = await api.getProfile();
+        setProfile(data);
+        setUsername(data.username || "");
+        
+        // Parse URLs
+        const urls = data.urls || {};
+        setLinkedin(urls.linkedin || "");
+        setGithub(urls.github || "");
+        setPortfolio(urls.portfolio || "");
+
+        // Filter other URLs to custom links list
+        const knownKeys = ["linkedin", "github", "portfolio"];
+        const custom = Object.entries(urls)
+          .filter(([key, _]) => !knownKeys.includes(key))
+          .map(([key, val]) => ({ label: key, url: val as string }));
+        setCustomLinks(custom);
+      } catch (err) {
+        console.error("Failed to fetch profile details:", err);
+        setError("Unable to load profile data.");
+      } finally {
+        setLoading(false);
       }
-    } catch (e: unknown) {
-      const err = e as Error;
-      setError(err.message || "Failed to load profile.");
-    } finally {
+    };
+
+    if (user && !user.isGuest) {
+      fetchProfile();
+    } else {
       setLoading(false);
+    }
+  }, [user]);
+
+  const handleAddCustomLink = () => {
+    if (!newLinkLabel.trim() || !newLinkUrl.trim()) return;
+    setCustomLinks([...customLinks, { label: newLinkLabel.trim().toLowerCase(), url: newLinkUrl.trim() }]);
+    setNewLinkLabel("");
+    setNewLinkUrl("");
+  };
+
+  const handleRemoveCustomLink = (index: number) => {
+    setCustomLinks(customLinks.filter((_, i) => i !== index));
+  };
+
+  const handleSave = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!username.trim()) {
+      setError("Username cannot be empty.");
+      return;
+    }
+
+    setSaveLoading(true);
+    setSaveSuccess(false);
+    setError("");
+
+    try {
+      // Build URLs payload
+      const urls: Record<string, string> = {};
+      if (linkedin.trim()) urls.linkedin = linkedin.trim();
+      if (github.trim()) urls.github = github.trim();
+      if (portfolio.trim()) urls.portfolio = portfolio.trim();
+      
+      customLinks.forEach((link) => {
+        if (link.label && link.url) {
+          urls[link.label] = link.url;
+        }
+      });
+
+      // Update via auth provider (updates Cognito/Supabase auth metadata & saves profile)
+      await updateProfile(username.trim());
+
+      // Save complete profile via API
+      const updated = await api.saveProfile({
+        username: username.trim(),
+        urls,
+      });
+
+      setProfile(updated);
+      setSaveSuccess(true);
+      setTimeout(() => setSaveSuccess(false), 3000);
+    } catch (err) {
+      console.error("Error saving profile details:", err);
+      setError("Failed to update profile. Please try again.");
+    } finally {
+      setSaveLoading(false);
     }
   };
 
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      fetchProfiles();
-    }, 0);
-    return () => clearTimeout(timer);
-  }, []);
-
-  const initials = profile?.name
-    ? profile.name.split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase()
-    : "—";
-
-  const firstName = profile?.name?.split(" ")[0] ?? "";
-
-  const strengths = STRENGTH_DEFS.map(({ label, keys, dots }) => ({
-    label,
-    filled: profile ? computeStrength(profile.skills || [], keys, dots) : 0,
-    total: dots,
-  }));
+  const joinDate = profile?.created_at
+    ? new Date(profile.created_at).toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      })
+    : new Date().toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      });
 
   return (
     <AppShell>
-      {loading ? (
-        <ProfileSkeleton />
-      ) : error ? (
-        <div style={{
-          padding: "32px",
-          background: "rgba(180,83,9,0.06)",
-          borderRadius: 12,
-          border: "0.5px solid rgba(180,83,9,0.2)",
-          fontFamily: "var(--font-body)",
-          fontSize: 14,
-          color: "var(--accent-amber)",
-          display: "flex",
-          gap: 16,
-          alignItems: "center",
-        }}>
-          {error}
-          <button
-            onClick={fetchProfiles}
-            style={{
-              display: "flex", alignItems: "center", gap: 4,
-              background: "none", border: "0.5px solid var(--border)",
-              borderRadius: 6, padding: "5px 12px",
-              fontFamily: "var(--font-body)", fontSize: 12,
-              color: "var(--text-secondary)", cursor: "pointer",
-              flexShrink: 0,
-            }}
-          >
-            <RefreshCw size={12} /> Retry
-          </button>
+      <div style={{ maxWidth: "800px", margin: "0 auto", padding: "40px 20px" }}>
+        {/* Page Heading */}
+        <div style={{ marginBottom: "36px" }}>
+          <p style={{ fontSize: "14px", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--text-muted)" }}>
+            Profile settings
+          </p>
+          <h1 style={{ fontFamily: "var(--font-display)", fontSize: "40px", letterSpacing: "-0.03em", marginTop: "8px", color: "var(--text-primary)" }}>
+            Customize your <em>identity</em>
+          </h1>
         </div>
-      ) : !profile ? (
-        <NoProfileState />
-      ) : (
-        <>
-          {/* Toolbar */}
-          <div style={{
-            display: "flex",
-            justifyContent: "flex-end",
-            gap: 10,
-            marginBottom: 32,
-          }}>
-            {allProfiles.length > 1 && (
-              <div style={{
-                position: "relative",
-                background: "var(--surface)",
-                border: "0.5px solid var(--border)",
-                borderRadius: 8,
-              }}>
-                <select
-                  value={profile.email}
-                  onChange={(e) => {
-                    const sel = allProfiles.find((p) => p.email === e.target.value);
-                    if (sel) { setProfile(sel); localStorage.setItem("selectedProfileEmail", sel.email); }
-                  }}
-                  style={{
-                    background: "transparent", border: "none", outline: "none",
-                    padding: "7px 32px 7px 12px",
-                    fontSize: 13, color: "var(--text-primary)",
-                    cursor: "pointer", fontFamily: "var(--font-body)",
-                    appearance: "none",
-                  }}
-                >
-                  {allProfiles.map((p, i) => (
-                    <option key={i} value={p.email}>{p.name}</option>
+
+        {loading ? (
+          <div style={{ display: "flex", justifyContent: "center", padding: "60px 0" }}>
+            <div style={{ width: "32px", height: "32px", border: "2px solid var(--border)", borderTopColor: "var(--accent)", borderRadius: "50%", animation: "spin 1s linear infinite" }} />
+          </div>
+        ) : (
+          <form onSubmit={handleSave} style={{ display: "grid", gridTemplateColumns: "1fr", gap: "28px" }}>
+            {/* General Info Card */}
+            <div className="glass-panel" style={{ padding: "32px" }}>
+              <h2 style={{ fontFamily: "var(--font-display)", fontSize: "20px", marginBottom: "24px", display: "flex", alignItems: "center", gap: "10px" }}>
+                <User size={18} color="var(--accent)" /> General Information
+              </h2>
+
+              <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: "20px" }}>
+                <div>
+                  <label style={{ display: "block", fontSize: "11px", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--text-muted)", marginBottom: "8px" }}>
+                    Username
+                  </label>
+                  <input
+                    type="text"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    required
+                    style={{
+                      width: "100%",
+                      height: "44px",
+                      background: "var(--bg-elevated)",
+                      border: "1px solid var(--border-strong)",
+                      borderRadius: "10px",
+                      color: "var(--text-primary)",
+                      padding: "0 14px",
+                      fontSize: "14px",
+                      outline: "none",
+                    }}
+                    placeholder="Enter your username"
+                  />
+                </div>
+
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: "20px", marginTop: "10px" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                    <div style={{ background: "var(--bg-base)", padding: "10px", borderRadius: "10px", display: "flex" }}>
+                      <Mail size={16} color="var(--text-secondary)" />
+                    </div>
+                    <div>
+                      <div style={{ fontSize: "10px", color: "var(--text-muted)", textTransform: "uppercase", fontWeight: 600 }}>Email</div>
+                      <div style={{ fontSize: "13.5px", fontWeight: 500, color: "var(--text-secondary)" }}>{profile?.email || user?.email}</div>
+                    </div>
+                  </div>
+
+                  <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                    <div style={{ background: "var(--bg-base)", padding: "10px", borderRadius: "10px", display: "flex" }}>
+                      <Calendar size={16} color="var(--text-secondary)" />
+                    </div>
+                    <div>
+                      <div style={{ fontSize: "10px", color: "var(--text-muted)", textTransform: "uppercase", fontWeight: 600 }}>Joined</div>
+                      <div style={{ fontSize: "13.5px", fontWeight: 500, color: "var(--text-secondary)" }}>{joinDate}</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Social / Portfolio Links Card */}
+            <div className="glass-panel" style={{ padding: "32px" }}>
+              <h2 style={{ fontFamily: "var(--font-display)", fontSize: "20px", marginBottom: "24px", display: "flex", alignItems: "center", gap: "10px" }}>
+                <Globe size={18} color="var(--accent)" /> Social & Portfolio Links
+              </h2>
+
+              <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: "20px" }}>
+                {/* LinkedIn */}
+                <div>
+                  <label style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "11px", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--text-muted)", marginBottom: "8px" }}>
+                    <Linkedin size={14} /> LinkedIn URL
+                  </label>
+                  <input
+                    type="url"
+                    value={linkedin}
+                    onChange={(e) => setLinkedin(e.target.value)}
+                    style={{
+                      width: "100%",
+                      height: "44px",
+                      background: "var(--bg-elevated)",
+                      border: "1px solid var(--border-strong)",
+                      borderRadius: "10px",
+                      color: "var(--text-primary)",
+                      padding: "0 14px",
+                      fontSize: "14px",
+                      outline: "none",
+                    }}
+                    placeholder="https://linkedin.com/in/username"
+                  />
+                </div>
+
+                {/* GitHub */}
+                <div>
+                  <label style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "11px", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--text-muted)", marginBottom: "8px" }}>
+                    <Github size={14} /> GitHub URL
+                  </label>
+                  <input
+                    type="url"
+                    value={github}
+                    onChange={(e) => setGithub(e.target.value)}
+                    style={{
+                      width: "100%",
+                      height: "44px",
+                      background: "var(--bg-elevated)",
+                      border: "1px solid var(--border-strong)",
+                      borderRadius: "10px",
+                      color: "var(--text-primary)",
+                      padding: "0 14px",
+                      fontSize: "14px",
+                      outline: "none",
+                    }}
+                    placeholder="https://github.com/username"
+                  />
+                </div>
+
+                {/* Portfolio */}
+                <div>
+                  <label style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "11px", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--text-muted)", marginBottom: "8px" }}>
+                    <Globe size={14} /> Portfolio Website URL
+                  </label>
+                  <input
+                    type="url"
+                    value={portfolio}
+                    onChange={(e) => setPortfolio(e.target.value)}
+                    style={{
+                      width: "100%",
+                      height: "44px",
+                      background: "var(--bg-elevated)",
+                      border: "1px solid var(--border-strong)",
+                      borderRadius: "10px",
+                      color: "var(--text-primary)",
+                      padding: "0 14px",
+                      fontSize: "14px",
+                      outline: "none",
+                    }}
+                    placeholder="https://yourwebsite.com"
+                  />
+                </div>
+
+                {/* Custom Links Section */}
+                <div style={{ borderTop: "1px solid var(--border)", paddingTop: "20px", marginTop: "10px" }}>
+                  <label style={{ display: "block", fontSize: "11px", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--text-muted)", marginBottom: "14px" }}>
+                    Custom URL Links
+                  </label>
+
+                  {customLinks.map((link, idx) => (
+                    <div key={idx} style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "12px" }}>
+                      <div style={{ flex: 1, display: "flex", background: "var(--bg-elevated)", border: "1px solid var(--border)", borderRadius: "8px", padding: "10px 14px" }}>
+                        <span style={{ fontWeight: 600, textTransform: "capitalize", color: "var(--text-muted)", marginRight: "12px", width: "80px", borderRight: "1px solid var(--border)", paddingRight: "10px" }}>{link.label}</span>
+                        <span style={{ color: "var(--text-secondary)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{link.url}</span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveCustomLink(idx)}
+                        style={{ background: "none", border: "none", color: "#ef4444", cursor: "pointer", display: "flex", padding: "8px", borderRadius: "8px" }}
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
                   ))}
-                </select>
-                <ChevronDown size={13} color="var(--text-muted)" style={{
-                  position: "absolute", right: 10, top: "50%",
-                  transform: "translateY(-50%)", pointerEvents: "none",
-                }} />
+
+                  {/* Add New Custom Link Fields */}
+                  <div style={{ display: "grid", gridTemplateColumns: "130px 1fr auto", gap: "12px", alignItems: "center", marginTop: "16px" }}>
+                    <input
+                      type="text"
+                      placeholder="Label (e.g. twitter)"
+                      value={newLinkLabel}
+                      onChange={(e) => setNewLinkLabel(e.target.value)}
+                      style={{
+                        height: "38px",
+                        background: "var(--bg-elevated)",
+                        border: "1px solid var(--border)",
+                        borderRadius: "8px",
+                        color: "var(--text-primary)",
+                        padding: "0 10px",
+                        fontSize: "13px",
+                        outline: "none",
+                      }}
+                    />
+                    <input
+                      type="url"
+                      placeholder="URL (https://...)"
+                      value={newLinkUrl}
+                      onChange={(e) => setNewLinkUrl(e.target.value)}
+                      style={{
+                        height: "38px",
+                        background: "var(--bg-elevated)",
+                        border: "1px solid var(--border)",
+                        borderRadius: "8px",
+                        color: "var(--text-primary)",
+                        padding: "0 10px",
+                        fontSize: "13px",
+                        outline: "none",
+                      }}
+                    />
+                    <button
+                      type="button"
+                      onClick={handleAddCustomLink}
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "6px",
+                        height: "38px",
+                        padding: "0 14px",
+                        background: "var(--bg-elevated)",
+                        border: "1px solid var(--border)",
+                        borderRadius: "8px",
+                        color: "var(--text-primary)",
+                        cursor: "pointer",
+                        fontSize: "13px",
+                        fontWeight: 500,
+                      }}
+                    >
+                      <PlusCircle size={15} /> Add
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Error and Success Notifications */}
+            {error && (
+              <div style={{ padding: "14px 20px", background: "rgba(239, 68, 68, 0.1)", border: "1px solid rgba(239, 68, 68, 0.2)", borderRadius: "8px", color: "#ef4444", fontSize: "14px" }}>
+                {error}
               </div>
             )}
-            <button
-              onClick={fetchProfiles}
-              style={{
-                display: "flex", alignItems: "center", gap: 5,
-                background: "var(--surface)", border: "0.5px solid var(--border)",
-                borderRadius: 8, padding: "7px 14px",
-                fontFamily: "var(--font-body)", fontSize: 13,
-                color: "var(--text-secondary)", cursor: "pointer",
-              }}
-            >
-              <RefreshCw size={13} /> Refresh
-            </button>
-            <Link href="/upload" style={{
-              display: "flex", alignItems: "center", gap: 5,
-              textDecoration: "none",
-              fontFamily: "var(--font-body)", fontSize: 13, fontWeight: 500,
-              color: "white", padding: "7px 16px", borderRadius: 8,
-              background: "var(--accent)",
-            }}>
-              <Upload size={13} /> Upload New
-            </Link>
-          </div>
 
-          {/* Two-Column Sticky Layout */}
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "280px 1fr",
-              gap: 64,
-              alignItems: "flex-start",
-            }}
-            className="profile-grid"
-          >
-            {/* Left Column (Sticky Identity Card) */}
-            <div
-              ref={heroRef}
-              className={`reveal glass-panel ${heroVisible ? "visible" : ""}`}
-              style={{
-                position: "sticky",
-                top: 100,
-                padding: "32px 24px",
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "flex-start",
-              }}
-            >
-              <div style={{
-                width: 80, height: 80, borderRadius: "50%",
-                background: "linear-gradient(135deg, var(--accent), var(--accent-cyan))",
-                display: "flex", alignItems: "center", justifyContent: "center",
-                fontFamily: "var(--font-display)", fontSize: 28, fontWeight: 400,
-                color: "white", marginBottom: 20,
-              }}>
-                {initials}
+            {saveSuccess && (
+              <div style={{ display: "flex", alignItems: "center", gap: "10px", padding: "14px 20px", background: "rgba(16, 185, 129, 0.1)", border: "1px solid rgba(16, 185, 129, 0.2)", borderRadius: "8px", color: "#10b981", fontSize: "14px" }}>
+                <CheckCircle size={16} /> Changes saved successfully!
               </div>
+            )}
 
-              <h1 style={{
-                fontFamily: "var(--font-display)",
-                fontSize: 32,
-                letterSpacing: "-0.02em",
-                lineHeight: 1.1,
-                color: "var(--text-primary)",
-                marginBottom: 8,
-              }}>
-                {firstName ? (
-                  <>
-                    <em>{firstName}</em>
-                    <br />
-                    {profile.name?.slice(firstName.length).trim()}
-                  </>
-                ) : (
-                  profile.name || "Profile"
-                )}
-              </h1>
-
-              <p style={{
-                fontFamily: "var(--font-body)",
-                fontSize: 14,
-                color: "var(--text-muted)",
-                marginBottom: 16,
-                lineHeight: 1.4,
-              }}>
-                {profile.experience?.[0]
-                  ? `${profile.experience[0].role || ((profile.experience[0] as unknown as Record<string, unknown>).title as string) || "Software Engineer"} · Open to work`
-                  : profile.education?.[0]
-                  ? `${profile.education[0].institution || ((profile.education[0] as unknown as Record<string, unknown>).school as string) || ((profile.education[0] as unknown as Record<string, unknown>).university as string) || "Student"} · Open to work`
-                  : "Open to opportunities"}
-              </p>
-
-              {profile.email && (
-                <div style={{
-                  fontFamily: "var(--font-body)",
-                  fontSize: 13,
-                  color: "var(--text-secondary)",
-                  marginBottom: 24,
-                  padding: "8px 12px",
-                  background: "var(--bg-elevated)",
-                  borderRadius: 6,
-                  border: "1px dashed var(--border)"
-                }}>
-                  {profile.email}
-                </div>
-              )}
-
-              <div style={{ width: "100%", height: 1, background: "var(--border)", marginBottom: 24 }} />
-
-              <div style={{ display: "flex", flexWrap: "wrap", gap: 8, width: "100%" }}>
-                {strengths.filter(s => s.filled > 0).map((s) => (
-                  <StrengthPill key={s.label} label={s.label} filled={s.filled} total={s.total} />
-                ))}
-              </div>
-            </div>
-
-            {/* Right Column (Scrollable Content) */}
-            <div style={{ display: "flex", flexDirection: "column", gap: 56 }}>
-              <div className="glass-panel" style={{ padding: 40 }}>
-                <AiSummaryBlock profile={profile} />
-              </div>
-
-              <div
+            {/* Submit Button */}
+            <div style={{ display: "flex", justifyContent: "flex-end" }}>
+              <button
+                type="submit"
+                disabled={saveLoading}
                 style={{
-                  display: "grid",
-                  gridTemplateColumns: "1fr 1fr",
-                  gap: 56,
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "10px",
+                  padding: "12px 28px",
+                  background: "var(--accent)",
+                  color: "white",
+                  border: "none",
+                  borderRadius: "24px",
+                  fontSize: "15px",
+                  fontWeight: 600,
+                  cursor: "pointer",
+                  opacity: saveLoading ? 0.7 : 1,
+                  boxShadow: "0 8px 24px rgba(108, 79, 224, 0.25)",
                 }}
               >
-                <div>
-                  {profile.skills?.length ? (
-                    <SkillGroups skills={profile.skills} />
-                  ) : (
-                    <div>
-                      <div className="section-heading">Skills</div>
-                      <p style={{ fontFamily: "var(--font-body)", fontSize: 13, color: "var(--text-muted)", fontStyle: "italic" }}>
-                        No skills parsed from this resume.
-                      </p>
-                    </div>
-                  )}
-                </div>
-
-                <div>
-                  <div className="section-heading">Projects</div>
-                  {profile.projects?.length ? (
-                    profile.projects.map((proj, i) => (
-                      <ProjectBlock
-                        key={i}
-                        proj={proj}
-                        index={i}
-                        totalMatches={i < 2 ? matchCount : 0}
-                      />
-                    ))
-                  ) : (
-                    <p style={{
-                      fontFamily: "var(--font-body)",
-                      fontSize: 13,
-                      color: "var(--text-muted)",
-                      fontStyle: "italic",
-                    }}>
-                      No projects listed.
-                    </p>
-                  )}
-                </div>
-              </div>
-
-              <EduExpSection profile={profile} />
+                <Save size={16} /> {saveLoading ? "Saving..." : "Save Profile"}
+              </button>
             </div>
-          </div>
-        </>
-      )}
+          </form>
+        )}
+      </div>
+      <style>{`
+        @keyframes spin { to { transform: rotate(360deg); } }
+      `}</style>
     </AppShell>
   );
 }

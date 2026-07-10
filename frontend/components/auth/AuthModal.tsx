@@ -2,7 +2,7 @@
 
 import React, { useEffect, useRef, useState } from "react";
 import { useAuth } from "./AuthProvider";
-import { X, Mail, Lock } from "lucide-react";
+import { X, Mail, Lock, User } from "lucide-react";
 import Beams from "./Beams";
 
 interface AuthModalProps {
@@ -16,6 +16,7 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
   const [isSignUp, setIsSignUp] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [username, setUsername] = useState("");
   const [isClosing, setIsClosing] = useState(false);
   const [isFormTransitioning, setIsFormTransitioning] = useState(false);
 
@@ -32,6 +33,7 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
         setAuthError("");
         setEmail("");
         setPassword("");
+        setUsername("");
       }, 0);
     } else {
       if (dialog.open) {
@@ -84,7 +86,7 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
     e.preventDefault();
     let success = false;
     if (isSignUp) {
-      success = await signUp(email, password);
+      success = await signUp(email, password, username);
     } else {
       success = await signIn(email, password);
     }
@@ -190,6 +192,24 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
 
             {/* Form (Manual Inputs + Primary Submit Button) */}
             <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
+              {isSignUp && (
+                <div style={{ display: "flex", flexDirection: "column", gap: "5px" }}>
+                  <label style={{ fontSize: "11px", fontWeight: 600, color: "var(--text-muted)" }}>Username</label>
+                  <div style={{ position: "relative" }}>
+                    <User size={15} color="var(--text-muted)" style={{ position: "absolute", left: "12px", top: "50%", transform: "translateY(-50%)", opacity: 0.7 }} />
+                    <input
+                      type="text"
+                      required
+                      placeholder="Ansh Jagwal"
+                      value={username}
+                      onChange={(e) => setUsername(e.target.value)}
+                      className="input-base"
+                      style={{ paddingLeft: "36px", height: "42px", borderRadius: "10px", border: "1px solid var(--border-strong)" }}
+                    />
+                  </div>
+                </div>
+              )}
+
               <div style={{ display: "flex", flexDirection: "column", gap: "5px" }}>
                 <label style={{ fontSize: "11px", fontWeight: 600, color: "var(--text-muted)" }}>Email Address</label>
                 <div style={{ position: "relative" }}>

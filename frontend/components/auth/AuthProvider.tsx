@@ -7,7 +7,7 @@ import { api } from "@/lib/api";
 interface AuthUser {
   id: string;
   email: string;
-  name: string;
+  username: string;
   isGuest?: boolean;
 }
 
@@ -19,11 +19,11 @@ interface AuthContextType {
   authLoading: boolean;
   setAuthError: (err: string) => void;
   signIn: (email: string, pass: string) => Promise<boolean>;
-  signUp: (email: string, pass: string) => Promise<boolean>;
+  signUp: (email: string, pass: string, username?: string) => Promise<boolean>;
   signOut: () => Promise<void>;
   enterSandboxMode: () => void;
   signInWithGoogle: () => Promise<void>;
-  updateProfile: (newName: string) => Promise<boolean>;
+  updateProfile: (newUsername: string) => Promise<boolean>;
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -65,7 +65,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         try {
           const parsed = JSON.parse(savedUser);
           setUser(parsed);
-          const t = `mock_token:${parsed.id}:${parsed.email}:${parsed.name}`;
+          const t = `mock_token:${parsed.id}:${parsed.email}:${parsed.username}`;
           setToken(t);
           api.setToken(t);
           setLoading(false);
@@ -84,7 +84,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           const parsedUser = {
             id: session.user.id,
             email: session.user.email ?? "",
-            name: session.user.user_metadata?.full_name || session.user.user_metadata?.name || session.user.email?.split("@")[0] || "",
+            username: session.user.user_metadata?.full_name || session.user.user_metadata?.name || session.user.email?.split("@")[0] || "",
             isGuest: false
           };
           setUser(parsedUser);
@@ -102,10 +102,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const guestUser = {
         id: guestId,
         email: `${guestId}@hunterai.local`,
-        name: "Guest User",
+        username: "Guest User",
         isGuest: true
       };
-      const guestToken = `mock_token:${guestUser.id}:${guestUser.email}:${guestUser.name}`;
+      const guestToken = `mock_token:${guestUser.id}:${guestUser.email}:${guestUser.username}`;
       setUser(guestUser);
       setToken(guestToken);
       api.setToken(guestToken);
@@ -123,21 +123,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           const parsedUser = {
             id: session.user.id,
             email: session.user.email ?? "",
-            name: session.user.user_metadata?.full_name || session.user.user_metadata?.name || session.user.email?.split("@")[0] || "",
+            username: session.user.user_metadata?.full_name || session.user.user_metadata?.name || session.user.email?.split("@")[0] || "",
             isGuest: false
           };
           setUser(parsedUser);
-          
-          // Migrate guest profile if exists
-          const guestId = localStorage.getItem("guest_user_id");
-          if (guestId && guestId !== parsedUser.id) {
-            try {
-              await api.migrateProfile(guestId);
-              localStorage.removeItem("guest_user_id");
-            } catch (err) {
-              console.error("Migration error:", err);
-            }
-          }
         }
       });
 
@@ -163,16 +152,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           const newUser = {
             id: data.user.id,
             email: data.user.email ?? "",
-            name: data.user.user_metadata?.full_name || data.user.user_metadata?.name || data.user.email?.split("@")[0] || "",
+            username: data.user.user_metadata?.full_name || data.user.user_metadata?.name || data.user.email?.split("@")[0] || "",
             isGuest: false
           };
           setUser(newUser);
-          
-          // Migrate profile
-          const guestId = localStorage.getItem("guest_user_id");
-          if (guestId && guestId !== newUser.id) {
-            try { await api.migrateProfile(guestId); localStorage.removeItem("guest_user_id"); } catch {}
-          }
           return true;
         }
       } else {
@@ -180,20 +163,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const newUser = {
           id: `mock_user_${email.replace(/[^a-zA-Z0-9]/g, "")}`,
           email,
-          name: email.split("@")[0],
+          username: email.split("@")[0],
           isGuest: false
         };
-        const t = `mock_token:${newUser.id}:${newUser.email}:${newUser.name}`;
+        const t = `mock_token:${newUser.id}:${newUser.email}:${newUser.username}`;
         setUser(newUser);
         setToken(t);
         api.setToken(t);
         localStorage.setItem("mock_auth_user", JSON.stringify(newUser));
-
-        // Migrate profile
-        const guestId = localStorage.getItem("guest_user_id");
-        if (guestId && guestId !== newUser.id) {
-          try { await api.migrateProfile(guestId); localStorage.removeItem("guest_user_id"); } catch {}
-        }
         return true;
       }
     } catch (err) {
@@ -205,7 +182,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return false;
   };
 
-  const signUp = async (email: string, pass: string): Promise<boolean> => {
+  const signUp = async (email: string, pass: string, username?: string): Promise<boolean> => {
     if (!email || !pass) return false;
     setAuthError("");
     setAuthLoading(true);
@@ -217,7 +194,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           password: pass,
           options: {
             data: {
-              name: email.split("@")[0],
+              name: username || email.split("@")[0],
+              username: username || email.split("@")[0],
             }
           }
         });
@@ -229,15 +207,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           const newUser = {
             id: data.user.id,
             email: data.user.email ?? "",
-            name: data.user.user_metadata?.full_name || data.user.user_metadata?.name || data.user.email?.split("@")[0] || "",
+            username: data.user.user_metadata?.username || data.user.user_metadata?.name || data.user.email?.split("@")[0] || "",
             isGuest: false
           };
           setUser(newUser);
-
-          const guestId = localStorage.getItem("guest_user_id");
-          if (guestId && guestId !== newUser.id) {
-            try { await api.migrateProfile(guestId); localStorage.removeItem("guest_user_id"); } catch {}
-          }
           return true;
         } else {
           setAuthError("Verification email sent! Please check your inbox.");
@@ -248,19 +221,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const newUser = {
           id: `mock_user_${email.replace(/[^a-zA-Z0-9]/g, "")}`,
           email,
-          name: email.split("@")[0],
+          username: username || email.split("@")[0],
           isGuest: false
         };
-        const t = `mock_token:${newUser.id}:${newUser.email}:${newUser.name}`;
+        const t = `mock_token:${newUser.id}:${newUser.email}:${newUser.username}`;
         setUser(newUser);
         setToken(t);
         api.setToken(t);
         localStorage.setItem("mock_auth_user", JSON.stringify(newUser));
-
-        const guestId = localStorage.getItem("guest_user_id");
-        if (guestId && guestId !== newUser.id) {
-          try { await api.migrateProfile(guestId); localStorage.removeItem("guest_user_id"); } catch {}
-        }
         return true;
       }
     } catch (err) {
@@ -276,21 +244,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const sandboxUser = {
       id: "mock_user_demo",
       email: "demo@hunterai.local",
-      name: "Demo User",
+      username: "Demo User",
       isGuest: false
     };
-    const t = `mock_token:${sandboxUser.id}:${sandboxUser.email}:${sandboxUser.name}`;
+    const t = `mock_token:${sandboxUser.id}:${sandboxUser.email}:${sandboxUser.username}`;
     setUser(sandboxUser);
     setToken(t);
     api.setToken(t);
     localStorage.setItem("mock_auth_user", JSON.stringify(sandboxUser));
-
-    const guestId = localStorage.getItem("guest_user_id");
-    if (guestId && guestId !== sandboxUser.id) {
-      api.migrateProfile(guestId).then(() => {
-        localStorage.removeItem("guest_user_id");
-      }).catch(() => {});
-    }
   };
 
   const signInWithGoogle = async (): Promise<void> => {
@@ -310,19 +271,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const newUser = {
           id: "mock_google_user",
           email: "google_user@example.com",
-          name: "Google User",
+          username: "Google User",
           isGuest: false
         };
-        const t = `mock_token:${newUser.id}:${newUser.email}:${newUser.name}`;
+        const t = `mock_token:${newUser.id}:${newUser.email}:${newUser.username}`;
         setUser(newUser);
         setToken(t);
         api.setToken(t);
         localStorage.setItem("mock_auth_user", JSON.stringify(newUser));
-
-        const guestId = localStorage.getItem("guest_user_id");
-        if (guestId && guestId !== newUser.id) {
-          try { await api.migrateProfile(guestId); localStorage.removeItem("guest_user_id"); } catch {}
-        }
       }
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : "Failed to sign in with Google";
@@ -332,25 +288,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const updateProfile = async (newName: string): Promise<boolean> => {
-    if (!newName) return false;
+  const updateProfile = async (newUsername: string): Promise<boolean> => {
+    if (!newUsername) return false;
     setAuthLoading(true);
     try {
       if (isSupabaseConfigured) {
         const { data, error } = await supabase!.auth.updateUser({
-          data: { name: newName, full_name: newName }
+          data: { name: newUsername, full_name: newUsername }
         });
         if (error) throw error;
         if (data.user) {
           const updatedUser = {
             id: data.user.id,
             email: data.user.email ?? "",
-            name: newName,
+            username: newUsername,
             isGuest: false
           };
           setUser(updatedUser);
           try {
-            await api.saveProfile({ name: newName });
+            await api.saveProfile({ username: newUsername });
           } catch (e) {
             console.error("Failed to sync profile name with backend:", e);
           }
@@ -358,16 +314,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
       } else {
         if (user) {
-          const updatedUser = { ...user, name: newName };
+          const updatedUser = { ...user, username: newUsername };
           setUser(updatedUser);
           if (!user.isGuest) {
             localStorage.setItem("mock_auth_user", JSON.stringify(updatedUser));
-            const t = `mock_token:${updatedUser.id}:${updatedUser.email}:${updatedUser.name}`;
+            const t = `mock_token:${updatedUser.id}:${updatedUser.email}:${updatedUser.username}`;
             setToken(t);
             api.setToken(t);
           }
           try {
-            await api.saveProfile({ name: newName });
+            await api.saveProfile({ username: newUsername });
           } catch (e) {
             console.error("Failed to sync profile name with backend:", e);
           }
@@ -401,10 +357,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const guestUser = {
       id: guestId,
       email: `${guestId}@hunterai.local`,
-      name: "Guest User",
+      username: "Guest User",
       isGuest: true
     };
-    const guestToken = `mock_token:${guestUser.id}:${guestUser.email}:${guestUser.name}`;
+    const guestToken = `mock_token:${guestUser.id}:${guestUser.email}:${guestUser.username}`;
     setUser(guestUser);
     setToken(guestToken);
     api.setToken(guestToken);

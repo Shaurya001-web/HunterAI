@@ -9,6 +9,7 @@ import { AuthModal } from '@/components/auth/AuthModal';
 import CountUp from '@/components/shared/CountUp';
 import VariableProximity from '@/components/shared/VariableProximity';
 import CurvedLoop from '@/components/shared/CurvedLoop';
+import { User } from 'lucide-react';
 
 // Register GSAP Plugin on client side
 if (typeof window !== 'undefined') {
@@ -286,20 +287,21 @@ export default function Home() {
                   </button>
 
                   <Link
-                    href="/upload"
+                    href="/dashboard"
                     className="rounded-full bg-black px-3.5 py-1.5 sm:px-5 sm:py-2 text-xs sm:text-sm font-semibold text-white shadow-md md:text-base whitespace-nowrap"
                   >
-                    Upload Resume
+                    Go to Dashboard
                   </Link>
                 </>
               ) : (
                 <>
-                  <button
-                    onClick={() => signOut()}
-                    className="border font-bold border-gray-400 rounded-full hover:bg-gray-600 hover:text-white hover:shadow-2xl px-3 py-1.5 sm:px-6 sm:py-2 flex items-center gap-1 sm:gap-2 text-xs sm:text-sm hover:opacity-70 cursor-pointer whitespace-nowrap"
+                  <Link
+                    href="/profile"
+                    className="border font-bold border-gray-400 rounded-full hover:bg-gray-600 hover:text-white hover:shadow-2xl px-3 py-1.5 sm:px-6 sm:py-2 flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm hover:opacity-70 cursor-pointer whitespace-nowrap text-black"
+                    style={{ textDecoration: 'none' }}
                   >
-                    Sign out
-                  </button>
+                    <User size={13} style={{ display: 'inline-block', verticalAlign: 'middle' }} /> Profile
+                  </Link>
 
                   <Link
                     href="/dashboard"
@@ -491,8 +493,8 @@ export default function Home() {
               <h2 className="text-balance mt-5 text-5xl font-semibold leading-[.95] tracking-[-.06em] md:text-8xl">
                 Start with the resume you already have.
               </h2>
-              <Link className="focusable magnet mt-10 rounded-full bg-white px-8 py-4 font-semibold text-[var(--black)] shadow-[0_24px_54px_rgba(255,255,255,.12)]" href="/upload">
-                Upload resume
+              <Link className="focusable magnet mt-10 rounded-full bg-white px-8 py-4 font-semibold text-[var(--black)] shadow-[0_24px_54px_rgba(255,255,255,.12)]" href="/dashboard">
+                Go to Dashboard
               </Link>
             </div>
           </section>
