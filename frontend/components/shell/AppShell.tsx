@@ -9,7 +9,11 @@ import { AuthModal } from "@/components/auth/AuthModal";
 
 const NAV = [
   { href: "/dashboard", label: "Dashboard",       icon: LayoutDashboard },
+  { href: "/upload",    label: "Upload",          icon: Upload },
   { href: "/profile",   label: "Profile",          icon: User },
+  { href: "/recommendations", label: "Matches", icon: Sparkles },
+  { href: "/bookmarks", label: "Saved",           icon: Bookmark },
+  { href: "/chat",      label: "AI Chat",         icon: Bot },
 ];
 
 export function AppShell({ children }: { children: React.ReactNode }) {
@@ -128,7 +132,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                     }}>
                       {/* Name Editing Section */}
                       <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-                        <span style={{ fontSize: "11px", fontWeight: 600, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.05em" }}>Username</span>
+                        <span style={{ fontSize: "11px", fontWeight: 600, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.05em" }}>Name</span>
                         <div style={{ display: "flex", gap: "8px" }}>
                           <input
                             type="text"
