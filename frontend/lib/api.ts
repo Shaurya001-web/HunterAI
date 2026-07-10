@@ -187,6 +187,41 @@ export const api = {
     if (!res.ok) throw new Error("Failed to chat");
     return res.json();
   },
+
+  generateResumeWithAI: async (payload: import('@/types/resume').GenerateResumeRequest): Promise<import('@/types/resume').ResumeData> => {
+    const res = await fetch(`${BASE_URL}/resume-ai/generate`, {
+      method: 'POST',
+      headers: getHeaders({ 'Content-Type': 'application/json' }),
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) {
+      let errDetail = 'AI generation failed';
+      try {
+        const errJson = await res.json();
+        errDetail = errJson.detail || errDetail;
+      } catch (e) {}
+      throw new Error(errDetail);
+    }
+    return res.json();
+  },
+
+  improveSectionWithAI: async (payload: import('@/types/resume').ImproveSectionRequest): Promise<string[]> => {
+    const res = await fetch(`${BASE_URL}/resume-ai/improve-section`, {
+      method: 'POST',
+      headers: getHeaders({ 'Content-Type': 'application/json' }),
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) {
+      let errDetail = 'AI improve failed';
+      try {
+        const errJson = await res.json();
+        errDetail = errJson.detail || errDetail;
+      } catch (e) {}
+      throw new Error(errDetail);
+    }
+    const data = await res.json();
+    return data.suggestions;
+  },
 };
 
 export default api;
