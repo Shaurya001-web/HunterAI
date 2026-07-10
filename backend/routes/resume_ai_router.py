@@ -3,7 +3,7 @@ import json
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from typing import List, Optional, Literal
-from routes.auth_utils import get_current_user
+from routes.auth import get_current_user
 
 # Attempt to load google-genai
 try:
