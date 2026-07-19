@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { AppShell } from "@/components/shell/AppShell";
+
 import { useAuth } from "@/components/auth/AuthProvider";
 import { Bot, Send, Loader2, Target, Lightbulb, AlertTriangle } from "lucide-react";
 import api from "@/lib/api";
@@ -43,16 +43,14 @@ export default function ChatPage() {
 
   if (!user) {
     return (
-      <AppShell>
-        <div className="card" style={{ padding: 48, textAlign: "center" }}>
-          <p style={{ color: "var(--text-secondary)" }}>Please sign in to chat with Gemini.</p>
-        </div>
-      </AppShell>
+      <div className="card" style={{ padding: 48, textAlign: "center" }}>
+        <p style={{ color: "var(--text-secondary)" }}>Please sign in to chat with Gemini.</p>
+      </div>
     );
   }
 
   return (
-    <AppShell>
+    <>
       <div className="fade-up">
         <h1 className="section-heading">AI Career Coach</h1>
         <p className="section-eyebrow">Powered by Groq (Llama 3)</p>
@@ -168,6 +166,6 @@ export default function ChatPage() {
           </div>
         </div>
       )}
-    </AppShell>
+    </>
   );
 }

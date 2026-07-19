@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { AppShell } from '@/components/shell/AppShell';
+
 import { ResumeData } from '@/types/resume';
 import { getEmptyResumeData, mapProfileToResumeData } from '@/lib/resumeAutofill';
 import { api } from '@/lib/api';
@@ -75,11 +75,9 @@ export default function ResumeBuilderWizardPage() {
 
   if (loading) {
     return (
-      <AppShell>
-        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '50vh', color: 'var(--text-secondary)' }}>
-          Loading your data...
-        </div>
-      </AppShell>
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '50vh', color: 'var(--text-secondary)' }}>
+        Loading your data...
+      </div>
     );
   }
 
@@ -92,8 +90,7 @@ export default function ResumeBuilderWizardPage() {
   const totalSteps = STEPS.length;
 
   return (
-    <AppShell>
-      <div className="max-w-[1600px] mx-auto px-6 py-4">
+    <div className="max-w-[1600px] mx-auto px-6 py-4">
         {/* Top row: title + segmented step count */}
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
@@ -199,6 +196,5 @@ export default function ResumeBuilderWizardPage() {
           </>
         )}
       </div>
-    </AppShell>
   );
 }

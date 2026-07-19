@@ -8,31 +8,28 @@
   --font-body: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   --font-mono: "JetBrains Mono", monospace;
 
-  /* Premium Minimal Colors (Apple/Linear/Keyverse style) */
-  --bg-base: #F4F3F8;
-  /* Main Background: Soft lavender-white */
-  --bg-surface: #FFFFFF;
-  /* Cards: White */
-  --bg-sidebar: #FFFFFF;
-  /* Sidebar: White */
-  --bg-elevated: #F8F7FB;
-  --bg-hover: #F0EFF4;
+  /* Premium Minimal Colors consistent with landing theme */
+  --bg-base: #e9e9e9;
+  --bg-surface: rgba(251, 251, 250, 0.76);
+  --bg-sidebar: rgba(251, 251, 250, 0.76);
+  --bg-elevated: rgba(251, 251, 250, 0.88);
+  --bg-hover: rgba(5, 5, 5, 0.05);
 
-  /* Borders */
-  --border: rgba(0, 0, 0, 0.05);
-  --border-strong: rgba(0, 0, 0, 0.08);
+  /* Borders matching landing theme */
+  --border: rgba(5, 5, 5, 0.1);
+  --border-strong: rgba(5, 5, 5, 0.18);
 
-  /* Text */
-  --text-primary: #0C1618;
-  --text-secondary: #111D1F;
-  --text-muted: #162527;
+  /* Text matching landing theme */
+  --text-primary: #050505;
+  --text-secondary: #535351;
+  --text-muted: #8f8f8d;
 
-  /* Brand Accents */
-  --accent: #588B8B;
-  --accent-light: #6A9E9E;
-  --accent-hover: #497B7B;
-  --accent-soft: rgba(88, 139, 139, 0.08);
-  --accent-border: rgba(88, 139, 139, 0.2);
+  /* Brand Accents: Sleek black/charcoal consistent with landing */
+  --accent: #050505;
+  --accent-light: #535351;
+  --accent-hover: #1e1e1d;
+  --accent-soft: rgba(5, 5, 5, 0.06);
+  --accent-border: rgba(5, 5, 5, 0.15);
 
   /* Status Colors */
   --emerald: #10B981;
@@ -102,7 +99,11 @@ body::before {
   background: var(--bg-surface);
   border: 1px solid var(--border);
   border-radius: 20px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.02), 0 1px 4px rgba(0, 0, 0, 0.01);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.88),
+    0 12px 36px rgba(5, 5, 5, 0.04);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
   transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
@@ -111,7 +112,9 @@ body::before {
 .glass-card-hover:hover {
   transform: translateY(-2px);
   border-color: var(--border-strong);
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.04), 0 4px 12px rgba(0, 0, 0, 0.02);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.88),
+    0 24px 60px rgba(5, 5, 5, 0.08);
 }
 
 /* Skeleton shimmer */

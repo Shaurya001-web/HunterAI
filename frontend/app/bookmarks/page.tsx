@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { AppShell } from "@/components/shell/AppShell";
+
 import { useAuth } from "@/components/auth/AuthProvider";
 import { MapPin, Banknote, Bookmark as BookmarkIcon, CalendarDays, ExternalLink } from "lucide-react";
 import Link from "next/link";
@@ -56,16 +56,14 @@ export default function BookmarksPage() {
 
   if (!user) {
     return (
-      <AppShell>
-        <div className="card" style={{ padding: 48, textAlign: "center" }}>
-          <p style={{ color: "var(--text-secondary)" }}>Please sign in to view saved jobs.</p>
-        </div>
-      </AppShell>
+      <div className="card" style={{ padding: 48, textAlign: "center" }}>
+        <p style={{ color: "var(--text-secondary)" }}>Please sign in to view saved jobs.</p>
+      </div>
     );
   }
 
   return (
-    <AppShell>
+    <>
       <div className="fade-up">
         <h1 className="section-heading">Saved Internships</h1>
         <p className="section-eyebrow">Your bookmarked opportunities</p>
@@ -186,6 +184,6 @@ export default function BookmarksPage() {
           </div>
         )}
       </div>
-    </AppShell>
+    </>
   );
 }

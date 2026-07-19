@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { api } from "@/lib/api";
-import { AppShell } from "@/components/shell/AppShell";
+
 import { ArrowLeft, Download, FileText, CheckCircle, Target, Briefcase, ExternalLink } from "lucide-react";
 import { ScoreRing } from "@/components/shared/ScoreRing";
 import { PDFDownloadLink } from "@react-pdf/renderer";
@@ -74,7 +74,7 @@ export default function TailorResumePage() {
   };
 
   return (
-    <AppShell>
+    <>
       <div style={{ maxWidth: "1200px", margin: "0 auto", padding: "20px" }}>
         
         <button 
@@ -338,6 +338,6 @@ export default function TailorResumePage() {
           100% { transform: rotate(360deg); }
         }
       `}} />
-    </AppShell>
+    </>
   );
 }

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Script from "next/script";
 import { Analytics } from "@vercel/analytics/react";
 import { AuthProvider } from "@/components/auth/AuthProvider";
+import { ClientLayout } from "@/components/layout/ClientLayout";
 import "./globals.css";
 import "./shell.css";
 
@@ -85,7 +86,9 @@ export default function RootLayout({
           `}
         </Script>
         <AuthProvider>
-          {children}
+          <ClientLayout>
+            {children}
+          </ClientLayout>
         </AuthProvider>
         <Analytics />
       </body>
