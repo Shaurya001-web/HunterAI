@@ -23,10 +23,8 @@ import { api } from "@/lib/api";
 import { Profile, JobMatch } from "@/types";
 import { ScoreRing } from "@/components/shared/ScoreRing";
 import { CardSkeleton } from "@/components/shared/Skeleton";
-import { AppShell } from "@/components/shell/AppShell";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { AuthModal } from "@/components/auth/AuthModal";
-import "../shell.css";
 
 function renderJobTitle(title: string) {
   const highlightWords = ["intern", "internship", "developer", "dev", "engineer", "co-op", "coop", "associate"];
@@ -497,7 +495,7 @@ export default function RecommendationsPage() {
   }
 
   return (
-    <AppShell>
+    <>
       {/* Subheader and profile selector */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "24px", flexWrap: "wrap", gap: "16px" }}>
         <p style={{ color: "var(--text-secondary)", fontSize: "13.5px", fontWeight: 500 }}>
@@ -744,6 +742,6 @@ export default function RecommendationsPage() {
           <AuthModal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} />
         </div>
       )}
-    </AppShell>
+    </>
   );
 }

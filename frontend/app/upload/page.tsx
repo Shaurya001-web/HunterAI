@@ -13,8 +13,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { api } from "@/lib/api";
-import { AppShell } from "@/components/shell/AppShell";
-import "../shell.css";
+
 
 export default function UploadPage() {
   const [file, setFile] = useState<File | null>(null);
@@ -70,8 +69,7 @@ export default function UploadPage() {
   };
 
   return (
-    <AppShell>
-      <div
+    <div
         style={{
           display: "flex",
           alignItems: "center",
@@ -392,6 +390,5 @@ export default function UploadPage() {
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
       `}</style>
       </div>
-    </AppShell>
   );
 }

@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { useRouter } from 'next/navigation';
-import { AppShell } from '@/components/shell/AppShell';
+
 import { TEMPLATES } from '@/components/resume-templates';
 import { dummyResumeData } from '@/lib/dummyResumeData';
 
@@ -10,8 +10,7 @@ export default function ResumeTemplateGalleryPage() {
   const router = useRouter();
 
   return (
-    <AppShell>
-      <div className="max-w-[1400px] mx-auto px-6 py-10">
+    <div className="max-w-[1400px] mx-auto px-6 py-10">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">Choose a Template</h1>
         <p className="text-gray-500 mb-8">Select a design to start. You can change this anytime.</p>
 
@@ -55,6 +54,5 @@ export default function ResumeTemplateGalleryPage() {
           })}
         </div>
       </div>
-    </AppShell>
   );
 }

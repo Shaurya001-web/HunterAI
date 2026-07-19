@@ -3,10 +3,8 @@
 import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
 import { Profile } from "@/types";
-import { AppShell } from "@/components/shell/AppShell";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { User, Mail, Calendar, Linkedin, Github, Globe, Save, Trash2, PlusCircle, CheckCircle } from "lucide-react";
-import "../shell.css";
 
 export default function ProfilePage() {
   const { user, updateProfile } = useAuth();
@@ -130,7 +128,7 @@ export default function ProfilePage() {
       });
 
   return (
-    <AppShell>
+    <>
       <div style={{ maxWidth: "800px", margin: "0 auto", padding: "40px 20px" }}>
         {/* Page Heading */}
         <div style={{ marginBottom: "36px" }}>
@@ -406,6 +404,6 @@ export default function ProfilePage() {
       <style>{`
         @keyframes spin { to { transform: rotate(360deg); } }
       `}</style>
-    </AppShell>
+    </>
   );
 }
