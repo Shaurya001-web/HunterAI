@@ -3,7 +3,7 @@
 import { useEffect, useState, useRef } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, User, Sparkles, Upload, LogOut, Bookmark, Bot, FileEdit, ChevronLeft, ChevronRight, Search } from "lucide-react";
+import { LayoutDashboard, User, Sparkles, Upload, LogOut, Bookmark, Bot, FileEdit, ChevronLeft, ChevronRight, Menu, X } from "lucide-react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { AuthModal } from "@/components/auth/AuthModal";
 
@@ -17,6 +17,14 @@ const NAV = [
   { href: "/resume-builder", label: "Resume Builder", icon: FileEdit },
 ];
 
+// Bottom tab bar shows a subset of nav items
+const MOBILE_TABS = [
+  { href: "/dashboard", label: "Home",    icon: LayoutDashboard },
+  { href: "/recommendations", label: "Matches", icon: Sparkles },
+  { href: "/upload",    label: "Upload",  icon: Upload },
+  { href: "/bookmarks", label: "Saved",   icon: Bookmark },
+];
+
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const { user, signOut, updateProfile } = useAuth();
@@ -25,9 +33,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const [scrolled, setScrolled] = useState(false);
   const [nameInput, setNameInput] = useState("");
   const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved">("idle");
-  const [copied, setCopied] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const [collapsed, setCollapsed] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     const saved = localStorage.getItem("sidebar-collapsed");
@@ -82,13 +90,28 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  // Close mobile menu on route change
+  useEffect(() => {
+    setMobileMenuOpen(false);
+  }, [pathname]);
+
+  // Prevent body scroll when mobile menu is open
+  useEffect(() => {
+    if (mobileMenuOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => { document.body.style.overflow = ""; };
+  }, [mobileMenuOpen]);
+
   const initials = user?.username
     ? user.username.split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase()
     : user?.email?.slice(0, 2).toUpperCase() || "??";
 
   return (
     <div className="app-shell">
-      {/* Collapsible Text/Icon Sidebar */}
+      {/* Desktop Sidebar */}
       <aside className={`sidebar ${collapsed ? "collapsed" : ""}`}>
         <div className="sidebar-header">
           <Link href="/" className="sidebar-brand" style={{ textDecoration: "none" }}>
@@ -112,13 +135,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               <Link key={href} href={href} className={`nav-item ${active ? "active" : ""}`} title={collapsed ? label : undefined}>
                 <Icon size={18} style={{ opacity: active ? 1 : 0.65, flexShrink: 0 }} />
                 {!collapsed && <span>{label}</span>}
-                {label === "Dashboard" && !collapsed && <span className="nav-item-badge">12</span>}
               </Link>
             );
           })}
         </nav>
 
-        {/* Account Option shifted to Sidebar Footer */}
+        {/* Account Option - Sidebar Footer */}
         <div className="sidebar-footer" ref={dropdownRef} style={{ position: "relative", marginTop: "auto", paddingTop: "16px", borderTop: "1px solid rgba(255,255,255,0.08)", zIndex: 60 }}>
           {user && !user.isGuest ? (
             <>
@@ -126,49 +148,56 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               {menuOpen && (
                 <div style={{
                   position: "absolute",
-                  bottom: collapsed ? "0" : "120%",
-                  left: collapsed ? "110%" : "0",
-                  width: "220px",
+                  bottom: collapsed ? "0" : "calc(100% + 12px)",
+                  left: collapsed ? "calc(100% + 12px)" : "0",
+                  width: collapsed ? "220px" : "100%",
+                  boxSizing: "border-box",
                   background: "var(--bg-surface)",
                   border: "1px solid var(--border-strong)",
                   borderRadius: "16px",
-                  padding: "16px",
-                  boxShadow: "0 16px 36px rgba(12, 22, 24, 0.2)",
+                  padding: "14px",
+                  boxShadow: "0 16px 36px rgba(12, 22, 24, 0.25)",
                   zIndex: 100,
                   display: "flex",
                   flexDirection: "column",
-                  gap: "14px"
+                  gap: "12px"
                 }}>
                   {/* Name Editing Section */}
                   <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
                     <span style={{ fontSize: "11px", fontWeight: 600, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.05em" }}>Name</span>
-                    <div style={{ display: "flex", gap: "8px" }}>
+                    <div style={{ display: "flex", gap: "6px", alignItems: "center" }}>
                       <input
                         type="text"
                         value={nameInput}
                         onChange={(e) => setNameInput(e.target.value)}
                         style={{
                           flex: 1,
+                          minWidth: 0,
                           height: "32px",
                           borderRadius: "8px",
                           border: "1px solid var(--border)",
                           background: "var(--bg-base)",
                           color: "var(--text-primary)",
                           padding: "0 8px",
-                          fontSize: "12.5px",
+                          fontSize: "12px",
                           outline: "none"
                         }}
                       />
                       <button
                         onClick={handleSaveName}
                         disabled={saveStatus === "saving"}
-                        className="dashboard-btn-primary"
                         style={{
                           padding: "0 10px",
                           borderRadius: "8px",
                           fontSize: "11px",
                           fontWeight: 600,
-                          height: "32px"
+                          height: "32px",
+                          background: "var(--text-primary)",
+                          color: "var(--bg-base)",
+                          border: "none",
+                          cursor: "pointer",
+                          flexShrink: 0,
+                          whiteSpace: "nowrap"
                         }}
                       >
                         {saveStatus === "saving" ? "..." : saveStatus === "saved" ? "✓" : "Save"}
@@ -176,50 +205,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                     </div>
                   </div>
 
-                  {/* User ID Section */}
-                  <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-                    <span style={{ fontSize: "11px", fontWeight: 600, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.05em" }}>User ID</span>
-                    <div style={{
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "space-between",
-                      background: "var(--bg-elevated)",
-                      borderRadius: "8px",
-                      padding: "6px 8px",
-                      border: "1px solid var(--border)"
-                    }}>
-                      <span style={{
-                        fontSize: "11px",
-                        fontFamily: "monospace",
-                        color: "var(--text-secondary)",
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                        whiteSpace: "nowrap",
-                        maxWidth: "130px"
-                      }}>
-                        {user.id}
-                      </span>
-                      <button
-                        onClick={() => {
-                          navigator.clipboard.writeText(user.id);
-                          setCopied(true);
-                          setTimeout(() => setCopied(false), 2000);
-                        }}
-                        style={{
-                          background: "none",
-                          border: "none",
-                          cursor: "pointer",
-                          fontSize: "10px",
-                          color: copied ? "var(--accent)" : "var(--text-muted)",
-                          padding: 0
-                        }}
-                      >
-                        {copied ? "copied" : "copy"}
-                      </button>
-                    </div>
-                  </div>
-
-                  <div style={{ height: "1px", background: "var(--border)" }} />
+                  <div style={{ height: "1px", background: "var(--border)", margin: "2px 0" }} />
 
                   {/* Sign Out Button */}
                   <button
@@ -237,6 +223,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                       fontWeight: 600,
                       cursor: "pointer",
                       width: "100%",
+                      textAlign: "center",
                       transition: "all 0.2s"
                     }}
                     onMouseEnter={(e) => {
@@ -345,6 +332,96 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </div>
       </aside>
 
+      {/* ─── MOBILE HEADER ───────────────────────────── */}
+      <header className="mobile-header">
+        <Link href="/" className="mobile-brand">
+          <div className="logo-badge" style={{ width: 30, height: 30, fontSize: 13 }}>H</div>
+          <span className="brand-name" style={{ fontSize: 14, color: "var(--text-primary)" }}>Hunter AI</span>
+        </Link>
+        <button
+          className="mobile-menu-btn"
+          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          aria-label="Toggle menu"
+        >
+          {mobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
+        </button>
+      </header>
+
+      {/* ─── MOBILE OVERLAY MENU ─────────────────────── */}
+      {mobileMenuOpen && (
+        <div className="mobile-overlay" onClick={() => setMobileMenuOpen(false)}>
+          <nav className="mobile-menu" onClick={(e) => e.stopPropagation()}>
+            <div className="mobile-menu-inner">
+              {NAV.map(({ href, label, icon: Icon }) => {
+                const active = pathname === href || (href !== "/" && pathname.startsWith(href));
+                return (
+                  <Link
+                    key={href}
+                    href={href}
+                    className={`mobile-menu-item ${active ? "active" : ""}`}
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    <Icon size={20} />
+                    <span>{label}</span>
+                  </Link>
+                );
+              })}
+            </div>
+
+            <div className="mobile-menu-footer">
+              {user && !user.isGuest ? (
+                <>
+                  <div className="mobile-menu-user">
+                    <div style={{
+                      width: "32px",
+                      height: "32px",
+                      borderRadius: "50%",
+                      background: "linear-gradient(135deg, var(--text-primary), var(--text-muted))",
+                      color: "#ffffff",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      fontSize: "12px",
+                      fontWeight: 700,
+                      flexShrink: 0
+                    }}>
+                      {initials}
+                    </div>
+                    <div style={{ flex: 1, overflow: "hidden" }}>
+                      <div style={{ fontSize: "13px", fontWeight: 600, color: "var(--text-primary)" }}>
+                        {user.username || "User"}
+                      </div>
+                      <div style={{ fontSize: "11px", color: "var(--text-muted)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                        {user.email}
+                      </div>
+                    </div>
+                  </div>
+                  <button
+                    className="mobile-signout-btn"
+                    onClick={() => {
+                      setMobileMenuOpen(false);
+                      signOut();
+                    }}
+                  >
+                    <LogOut size={16} /> Sign Out
+                  </button>
+                </>
+              ) : (
+                <button
+                  className="mobile-signin-btn"
+                  onClick={() => {
+                    setMobileMenuOpen(false);
+                    setIsAuthModalOpen(true);
+                  }}
+                >
+                  <LogOut size={16} style={{ transform: "rotate(180deg)" }} /> Sign In
+                </button>
+              )}
+            </div>
+          </nav>
+        </div>
+      )}
+
       {/* Main Content Area */}
       <div className="main-wrapper">
         {/* Scrollable Page Content */}
@@ -354,6 +431,26 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </div>
         </main>
       </div>
+
+      {/* ─── MOBILE BOTTOM TAB BAR ───────────────────── */}
+      <nav className="mobile-tab-bar">
+        {MOBILE_TABS.map(({ href, label, icon: Icon }) => {
+          const active = pathname === href || (href !== "/" && pathname.startsWith(href));
+          return (
+            <Link key={href} href={href} className={`mobile-tab ${active ? "active" : ""}`}>
+              <Icon size={20} />
+              <span>{label}</span>
+            </Link>
+          );
+        })}
+        <button
+          className={`mobile-tab ${mobileMenuOpen ? "active" : ""}`}
+          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+        >
+          <Menu size={20} />
+          <span>More</span>
+        </button>
+      </nav>
     </div>
   );
 }
