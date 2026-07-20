@@ -64,9 +64,9 @@ export default function Dashboard() {
 
   return (
     <>
-      <div className="dashboard-content fade-up" style={{ maxWidth: "900px", margin: "0 auto", padding: "40px 24px" }}>
+      <div className="dashboard-content fade-up" style={{ maxWidth: "900px", margin: "0 auto", padding: "40px 0" }}>
         {/* Welcome Section */}
-        <div className="welcome-header" style={{ flexDirection: "column", gap: "8px", marginBottom: "36px" }}>
+        <div className="welcome-header" style={{ flexDirection: "column", gap: "8px", marginBottom: "28px" }}>
           <p className="section-eyebrow" style={{ margin: 0 }}>
             {getTimeOfDay()}, developer
           </p>
@@ -86,7 +86,7 @@ export default function Dashboard() {
         ) : (
           <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: "28px" }}>
             {/* Overview Card */}
-            <div className="glass-panel" style={{ padding: "32px", position: "relative", overflow: "hidden" }}>
+            <div className="glass-panel" style={{ padding: "clamp(20px, 4vw, 32px)", position: "relative", overflow: "hidden" }}>
               <div style={{ position: "absolute", top: "24px", right: "24px" }}>
                 <Link
                   href="/profile"
@@ -96,23 +96,21 @@ export default function Dashboard() {
                 </Link>
               </div>
 
-              <div style={{ display: "flex", alignItems: "center", gap: "20px", marginBottom: "28px" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "16px", marginBottom: "28px", flexWrap: "wrap" }}>
                 <div style={{
-                  width: "64px", height: "64px", borderRadius: "50%",
+                  width: "52px", height: "52px", borderRadius: "50%",
                   background: "linear-gradient(135deg, var(--accent), var(--text-muted))",
                   display: "flex", alignItems: "center", justifyContent: "center",
-                  fontFamily: "var(--font-display)", fontSize: "24px", color: "white",
-                  boxShadow: "0 8px 20px rgba(5, 5, 5, 0.15)"
+                  fontFamily: "var(--font-display)", fontSize: "20px", color: "white",
+                  boxShadow: "0 8px 20px rgba(5, 5, 5, 0.15)",
+                  flexShrink: 0
                 }}>
                   {(profile?.username || user?.username || "?")[0].toUpperCase()}
                 </div>
-                <div>
-                  <h2 style={{ fontFamily: "var(--font-display)", fontSize: "22px", margin: 0, fontWeight: 700 }}>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <h2 style={{ fontFamily: "var(--font-display)", fontSize: "clamp(18px, 3.5vw, 22px)", margin: 0, fontWeight: 700, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                     {profile?.username || user?.username || "Guest User"}
                   </h2>
-                  <p style={{ fontSize: "13px", color: "var(--text-muted)", margin: "6px 0 0 0" }}>
-                    ID: <span style={{ fontFamily: "var(--font-mono)", fontSize: "11px", background: "rgba(5, 5, 5, 0.05)", padding: "2px 6px", borderRadius: "4px" }}>{profile?.user_id || user?.id || "local-sandbox-guest"}</span>
-                  </p>
                 </div>
               </div>
 
@@ -140,7 +138,7 @@ export default function Dashboard() {
             </div>
 
             {/* Links and URLs Card */}
-            <div className="glass-panel" style={{ padding: "32px" }}>
+            <div className="glass-panel" style={{ padding: "clamp(20px, 4vw, 32px)" }}>
               <h3 style={{ fontFamily: "var(--font-display)", fontSize: "18px", marginBottom: "20px", display: "flex", alignItems: "center", gap: "8px", fontWeight: 700 }}>
                 <Globe size={18} color="var(--text-primary)" /> Saved Portfolios & Links
               </h3>

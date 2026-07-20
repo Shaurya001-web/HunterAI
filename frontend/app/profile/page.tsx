@@ -129,13 +129,13 @@ export default function ProfilePage() {
 
   return (
     <>
-      <div style={{ maxWidth: "800px", margin: "0 auto", padding: "40px 20px" }}>
+      <div style={{ maxWidth: "800px", margin: "0 auto", padding: "40px 0" }}>
         {/* Page Heading */}
-        <div style={{ marginBottom: "36px" }}>
+        <div style={{ marginBottom: "28px" }}>
           <p style={{ fontSize: "14px", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--text-muted)" }}>
             Profile settings
           </p>
-          <h1 style={{ fontFamily: "var(--font-display)", fontSize: "40px", letterSpacing: "-0.03em", marginTop: "8px", color: "var(--text-primary)" }}>
+          <h1 style={{ fontFamily: "var(--font-display)", fontSize: "clamp(28px, 5vw, 40px)", letterSpacing: "-0.03em", marginTop: "8px", color: "var(--text-primary)" }}>
             Customize your <em>identity</em>
           </h1>
         </div>
@@ -147,7 +147,7 @@ export default function ProfilePage() {
         ) : (
           <form onSubmit={handleSave} style={{ display: "grid", gridTemplateColumns: "1fr", gap: "28px" }}>
             {/* General Info Card */}
-            <div className="glass-panel" style={{ padding: "32px" }}>
+            <div className="glass-panel" style={{ padding: "clamp(20px, 4vw, 32px)" }}>
               <h2 style={{ fontFamily: "var(--font-display)", fontSize: "20px", marginBottom: "24px", display: "flex", alignItems: "center", gap: "10px" }}>
                 <User size={18} color="var(--accent)" /> General Information
               </h2>
@@ -202,7 +202,7 @@ export default function ProfilePage() {
             </div>
 
             {/* Social / Portfolio Links Card */}
-            <div className="glass-panel" style={{ padding: "32px" }}>
+            <div className="glass-panel" style={{ padding: "clamp(20px, 4vw, 32px)" }}>
               <h2 style={{ fontFamily: "var(--font-display)", fontSize: "20px", marginBottom: "24px", display: "flex", alignItems: "center", gap: "10px" }}>
                 <Globe size={18} color="var(--accent)" /> Social & Portfolio Links
               </h2>
@@ -303,7 +303,7 @@ export default function ProfilePage() {
                   ))}
 
                   {/* Add New Custom Link Fields */}
-                  <div style={{ display: "grid", gridTemplateColumns: "130px 1fr auto", gap: "12px", alignItems: "center", marginTop: "16px" }}>
+                  <div className="profile-custom-link-add" style={{ display: "grid", gap: "12px", alignItems: "center", marginTop: "16px" }}>
                     <input
                       type="text"
                       placeholder="Label (e.g. twitter)"
@@ -393,6 +393,7 @@ export default function ProfilePage() {
                   cursor: "pointer",
                   opacity: saveLoading ? 0.7 : 1,
                   boxShadow: "0 8px 24px rgba(108, 79, 224, 0.25)",
+                  width: "auto",
                 }}
               >
                 <Save size={16} /> {saveLoading ? "Saving..." : "Save Profile"}
