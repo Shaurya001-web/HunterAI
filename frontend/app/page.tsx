@@ -138,10 +138,7 @@ function DashboardMock({ countersActive }: { countersActive: boolean }) {
               <span className="inline-block w-[2px] h-[1.2em] bg-current animate-pulse ml-0.5 rounded-sm" aria-hidden="true" />
             </h2>
           </div>
-          <div className="flex items-center gap-2 text-xs">
-            <span className="rounded-full border border-[var(--line)] bg-white px-3 py-2">Q4 roles</span>
-            <span className="rounded-full bg-[var(--black)] px-3 py-2 text-white">Live</span>
-          </div>
+
         </div>
 
         <div className="mt-9">
