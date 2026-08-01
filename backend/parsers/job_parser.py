@@ -7,7 +7,7 @@ load_path_dotenv = os.path.join(project_root, "config", ".env")
 load_dotenv(load_path_dotenv)
 llm_model = init_chat_model(
     model="gemini-2.5-flash",
-    model_provider="google_genai"
+    model_provider="google_genai",
 )
 
 
@@ -24,37 +24,7 @@ Stipend: 10000/month
 """
 
 async def response_job_parser():
-    response = await llm_model.ainvoke(f"""
-            You are an expert job description parser.
-
-            Extract only information useful for job matching.
-
-            Return ONLY valid JSON.
-
-            Rules:
-            - No explanations.
-            - No markdown.
-            - No code fences.
-            - Do not invent information.
-            - Use [] for missing lists.
-            - Use "" for missing strings.
-
-            Schema:
-
-            {{
-                "job_title": "",
-                "company": "",
-                "required_skills": [],
-                "preferred_skills": [],
-                "responsibilities": [],
-                "location": "",
-                "stipend": "",
-                "experience_required": ""
-            }}
-
-            Job Description:{job_description}
-            """)
-    
+    response = await llm_model.ainvoke()
     content = response.content
     if not content:
         content = "{}"

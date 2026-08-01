@@ -162,3 +162,85 @@ Ensure the rewrites are truthful but use strong action verbs.
     except Exception as e:
         print("Improve error:", e)
         raise HTTPException(status_code=500, detail=str(e))
+
+# --- Section-Specific Parsing Models ---
+
+class ParseSectionRequest(BaseModel):
+    section_type: Literal['personal', 'summary', 'experience', 'education', 'projects', 'skills']
+    user_prompt: str
+
+class PersonalSectionSchema(BaseModel):
+    firstName: Optional[str] = None
+    lastName: Optional[str] = None
+    headline: Optional[str] = None
+    email: Optional[str] = None
+    phone: Optional[str] = None
+    city: Optional[str] = None
+    country: Optional[str] = None
+    linkedin: Optional[str] = None
+    github: Optional[str] = None
+    portfolio: Optional[str] = None
+
+class SummarySectionSchema(BaseModel):
+    summary: str
+
+class EducationSectionSchema(BaseModel):
+    education: List[EducationItem]
+
+class ExperienceSectionSchema(BaseModel):
+    experience: List[ExperienceItem]
+
+class ProjectsSectionSchema(BaseModel):
+    projects: List[ProjectItem]
+
+class SkillsSectionSchema(BaseModel):
+    skills: List[str]
+
+
+@router.post("/parse-section")
+async def parse_section_from_casual_text(req: ParseSectionRequest, current_user=Depends(get_current_user)):
+    client = get_genai_client()
+    
+    schema_map = {
+        'personal': PersonalSectionSchema,
+        'summary': SummarySectionSchema,
+        'education': EducationSectionSchema,
+        'experience': ExperienceSectionSchema,
+        'projects': ProjectsSectionSchema,
+        'skills': SkillsSectionSchema,
+    }
+    
+    selected_schema = schema_map.get(req.section_type)
+    if not selected_schema:
+        raise HTTPException(status_code=400, detail=f"Unsupported section_type: {req.section_type}")
+
+    prompt = f"""
+You are an expert resume assistant. The user is describing their {req.section_type} in casual, unstructured text.
+Extract, clean up, and polish the details into a professional structure according to the JSON schema.
+
+CASUAL USER INPUT:
+"{req.user_prompt}"
+
+INSTRUCTIONS:
+1. Extract all relevant details truthfully and format them professionally.
+2. Use active verbs and quantify impact where applicable (especially for experience & projects).
+3. If details are missing or unspecified, leave optional fields as empty strings or empty lists (do NOT fabricate fake companies or institutions).
+"""
+    try:
+        response = client.models.generate_content(
+            model='gemini-2.5-flash',
+            contents=prompt,
+            config=types.GenerateContentConfig(
+                response_mime_type="application/json",
+                response_schema=selected_schema,
+                temperature=0.4,
+            ),
+        )
+        if not response.text:
+            raise ValueError("Empty response from Gemini")
+            
+        return json.loads(response.text)
+    except Exception as e:
+        print(f"Parse section error ({req.section_type}):", e)
+        raise HTTPException(status_code=500, detail=str(e))
+

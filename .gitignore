@@ -26,3 +26,4 @@ dist/
 # Databases
 *.db
 *.sqlite3
+*.zip
