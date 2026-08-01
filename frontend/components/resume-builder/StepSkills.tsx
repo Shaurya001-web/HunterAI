@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { ResumeData } from '@/types/resume';
+import { AISmartSectionAssistant } from './AISmartSectionAssistant';
 
 interface Props {
   data: ResumeData;
@@ -17,6 +18,16 @@ export function StepSkills({ data, onChange }: Props) {
       onChange({ ...data, skills: [...data.skills, trimmed] });
     }
     setNewSkill('');
+  };
+
+  const handleApplyAiData = (parsed: { skills?: string[] }) => {
+    if (parsed.skills && parsed.skills.length > 0) {
+      const existingSet = new Set(data.skills);
+      parsed.skills.forEach(s => {
+        if (s && s.trim()) existingSet.add(s.trim());
+      });
+      onChange({ ...data, skills: Array.from(existingSet) });
+    }
   };
 
   const handleRemove = (skillToRemove: string) => {
@@ -39,9 +50,18 @@ export function StepSkills({ data, onChange }: Props) {
   return (
     <div>
       <h2 style={{ marginBottom: '20px' }}>Skills</h2>
+
+      <AISmartSectionAssistant
+        sectionType="skills"
+        sectionTitle="Skills & Technologies"
+        placeholderHint="e.g. I know React, TypeScript, Python, Node.js, SQL databases, Docker, and Git, along with Agile methodologies."
+        onApplyData={handleApplyAiData}
+      />
+
       <p style={{ color: 'var(--text-secondary)', marginBottom: '16px', fontSize: '0.9rem' }}>
         Add your technical and soft skills. Press Enter to add each skill.
       </p>
+
       
       <div>
         <input 

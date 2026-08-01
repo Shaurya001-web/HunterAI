@@ -8,7 +8,7 @@ from config.models import User
 
 def _get_jwt_secret():
     """Lazy loader so the env var is read after dotenv has been loaded in main.py."""
-    return os.getenv("SUPABASE_JWT_SECRET")
+    return os.getenv("SUPABASE_JWT_SECRET") or os.getenv("NEXT_PUBLIC_SUPABASE_JWT_SECRET")
 
 
 def get_current_user(
@@ -97,12 +97,14 @@ def get_current_user(
         except Exception as e:
             print(f"JWKS verification check bypassed or failed: {e}. Falling back to symmetric HS256 secret verification...")
 
-    # Fallback to local symmetric secret verification
     if not payload:
         if not jwt_secret:
+            url_present = bool(supabase_url)
+            anon_present = bool(supabase_anon_key)
+            jwt_present = bool(jwt_secret)
             raise HTTPException(
                 status_code=401,
-                detail="Supabase JWT verification not configured. Define SUPABASE_ANON_KEY or SUPABASE_JWT_SECRET."
+                detail=f"Supabase JWT verification not configured. Define SUPABASE_ANON_KEY or SUPABASE_JWT_SECRET. (Diagnostics: URL={url_present}, ANON={anon_present}, JWT={jwt_present}, JWKS_tried={bool(supabase_url and supabase_anon_key)})"
             )
         try:
             payload = jwt.decode(
