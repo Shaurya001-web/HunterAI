@@ -201,7 +201,7 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
                     <input
                       type="text"
                       required
-                      placeholder="Ansh Jagwal"
+                      placeholder="Username"
                       value={username}
                       onChange={(e) => setUsername(e.target.value)}
                       className="input-base"
