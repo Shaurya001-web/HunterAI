@@ -71,9 +71,18 @@ class ResumeDataSchema(BaseModel):
 
 
 def get_genai_client():
-    api_key = os.getenv("GEMINI_API_KEY")
-    if not api_key or not has_genai:
-        raise HTTPException(status_code=500, detail="Gemini API is not configured or google-genai is missing.")
+    # Support both GEMINI_API_KEY and GOOGLE_API_KEY for backwards compatibility
+    api_key = os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")
+    if not api_key:
+        raise HTTPException(
+            status_code=500,
+            detail="Gemini API key is not configured. Set GEMINI_API_KEY in your environment variables."
+        )
+    if not has_genai:
+        raise HTTPException(
+            status_code=500,
+            detail="google-genai package is missing. Run: pip install google-genai"
+        )
     return genai.Client(api_key=api_key)
 
 @router.post("/generate")
