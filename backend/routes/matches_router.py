@@ -2,6 +2,9 @@ from fastapi import APIRouter, HTTPException, Depends
 from sqlalchemy.orm import Session
 from engine.matching_engine import rank_jobs
 from scrapers.internshala_scraper import scrape_internshala
+from scrapers.naukri_scraper import scrape_naukri
+from scrapers.linkedin_scraper import scrape_linkedin
+from concurrent.futures import ThreadPoolExecutor
 from routes.auth import get_current_user
 from config.models import User, Profile, Job, Match
 from config.database import get_db
@@ -57,15 +60,27 @@ def get_matches(
 
         if scrape_keyword:
             scraped_jobs = []
-            # Scrape Internshala
-            try:
-                scraped = scrape_internshala(scrape_keyword, limit=25)
-                if scraped:
-                    for s in scraped:
-                        s["source"] = "Internshala"
-                    scraped_jobs.extend(scraped)
-            except Exception as e:
-                print(f"On-demand Internshala scraping failed: {e}")
+            
+            def fetch_source(source_fn, keyword, limit, source_name):
+                try:
+                    results = source_fn(keyword, limit=limit)
+                    if results:
+                        for r in results:
+                            r["source"] = source_name
+                    return results or []
+                except Exception as e:
+                    print(f"On-demand {source_name} scraping failed: {e}")
+                    return []
+
+            # Concurrently scrape from all sources
+            with ThreadPoolExecutor(max_workers=3) as executor:
+                futures = [
+                    executor.submit(fetch_source, scrape_internshala, scrape_keyword, 15, "Internshala"),
+                    executor.submit(fetch_source, scrape_naukri, scrape_keyword, 10, "Naukri"),
+                    executor.submit(fetch_source, scrape_linkedin, scrape_keyword, 10, "LinkedIn")
+                ]
+                for future in futures:
+                    scraped_jobs.extend(future.result())
             
             # Save new jobs to database
             for sj in scraped_jobs:

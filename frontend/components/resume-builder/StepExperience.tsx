@@ -1,12 +1,11 @@
 import React from 'react';
 import { ResumeData, ExperienceEntry } from '@/types/resume';
-import { AIImproveButton } from './AIImproveButton';
-import { AISmartSectionAssistant } from './AISmartSectionAssistant';
 
 interface Props {
   data: ResumeData;
   onChange: (data: ResumeData) => void;
 }
+import { AIImproveButton } from './AIImproveButton';
 
 export function StepExperience({ data, onChange }: Props) {
   const handleAdd = () => {
@@ -18,19 +17,6 @@ export function StepExperience({ data, onChange }: Props) {
       description: ''
     };
     onChange({ ...data, experience: [...data.experience, newEntry] });
-  };
-
-  const handleApplyAiData = (parsed: { experience?: Array<{ company?: string; role?: string; duration?: string; description?: string }> }) => {
-    if (parsed.experience && parsed.experience.length > 0) {
-      const newEntries: ExperienceEntry[] = parsed.experience.map((item, idx) => ({
-        id: `exp_ai_${Date.now()}_${idx}`,
-        company: item.company || '',
-        role: item.role || '',
-        duration: item.duration || '',
-        description: item.description || ''
-      }));
-      onChange({ ...data, experience: [...data.experience, ...newEntries] });
-    }
   };
 
   const handleUpdate = (index: number, field: keyof ExperienceEntry, value: string) => {
@@ -81,14 +67,6 @@ export function StepExperience({ data, onChange }: Props) {
           + Add Experience
         </button>
       </div>
-
-      <AISmartSectionAssistant
-        sectionType="experience"
-        sectionTitle="Work Experience"
-        placeholderHint="e.g. Worked at Google as Frontend Engineer from Jan 2021 to Dec 2023. Built search features with React and decreased page load time by 30%."
-        onApplyData={handleApplyAiData}
-      />
-
       
       <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
         {data.experience.map((exp, index) => (

@@ -1,6 +1,5 @@
 import React from 'react';
 import { ResumeData } from '@/types/resume';
-import { AISmartSectionAssistant } from './AISmartSectionAssistant';
 
 interface Props {
   data: ResumeData;
@@ -10,17 +9,6 @@ interface Props {
 export function StepPersonal({ data, onChange }: Props) {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     onChange({ ...data, [e.target.name]: e.target.value });
-  };
-
-  const handleApplyAiData = (parsed: Partial<ResumeData>) => {
-    const updated = { ...data };
-    Object.keys(parsed).forEach((key) => {
-      const val = (parsed as any)[key];
-      if (val && typeof val === 'string' && val.trim() !== '') {
-        (updated as any)[key] = val.trim();
-      }
-    });
-    onChange(updated);
   };
 
   const inputStyle = {
@@ -46,14 +34,6 @@ export function StepPersonal({ data, onChange }: Props) {
   return (
     <div>
       <h2 style={{ marginBottom: '20px' }}>Personal Information</h2>
-      
-      <AISmartSectionAssistant
-        sectionType="personal"
-        sectionTitle="Personal Info & Contact Details"
-        placeholderHint="e.g. My name is Alex Smith, Senior Full Stack Developer based in Seattle. Contact: alex.smith@email.com, 555-0192. LinkedIn: linkedin.com/in/alexsmith, GitHub: github.com/alexsmith"
-        onApplyData={handleApplyAiData}
-      />
-
       
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
         <div>

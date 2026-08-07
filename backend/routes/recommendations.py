@@ -20,7 +20,8 @@ from engine.preference_extractor import PreferenceFilters, extract_preferences
 # and add `user=Depends(get_current_user)` to the route below instead of
 # trusting a client-supplied user_id.
 
-router = APIRouter(prefix="/api/recommendations", tags=["recommendations"])
+router = APIRouter(prefix="/api/recommendations", tags=["Recommendations"])
+
 
 
 class PreferenceRequest(BaseModel):

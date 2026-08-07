@@ -1,18 +1,19 @@
 import os
 import json
 from scrapers.internshala_scraper import scrape_internshala
+from scrapers.naukri_scraper import scrape_naukri
+from scrapers.linkedin_scraper import scrape_linkedin
 from engine.matching_engine import load_profiles, rank_jobs
+from concurrent.futures import ThreadPoolExecutor
 
 def main():
     print("=====================================================")
     print("🎯 Welcome to Internship Hunter Matching Engine! 🎯")
     print("=====================================================\n")
     
-    # Resolve directory paths
     current_dir = os.path.dirname(os.path.abspath(__file__))
     profiles_path = os.path.join(current_dir, "data", "user_profiles.json")
     
-    # 1. Load User Profile
     if not os.path.exists(profiles_path):
         print(f"❌ Error: User profiles file not found at: {profiles_path}")
         print("Please parse your resume first using: python3 parsers/user_resume_parser.py")
@@ -30,26 +31,42 @@ def main():
     print(f"Logged in as: {user_name}")
     print(f"Your Skills ({len(user_skills)}): {', '.join(user_skills)}\n")
     
-    # 2. Get search keyword from the user
     keyword = input("Enter keyword to search for internships (e.g. 'machine learning', 'python'): ").strip()
     if not keyword:
         print("❌ Search keyword cannot be empty!")
         return
         
-    print(f"\n[1/2] Fetching up to 10 opportunities for '{keyword}' from Internshala...")
-    # Scrape exactly 10 internships
-    jobs = scrape_internshala(keyword, limit=10)
+    print(f"\n[1/2] Fetching opportunities for '{keyword}' from Internshala, Naukri, and LinkedIn...")
+    
+    jobs = []
+    def fetch_source(source_fn, limit, source_name):
+        try:
+            results = source_fn(keyword, limit=limit)
+            if results:
+                for r in results:
+                    r["source"] = source_name
+            return results or []
+        except Exception as e:
+            print(f"{source_name} scraping failed: {e}")
+            return []
+
+    with ThreadPoolExecutor(max_workers=3) as executor:
+        futures = [
+            executor.submit(fetch_source, scrape_internshala, 10, "Internshala"),
+            executor.submit(fetch_source, scrape_naukri, 10, "Naukri"),
+            executor.submit(fetch_source, scrape_linkedin, 10, "LinkedIn")
+        ]
+        for f in futures:
+            jobs.extend(f.result())
     
     if not jobs:
         print("❌ No internships found for that keyword. Try another term.")
         return
         
-    # 3. Save to jobs.json for persistence
     jobs_path = os.path.join(current_dir, "data", "jobs.json")
     with open(jobs_path, "w", encoding="utf-8") as f:
         json.dump(jobs, f, indent=4)
         
-    # 4. Run Matching Engine & Rank Jobs
     print(f"\n[2/2] Matching your profile against {len(jobs)} retrieved opportunities...")
     ranked_results = rank_jobs(user, jobs)
     

@@ -1,12 +1,11 @@
 import React from 'react';
 import { ResumeData, ProjectEntry } from '@/types/resume';
-import { AIImproveButton } from './AIImproveButton';
-import { AISmartSectionAssistant } from './AISmartSectionAssistant';
 
 interface Props {
   data: ResumeData;
   onChange: (data: ResumeData) => void;
 }
+import { AIImproveButton } from './AIImproveButton';
 
 export function StepProjects({ data, onChange }: Props) {
   const handleAdd = () => {
@@ -17,18 +16,6 @@ export function StepProjects({ data, onChange }: Props) {
       techStack: []
     };
     onChange({ ...data, projects: [...data.projects, newEntry] });
-  };
-
-  const handleApplyAiData = (parsed: { projects?: Array<{ name?: string; techStack?: string[]; description?: string }> }) => {
-    if (parsed.projects && parsed.projects.length > 0) {
-      const newEntries: ProjectEntry[] = parsed.projects.map((item, idx) => ({
-        id: `proj_ai_${Date.now()}_${idx}`,
-        name: item.name || '',
-        description: item.description || '',
-        techStack: item.techStack || []
-      }));
-      onChange({ ...data, projects: [...data.projects, ...newEntries] });
-    }
   };
 
   const handleUpdate = (index: number, field: keyof ProjectEntry, value: any) => {
@@ -84,14 +71,6 @@ export function StepProjects({ data, onChange }: Props) {
           + Add Project
         </button>
       </div>
-
-      <AISmartSectionAssistant
-        sectionType="projects"
-        sectionTitle="Personal & Professional Projects"
-        placeholderHint="e.g. Built an AI chat platform using Next.js, FastAPI, and TailwindCSS that allows users to query PDF documents with 95% accuracy."
-        onApplyData={handleApplyAiData}
-      />
-
       
       <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
         {data.projects.map((proj, index) => (

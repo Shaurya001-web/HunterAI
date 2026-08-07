@@ -1,12 +1,11 @@
 import React from 'react';
 import { ResumeData } from '@/types/resume';
-import { AIImproveButton } from './AIImproveButton';
-import { AISmartSectionAssistant } from './AISmartSectionAssistant';
 
 interface Props {
   data: ResumeData;
   onChange: (data: ResumeData) => void;
 }
+import { AIImproveButton } from './AIImproveButton';
 
 export function StepSummary({ data, onChange }: Props) {
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -15,12 +14,6 @@ export function StepSummary({ data, onChange }: Props) {
 
   const handleImproveAccept = (newText: string) => {
     onChange({ ...data, summary: newText });
-  };
-
-  const handleApplyAiData = (parsed: { summary?: string }) => {
-    if (parsed.summary) {
-      onChange({ ...data, summary: parsed.summary });
-    }
   };
 
   const textareaStyle = {
@@ -46,14 +39,6 @@ export function StepSummary({ data, onChange }: Props) {
   return (
     <div>
       <h2 style={{ marginBottom: '20px' }}>Professional Summary</h2>
-      
-      <AISmartSectionAssistant
-        sectionType="summary"
-        sectionTitle="Professional Summary"
-        placeholderHint="e.g. I am a passionate frontend developer who loves building fast web apps with React. I have 2 years of freelance experience and want a full-time role."
-        onApplyData={handleApplyAiData}
-      />
-
       
       <div>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>

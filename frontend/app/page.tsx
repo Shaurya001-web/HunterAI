@@ -60,53 +60,12 @@ const workflowPath =
 
 
 
-const JOB_ROLES = [
-  'Software Engineer',
-  'Product Manager',
-  'Data Scientist',
-  'UX Designer',
-  'ML Engineer',
-  'Full Stack Developer',
-  'DevOps Engineer',
-  'Backend Developer',
-];
-
-function useTypewriter(words: string[], typingSpeed = 80, deletingSpeed = 45, pauseMs = 1600) {
-  const [displayed, setDisplayed] = useState('');
-  const [wordIndex, setWordIndex] = useState(0);
-  const [isDeleting, setIsDeleting] = useState(false);
-
-  useEffect(() => {
-    const current = words[wordIndex];
-    let timeout: ReturnType<typeof setTimeout>;
-
-    if (!isDeleting && displayed === current) {
-      timeout = setTimeout(() => setIsDeleting(true), pauseMs);
-    } else if (isDeleting && displayed === '') {
-      setIsDeleting(false);
-      setWordIndex((i) => (i + 1) % words.length);
-    } else {
-      timeout = setTimeout(() => {
-        setDisplayed(isDeleting
-          ? current.slice(0, displayed.length - 1)
-          : current.slice(0, displayed.length + 1));
-      }, isDeleting ? deletingSpeed : typingSpeed);
-    }
-
-    return () => clearTimeout(timeout);
-  }, [displayed, isDeleting, wordIndex, words, typingSpeed, deletingSpeed, pauseMs]);
-
-  return displayed;
-}
-
 function DashboardMock({ countersActive }: { countersActive: boolean }) {
   const signalStats = [
     ['Python', 28500, 0.45],
     ['Product analytics', 35200, 0.55],
     ['Workflow design', 24300, 0.65],
   ] as const;
-
-  const typedRole = useTypewriter(JOB_ROLES);
 
   return (
     <div className="dashboard glass-panel relative z-10 mx-auto mt-12 grid h-[30rem] w-[min(70rem,92vw)] grid-cols-[13.5rem_1fr] overflow-hidden rounded-[1.05rem] text-left md:mt-16">
@@ -133,12 +92,12 @@ function DashboardMock({ countersActive }: { countersActive: boolean }) {
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[.16em] text-[var(--stone)]">career signal</p>
-            <h2 className="mt-2 text-2xl font-semibold tracking-[-.03em] md:text-3xl flex items-center gap-0.5">
-              <span>{typedRole}</span>
-              <span className="inline-block w-[2px] h-[1.2em] bg-current animate-pulse ml-0.5 rounded-sm" aria-hidden="true" />
-            </h2>
+            <h2 className="mt-2 text-2xl font-semibold tracking-[-.03em] md:text-3xl">Shaurya Mishra</h2>
           </div>
-
+          <div className="flex items-center gap-2 text-xs">
+            <span className="rounded-full border border-[var(--line)] bg-white px-3 py-2">Q4 roles</span>
+            <span className="rounded-full bg-[var(--black)] px-3 py-2 text-white">Live</span>
+          </div>
         </div>
 
         <div className="mt-9">

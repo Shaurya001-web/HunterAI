@@ -1,6 +1,5 @@
 import React from 'react';
 import { ResumeData, EducationEntry } from '@/types/resume';
-import { AISmartSectionAssistant } from './AISmartSectionAssistant';
 
 interface Props {
   data: ResumeData;
@@ -17,19 +16,6 @@ export function StepEducation({ data, onChange }: Props) {
       gpa: ''
     };
     onChange({ ...data, education: [...data.education, newEntry] });
-  };
-
-  const handleApplyAiData = (parsed: { education?: Array<{ institution?: string; degree?: string; year?: string; gpa?: string }> }) => {
-    if (parsed.education && parsed.education.length > 0) {
-      const newEntries: EducationEntry[] = parsed.education.map((item, idx) => ({
-        id: `edu_ai_${Date.now()}_${idx}`,
-        institution: item.institution || '',
-        degree: item.degree || '',
-        year: item.year || '',
-        gpa: item.gpa || ''
-      }));
-      onChange({ ...data, education: [...data.education, ...newEntries] });
-    }
   };
 
   const handleUpdate = (index: number, field: keyof EducationEntry, value: string) => {
@@ -71,14 +57,6 @@ export function StepEducation({ data, onChange }: Props) {
           + Add Education
         </button>
       </div>
-
-      <AISmartSectionAssistant
-        sectionType="education"
-        sectionTitle="Education & Qualifications"
-        placeholderHint="e.g. I did my B.Tech in Computer Science & Engineering from Stanford University, graduating in May 2024 with a 3.9 GPA."
-        onApplyData={handleApplyAiData}
-      />
-
       
       <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
         {data.education.map((edu, index) => (

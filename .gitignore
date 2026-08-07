@@ -23,7 +23,11 @@ dist/
 # macOS
 .DS_Store
 
-# Databases
+# Databases & Uploads
 *.db
 *.sqlite3
 *.zip
+backend/data/uploads/*
+!backend/data/uploads/resume/
+!backend/data/uploads/resume/25bai70051_shauryamishra.pdf
+

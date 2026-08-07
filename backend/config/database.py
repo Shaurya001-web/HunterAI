@@ -1,8 +1,7 @@
 import os
 from sqlalchemy import create_engine
 from sqlalchemy.orm import declarative_base, sessionmaker
-
-# Resolve project paths
+# Rexsolve project paths
 config_dir = os.path.dirname(os.path.abspath(__file__))
 project_root = os.path.dirname(config_dir)
 default_db_path = os.path.join(project_root, "data", "app.db")

@@ -47,15 +47,27 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+from ats import calculate_ats_score
+from fastapi import File, UploadFile, Form
+from typing import Optional
+
 # Include sub-routers
 app.include_router(file_upload_router, tags=["File Upload"])
 app.include_router(user_router, tags=["User Profiles"])
 app.include_router(matches_router, tags=["Matches"])
 app.include_router(chat_router, tags=["Chat"])
-app.include_router(recommendations_router, tags=["Recommendations"])
+app.include_router(recommendations_router)
+
 app.include_router(tailor_router, prefix="/api", tags=["Tailor"])
 app.include_router(resume_ai_router)
 app.include_router(health_router, tags=["Health"])
+
+@app.post("/ats-score", tags=["ATS Evaluation"])
+async def ats_score(file: UploadFile = File(...), job_description: Optional[str] = Form("")):
+    resume_bytes = await file.read()
+    result = calculate_ats_score(resume_bytes, job_description or "")
+    return result
+
 
 @app.get("/")
 def home():

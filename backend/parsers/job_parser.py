@@ -34,7 +34,6 @@ async def response_job_parser():
         output_dir = os.path.join(project_root, "data")
         os.makedirs(output_dir, exist_ok=True)
         path = os.path.join(output_dir, "jobs.json")
-        # Save as a list containing the job dictionary for compatibility with matching engine
         with open(path, "w") as f:
             json.dump([data], f, indent=4)
         print("Job description parsed and saved successfully ✅")

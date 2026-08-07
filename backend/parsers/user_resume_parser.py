@@ -82,7 +82,6 @@ Resume Text:
 """
     json_text = ""
     try:
-        # Try primary Groq model
         llm_model = init_chat_model(model="llama-3.3-70b-versatile", model_provider="groq")
         res = await asyncio.wait_for(llm_model.ainvoke(prompt_text), timeout=15.0)
         json_text = res.content
@@ -97,14 +96,11 @@ Resume Text:
 
     if json_text:
         cleaned_json = str(json_text).strip()
-        
-        # Use regex to find a JSON block if it exists
         import re
         json_match = re.search(r'```(?:json)?\s*(\{.*?\})\s*```', cleaned_json, re.DOTALL)
         if json_match:
             cleaned_json = json_match.group(1)
         else:
-            # Fallback if no markdown blocks are used, try to find the first { and last }
             start = cleaned_json.find('{')
             end = cleaned_json.rfind('}')
             if start != -1 and end != -1:
@@ -136,7 +132,6 @@ async def response():
     data = await parse_resume_to_json(path)
     print("\nProfile saved successfully ✅")
     return data
-
 if __name__ == "__main__":
     asyncio.run(response())
 

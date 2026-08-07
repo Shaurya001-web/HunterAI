@@ -85,6 +85,7 @@ def get_genai_client():
         )
     return genai.Client(api_key=api_key)
 
+
 @router.post("/generate")
 async def generate_resume_draft(req: GenerateResumeRequest, current_user=Depends(get_current_user)):
     client = get_genai_client()
