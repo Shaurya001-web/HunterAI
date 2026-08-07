@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException, Depends, BackgroundTasks
 from sqlalchemy.orm import Session
-from sqlalchemy import or_
+from sqlalchemy import or_, cast, String
 from engine.matching_engine import rank_jobs
 from scrapers.internshala_scraper import scrape_internshala
 from scrapers.naukri_scraper import scrape_naukri
@@ -102,7 +102,7 @@ def get_matches(
         scrape_keyword = keyword
         if not scrape_keyword and profile.skills:
             top_skill = profile.skills[0]
-            matching_jobs_count = db.query(Job).filter(Job.skills.ilike(f"%{top_skill}%")).count()
+            matching_jobs_count = db.query(Job).filter(cast(Job.skills, String).ilike(f"%{top_skill}%")).count()
             if matching_jobs_count < 10 or db.query(Job).filter(Job.source == "Naukri").count() < 3:
                 scrape_keyword = top_skill
                 
@@ -118,7 +118,7 @@ def get_matches(
             safe_keyword = keyword.replace("%", "\\%").replace("_", "\\_")
             query = query.filter(or_(
                 Job.title.ilike(f"%{safe_keyword}%"),
-                Job.skills.ilike(f"%{safe_keyword}%")
+                cast(Job.skills, String).ilike(f"%{safe_keyword}%")
             ))
             
         if remote_only:
