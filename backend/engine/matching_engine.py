@@ -231,8 +231,8 @@ def calculate_selection_probability_penalty(user_profile: Dict[str, Any], job: D
 def evaluate_suitability(user_profile: Dict[str, Any], job: Dict[str, Any], keyword: Optional[str] = None) -> Dict[str, Any]:
     """
     Evaluates candidate suitability for a job based on an industry-standard ATS scoring algorithm (100 points max).
-    - Keyword Match: 45%
-    - Strict Skills Match: 25%
+    - Strict Skills Match: 45%
+    - Keyword Match: 25%
     - Work Experience / Project Relevance: 15%
     - Education & Certifications: 10%
     - Resume Formatting / Completeness: 5%
@@ -240,9 +240,9 @@ def evaluate_suitability(user_profile: Dict[str, Any], job: Dict[str, Any], keyw
     user_skills = user_profile.get("skills", [])
     job_skills = job.get("required_skills", [])
     
-    # 2. Strict Skills Match (25 points max)
+    # 2. Strict Skills Match (45 points max)
     match_result = calculate_match(user_skills, job_skills)
-    skills_score = (match_result["match_score"] / 100.0) * 25.0
+    skills_score = (match_result["match_score"] / 100.0) * 45.0
     
     # Extract keywords from job for keyword matching
     job_title = str(job.get("job_title", "")).lower()
@@ -294,7 +294,7 @@ def evaluate_suitability(user_profile: Dict[str, Any], job: Dict[str, Any], keyw
             
     num_matched_projects = len(matched_projects)
     
-    # 1. Keyword Match (45 points max)
+    # 1. Keyword Match (25 points max)
     # Check how many job keywords appear in user's profile text
     user_text_str = " ".join(user_text)
     keyword_hits = 0
@@ -303,9 +303,9 @@ def evaluate_suitability(user_profile: Dict[str, Any], job: Dict[str, Any], keyw
         for kw in valid_job_keywords:
             if kw in user_text_str:
                 keyword_hits += 1
-        keyword_score = (keyword_hits / len(valid_job_keywords)) * 45.0
+        keyword_score = (keyword_hits / len(valid_job_keywords)) * 25.0
     else:
-        keyword_score = 45.0 # If no valid keywords, give benefit of doubt
+        keyword_score = 25.0 # If no valid keywords, give benefit of doubt
         
     # 3. Work Experience / Project Relevance (15 points max)
     experience = user_profile.get("experience", [])

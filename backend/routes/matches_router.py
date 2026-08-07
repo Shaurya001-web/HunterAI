@@ -1,5 +1,6 @@
 from fastapi import APIRouter, HTTPException, Depends
 from sqlalchemy.orm import Session
+from sqlalchemy import or_
 from engine.matching_engine import rank_jobs
 from scrapers.internshala_scraper import scrape_internshala
 from scrapers.naukri_scraper import scrape_naukri
@@ -20,6 +21,8 @@ def get_matches(
     remote_only: bool = False,
     stipend_min: Optional[int] = None,
     duration_max: Optional[int] = None,
+    sources: Optional[str] = None,
+    job_types: Optional[str] = None,
     email: Optional[str] = None,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
@@ -53,11 +56,14 @@ def get_matches(
         # 2. Collect jobs (either scraping or querying existing)
         scrape_keyword = keyword
         
-        # If no keyword was searched, but the database is empty, auto-scrape using their top skill
-        # so they don't see an empty page on first login.
-        if not scrape_keyword and db.query(Job).count() < 10 and profile.skills:
-            scrape_keyword = profile.skills[0]
-
+        # If no keyword was searched, check if we have jobs matching their new top skill
+        if not scrape_keyword and profile.skills:
+            top_skill = profile.skills[0]
+            matching_jobs_count = db.query(Job).filter(Job.skills.ilike(f"%{top_skill}%")).count()
+            
+            # Auto-scrape if we lack jobs for their skill or lack multi-source diversity
+            if matching_jobs_count < 10 or db.query(Job).filter(Job.source == "Naukri").count() < 3:
+                scrape_keyword = top_skill
         if scrape_keyword:
             scraped_jobs = []
             
@@ -122,7 +128,28 @@ def get_matches(
         if duration_max:
             query = query.filter(Job.duration_months > 0, Job.duration_months <= duration_max)
             
-        db_jobs = query.all()
+        if sources:
+            source_list = [s.strip() for s in sources.split(",") if s.strip()]
+            if source_list:
+                query = query.filter(Job.source.in_(source_list))
+                
+        if job_types:
+            type_list = [t.strip().lower() for t in job_types.split(",") if t.strip()]
+            if type_list:
+                conditions = []
+                if "internship" in type_list:
+                    conditions.append(Job.title.ilike("%intern%"))
+                if "full time" in type_list:
+                    conditions.append(Job.title.ilike("%full time%"))
+                    conditions.append(Job.title.ilike("%developer%"))
+                    conditions.append(Job.title.ilike("%engineer%"))
+                if "part time" in type_list:
+                    conditions.append(Job.title.ilike("%part time%"))
+                
+                if conditions:
+                    query = query.filter(or_(*conditions))
+            
+        db_jobs = query.order_by(Job.id.desc()).limit(200).all()
         
         # Map database jobs back to engine representation
         engine_jobs = []

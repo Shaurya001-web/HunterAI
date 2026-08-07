@@ -375,6 +375,8 @@ export default function RecommendationsPage() {
   const [remoteOnly, setRemoteOnly] = useState(false);
   const [stipendMin, setStipendMin] = useState<number | "">("");
   const [durationMax, setDurationMax] = useState<number | "">("");
+  const [sources, setSources] = useState<string[]>([]);
+  const [jobTypes, setJobTypes] = useState<string[]>([]);
 
   const fetchMatches = async (email: string, keyword?: string) => {
     setLoading(true);
@@ -386,7 +388,9 @@ export default function RecommendationsPage() {
         location || undefined,
         remoteOnly,
         stipendMin === "" ? undefined : stipendMin,
-        durationMax === "" ? undefined : durationMax
+        durationMax === "" ? undefined : durationMax,
+        sources.length > 0 ? sources.join(",") : undefined,
+        jobTypes.length > 0 ? jobTypes.join(",") : undefined
       );
       setMatches(data || []);
     } catch (e: unknown) {
@@ -601,8 +605,10 @@ export default function RecommendationsPage() {
               setRemoteOnly(false);
               setStipendMin("");
               setDurationMax("");
+              setSources([]);
+              setJobTypes([]);
               setMinScore(0);
-              api.getMatches(selectedEmail, "").then(setMatches).catch(e => setError(e.message)); 
+              api.getMatches(selectedEmail, "", undefined, false, undefined, undefined, undefined, undefined).then(setMatches).catch(e => setError(e.message)); 
             }}
             className="dashboard-filter-button"
             style={{ background: "transparent", border: "none" }}
@@ -651,6 +657,38 @@ export default function RecommendationsPage() {
               className="input-base"
               style={{ background: "var(--bg-elevated)", border: "1px solid var(--border)", borderRadius: "8px", padding: "8px 12px", fontSize: "13px" }}
             />
+          </div>
+
+          {/* Source Filter */}
+          <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+            <label style={{ fontSize: "12px", fontWeight: 600, color: "var(--text-secondary)" }}>Platform</label>
+            <select
+              value={sources[0] || ""}
+              onChange={(e) => setSources(e.target.value ? [e.target.value] : [])}
+              className="input-base"
+              style={{ background: "var(--bg-elevated)", border: "1px solid var(--border)", borderRadius: "8px", padding: "8px 12px", fontSize: "13px", height: "35px" }}
+            >
+              <option value="">All</option>
+              <option value="LinkedIn">LinkedIn</option>
+              <option value="Naukri">Naukri</option>
+              <option value="Internshala">Internshala</option>
+            </select>
+          </div>
+
+          {/* Job Type */}
+          <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+            <label style={{ fontSize: "12px", fontWeight: 600, color: "var(--text-secondary)" }}>Job Type</label>
+            <select
+              value={jobTypes[0] || ""}
+              onChange={(e) => setJobTypes(e.target.value ? [e.target.value] : [])}
+              className="input-base"
+              style={{ background: "var(--bg-elevated)", border: "1px solid var(--border)", borderRadius: "8px", padding: "8px 12px", fontSize: "13px", height: "35px" }}
+            >
+              <option value="">All</option>
+              <option value="Full Time">Full Time</option>
+              <option value="Internship">Internship</option>
+              <option value="Part Time">Part Time</option>
+            </select>
           </div>
 
           {/* Remote Only */}

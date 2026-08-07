@@ -17,10 +17,6 @@ class UserProfile(BaseModel):
     projects: list
     education: list
     experience: list
-
-# LLM initialization is moved inside parse_resume_to_json to make it lazy-loaded.
-
-
 def extract_text(pdf_path: str) -> str:
     with fitz.open(pdf_path) as doc:
         text=""
@@ -28,7 +24,52 @@ def extract_text(pdf_path: str) -> str:
             page = doc.load_page(page_num)
             text += str(page.get_text())
         return text
-
+def extract_profile_regex(text: str) -> dict:
+    import re
+    
+    email_match = re.search(r'[\w\.-]+@[\w\.-]+\.\w+', text)
+    extracted_email = email_match.group(0) if email_match else "candidate@example.com"
+    
+    phone_match = re.search(r'[\+]?[(]?[0-9]{3}[)]?[-\s\.]?[0-9]{3}[-\s\.]?[0-9]{4,6}', text)
+    extracted_phone = phone_match.group(0) if phone_match else ""
+    
+    lines = [l.strip() for l in text.splitlines() if l.strip()]
+    extracted_name = lines[0] if lines else "Candidate"
+    if len(extracted_name) > 40:
+        extracted_name = "Candidate"
+    
+    extracted_skills = []
+    skills_section_match = re.search(r'(?i)(?:skills|expertise|competencies)[:\n]+(.*?)(?=\n\n|\n[A-Z\s]{4,}:|\Z)', text, re.DOTALL)
+    if skills_section_match:
+        raw_skills = skills_section_match.group(1)
+        extracted_skills = [s.strip("•-*\t ") for s in re.split(r'[\n,•|\/]', raw_skills) if s.strip("•-*\t ") and len(s.strip()) < 35]
+    
+    if not extracted_skills:
+        common_skills = [
+            "Project Management", "Public Relations", "Teamwork", "Time Management", "Leadership",
+            "Effective Communication", "Critical Thinking", "Marketing", "Human Resources", "Sales",
+            "SEO", "Customer Relations", "Strategic Planning", "Digital Marketing", "Content Creation",
+            "Python", "React", "JavaScript", "TypeScript", "HTML", "CSS", "SQL", "Java", "C++"
+        ]
+        text_lower = text.lower()
+        for sk in common_skills:
+            if re.search(r'\b' + re.escape(sk.lower()) + r'\b', text_lower):
+                extracted_skills.append(sk)
+    return {
+        "name": extracted_name,
+        "email": extracted_email,
+        "phone": extracted_phone,
+        "skills": extracted_skills,
+        "projects": [
+            {
+                "title": "Resume Document",
+                "description": text[:200] if text else "Uploaded resume document",
+                "technologies": extracted_skills[:3]
+            }
+        ] if text else [],
+        "education": [],
+        "experience": []
+    }
 async def parse_resume_to_json(pdf_path: str) -> dict:
     text = extract_text(pdf_path)
     prompt_text = f"""
@@ -92,60 +133,8 @@ Resume Text:
             res = await asyncio.wait_for(llm_model.ainvoke(prompt_text), timeout=15.0)
             json_text = res.content
         except Exception as gemini_err:
-            if not os.getenv("GROQ_API_KEY") and not os.getenv("GOOGLE_API_KEY"):
-                print("No LLM API keys found in backend/config/.env. Using extracted text profile fallback.")
-                import re
-                
-                # Dynamic email extraction
-                email_match = re.search(r'[\w\.-]+@[\w\.-]+\.\w+', text)
-                extracted_email = email_match.group(0) if email_match else "candidate@example.com"
-                
-                # Dynamic phone extraction
-                phone_match = re.search(r'[\+]?[(]?[0-9]{3}[)]?[-\s\.]?[0-9]{3}[-\s\.]?[0-9]{4,6}', text)
-                extracted_phone = phone_match.group(0) if phone_match else ""
-                
-                # Dynamic name extraction (first non-empty line)
-                lines = [l.strip() for l in text.splitlines() if l.strip()]
-                extracted_name = lines[0] if lines else "Candidate"
-                if len(extracted_name) > 40:
-                    extracted_name = "Candidate"
-                
-                # Dynamic skills extraction from text
-                extracted_skills = []
-                skills_section_match = re.search(r'(?i)(?:skills|expertise|competencies)[:\n]+(.*?)(?=\n\n|\n[A-Z\s]{4,}:|\Z)', text, re.DOTALL)
-                if skills_section_match:
-                    raw_skills = skills_section_match.group(1)
-                    extracted_skills = [s.strip("•-*\t ") for s in re.split(r'[\n,•|\/]', raw_skills) if s.strip("•-*\t ") and len(s.strip()) < 35]
-                
-                # Known skills keyword match fallback if section parsing produced nothing
-                if not extracted_skills:
-                    common_skills = [
-                        "Project Management", "Public Relations", "Teamwork", "Time Management", "Leadership",
-                        "Effective Communication", "Critical Thinking", "Marketing", "Human Resources", "Sales",
-                        "SEO", "Customer Relations", "Strategic Planning", "Digital Marketing", "Content Creation",
-                        "Python", "React", "JavaScript", "TypeScript", "HTML", "CSS", "SQL", "Java", "C++"
-                    ]
-                    text_lower = text.lower()
-                    for sk in common_skills:
-                        if re.search(r'\b' + re.escape(sk.lower()) + r'\b', text_lower):
-                            extracted_skills.append(sk)
-                
-                return {
-                    "name": extracted_name,
-                    "email": extracted_email,
-                    "phone": extracted_phone,
-                    "skills": extracted_skills,
-                    "projects": [
-                        {
-                            "title": "Resume Document",
-                            "description": text[:200] if text else "Uploaded resume document",
-                            "technologies": extracted_skills[:3]
-                        }
-                    ] if text else [],
-                    "education": [],
-                    "experience": []
-                }
-            raise Exception(f"Gemini Rate Limit Hit. Groq fallback also failed: {groq_err}. Please check your API keys.")
+            print(f"Gemini fallback failed: {gemini_err}. Using extracted text profile fallback.")
+            return extract_profile_regex(text)
 
     if json_text:
         cleaned_json = str(json_text).strip()
@@ -166,9 +155,11 @@ Resume Text:
             return data
         except json.JSONDecodeError as e:
             print(f"JSONDecodeError: {e}\nRaw LLM output: {json_text}")
-            raise ValueError(f"Failed to decode JSON. LLM returned invalid JSON. Error: {e}")
+            print("LLM returned invalid JSON. Using regex fallback.")
+            return extract_profile_regex(text)
             
-    raise ValueError("No response from LLM model")
+    print("No response from LLM model. Using regex fallback.")
+    return extract_profile_regex(text)
 
 def get_default_resume_path():
     return os.path.join(project_root, "data", "uploads", "resume", "25bai70051_shauryamishra.pdf")

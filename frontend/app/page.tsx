@@ -9,6 +9,7 @@ import { AuthModal } from '@/components/auth/AuthModal';
 import CountUp from '@/components/shared/CountUp';
 import VariableProximity from '@/components/shared/VariableProximity';
 import CurvedLoop from '@/components/shared/CurvedLoop';
+import RoleTyper from '@/components/shared/RoleTyper';
 import { User } from 'lucide-react';
 
 // Register GSAP Plugin on client side
@@ -92,11 +93,19 @@ function DashboardMock({ countersActive }: { countersActive: boolean }) {
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[.16em] text-[var(--stone)]">career signal</p>
-            <h2 className="mt-2 text-2xl font-semibold tracking-[-.03em] md:text-3xl">Shaurya Mishra</h2>
-          </div>
-          <div className="flex items-center gap-2 text-xs">
-            <span className="rounded-full border border-[var(--line)] bg-white px-3 py-2">Q4 roles</span>
-            <span className="rounded-full bg-[var(--black)] px-3 py-2 text-white">Live</span>
+            <RoleTyper 
+              className="text-2xl font-semibold tracking-[-.03em] md:text-3xl"
+              roles={[
+                "Software Engineer",
+                "UI/UX Designer",
+                "Product Manager",
+                "Data Scientist",
+                "DevOps Engineer",
+                "AI Engineer",
+                "Full Stack Developer",
+                "Backend Engineer"
+              ]} 
+            />
           </div>
         </div>
 

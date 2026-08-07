@@ -67,7 +67,9 @@ export const api = {
     location?: string, 
     remoteOnly?: boolean, 
     stipendMin?: number, 
-    durationMax?: number
+    durationMax?: number,
+    sources?: string,
+    jobTypes?: string
   ) => {
     let url = `${BASE_URL}/matches`;
     const params = new URLSearchParams();
@@ -77,6 +79,8 @@ export const api = {
     if (remoteOnly) params.append("remote_only", "true");
     if (stipendMin) params.append("stipend_min", stipendMin.toString());
     if (durationMax) params.append("duration_max", durationMax.toString());
+    if (sources) params.append("sources", sources);
+    if (jobTypes) params.append("job_types", jobTypes);
     
     if (params.toString()) {
       url += `?${params.toString()}`;

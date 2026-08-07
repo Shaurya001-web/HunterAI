@@ -4,6 +4,7 @@ import urllib.parse
 from typing import List, Dict, Any
 from engine.constraint_extractor import extract_job_constraints
 
+
 HEADERS = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
     "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
@@ -28,7 +29,6 @@ def scrape_linkedin(search_query: str, limit: int = 15) -> List[Dict[str, Any]]:
             
         soup = BeautifulSoup(response.text, 'html.parser')
         
-        # LinkedIn public search results usually use base-card class
         job_cards = soup.find_all('div', class_='base-card')
         if not job_cards:
             job_cards = soup.find_all('li', class_='jobs-search-results__list-item')
@@ -54,10 +54,6 @@ def scrape_linkedin(search_query: str, limit: int = 15) -> List[Dict[str, Any]]:
             
             if not link:
                 continue
-                
-            # LinkedIn public search cards don't have descriptions/skills easily available
-            # without fetching the detail page, but doing so triggers IP bans fast.
-            # We will use the search query as the primary skill, and a generic description.
             skills = [search_query.capitalize()]
             stipend = "Not Disclosed"
             duration = "Not specified"

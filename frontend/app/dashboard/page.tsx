@@ -538,7 +538,7 @@ export default function Dashboard() {
               </button>
             </div>
 
-            <div style={{ overflowY: "auto", flex: "1 1 0%", minHeight: 0 }}>
+            <div style={{ overflowY: "auto", flex: "1 1 0%", minHeight: 0, paddingRight: "4px", paddingBottom: "12px" }}>
               {loading ? (
                 <div style={{ padding: "40px 24px", textAlign: "center", color: "var(--text-muted)", fontSize: "14px" }}>
                   Evaluating opportunities...
@@ -554,19 +554,19 @@ export default function Dashboard() {
                         padding: "20px 24px",
                         borderBottom: "1px solid var(--border)",
                         display: "grid",
-                        gridTemplateColumns: "1fr 80px 100px 80px",
+                        gridTemplateColumns: "minmax(200px, 1.5fr) 70px 120px 80px",
                         alignItems: "center",
                         gap: "16px",
                         cursor: "pointer",
                         transition: "background 0.15s",
                       }}
                     >
-                      <div>
-                        <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
-                          <p style={{ fontWeight: 700, fontSize: "14.5px", color: "var(--text-primary)", margin: 0 }}>
-                            {match.job_title}
-                          </p>
-                          {match.source && (
+                      <div style={{ display: "flex", flexDirection: "column", gap: "8px", minWidth: 0 }}>
+                        <p style={{ fontWeight: 700, fontSize: "14.5px", color: "var(--text-primary)", margin: 0 }}>
+                          {match.job_title}
+                        </p>
+                        {match.source && (
+                          <div style={{ alignSelf: "flex-start" }}>
                             <span
                               style={{
                                 fontSize: "10px",
@@ -580,9 +580,9 @@ export default function Dashboard() {
                             >
                               {match.source}
                             </span>
-                          )}
-                        </div>
-                        <p style={{ fontSize: "13px", color: "var(--text-muted)", margin: "4px 0 8px" }}>
+                          </div>
+                        )}
+                        <p style={{ fontSize: "13px", color: "var(--text-muted)", margin: 0 }}>
                           {[match.company, match.location, match.duration].filter(Boolean).join(" · ") || "Details on application"}
                         </p>
                         <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
@@ -615,7 +615,7 @@ export default function Dashboard() {
                       </div>
 
                       {/* Actions */}
-                      <div style={{ display: "flex", alignItems: "center", gap: "6px" }} onClick={(e) => e.stopPropagation()}>
+                      <div style={{ display: "flex", alignItems: "center", gap: "6px", justifyContent: "flex-end" }} onClick={(e) => e.stopPropagation()}>
                         {match.id && (
                           <button
                             type="button"
