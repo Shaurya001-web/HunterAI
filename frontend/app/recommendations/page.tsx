@@ -66,118 +66,104 @@ function JobCard({
   isSaved: boolean;
   onToggleSave: () => void;
 }) {
-
   return (
     <div
-      className="glass-panel glass-card-hover"
+      className="dashboard-panel"
       style={{
-        padding: "28px",
+        padding: "24px",
         display: "flex",
         flexDirection: "column",
-        gap: "18px",
+        gap: "16px",
+        transition: "transform 0.2s ease, box-shadow 0.2s ease",
       }}
     >
       {/* Top row */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "12px" }}>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <h3
-            style={{
-              fontFamily: "var(--font-display)",
-              fontSize: "18px",
-              fontWeight: 700,
-              color: "var(--text-primary)",
-              marginBottom: "4px",
-              overflow: "hidden",
-              textOverflow: "ellipsis",
-              whiteSpace: "nowrap",
-            }}
-          >
-            {renderJobTitle(match.job_title)}
-          </h3>
-          <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap", marginTop: "4px" }}>
-            <span style={{ fontSize: "13px", color: "var(--text-secondary)", fontWeight: 500 }}>
-              {match.company || "Unknown Company"}
-            </span>
+          <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap", marginBottom: "4px" }}>
+            <h3
+              style={{
+                fontFamily: "var(--font-display)",
+                fontSize: "18px",
+                fontWeight: 700,
+                color: "var(--text-primary)",
+                margin: 0,
+                lineHeight: 1.25,
+              }}
+            >
+              {match.job_title}
+            </h3>
             {match.source && (
               <span
                 style={{
                   fontSize: "10px",
-                  fontWeight: 700,
-                  fontFamily: "var(--font-mono)",
-                  padding: "1px 6px",
-                  borderRadius: "4px",
-                  background:
-                    match.source === "LinkedIn"
-                      ? "rgba(10, 102, 194, 0.12)"
-                      : match.source === "Wellfound"
-                      ? "rgba(255, 0, 127, 0.12)"
-                      : "rgba(0, 214, 143, 0.12)",
-                  color:
-                    match.source === "LinkedIn"
-                      ? "#0a66c2"
-                      : match.source === "Wellfound"
-                      ? "#ff007f"
-                      : "#00d68f",
-                  border: `1px solid ${
-                    match.source === "LinkedIn"
-                      ? "rgba(10, 102, 194, 0.2)"
-                      : match.source === "Wellfound"
-                      ? "rgba(255, 0, 127, 0.2)"
-                      : "rgba(0, 214, 143, 0.2)"
-                  }`,
+                  fontWeight: 800,
+                  textTransform: "uppercase",
+                  padding: "2px 8px",
+                  borderRadius: "6px",
+                  background: "#ffffff",
+                  color: "var(--text-secondary)",
+                  border: "1px solid rgba(0,0,0,0.08)",
                 }}
               >
                 {match.source}
               </span>
             )}
           </div>
+          <p style={{ fontSize: "13.5px", color: "var(--text-muted)", margin: 0, fontWeight: 500 }}>
+            {match.company || "Company details available on application"}
+          </p>
         </div>
+
+        {/* Action & Score */}
         <div style={{ display: "flex", alignItems: "center", gap: "10px", flexShrink: 0 }}>
           <button
+            type="button"
             onClick={(e) => {
               e.stopPropagation();
               onToggleSave();
             }}
+            className="dashboard-icon-button"
             style={{
-              background: isSaved ? "var(--accent-light)" : "transparent",
-              border: `1px solid ${isSaved ? "var(--accent-border)" : "var(--border)"}`,
-              borderRadius: "50%",
-              width: "32px",
-              height: "32px",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              cursor: "pointer",
-              color: isSaved ? "var(--accent)" : "var(--text-muted)",
-              transition: "all 0.2s",
+              background: isSaved ? "#ffffff" : "rgba(251, 251, 250, 0.66)",
+              color: isSaved ? "var(--text-primary)" : "var(--text-secondary)",
             }}
             title={isSaved ? "Unsave Internship" : "Save Internship"}
           >
             <Bookmark size={15} fill={isSaved ? "currentColor" : "none"} />
           </button>
-          <ScoreRing score={match.score} size={56} />
+          
+          <div style={{ textAlign: "right" }}>
+            <span style={{ fontSize: "24px", fontWeight: 800, color: "var(--text-primary)", letterSpacing: "-0.03em" }}>
+              {Math.round(match.score || 0)}%
+            </span>
+            <span style={{ display: "block", fontSize: "10px", fontWeight: 700, textTransform: "uppercase", color: "var(--text-muted)", letterSpacing: "0.05em" }}>
+              Match
+            </span>
+          </div>
         </div>
       </div>
 
-      {/* Meta info */}
-      <div style={{ display: "flex", flexWrap: "wrap", gap: "12px" }}>
+      {/* Meta info chips */}
+      <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
         {[
-          { icon: <MapPin size={12} color="var(--accent)" />, text: match.location || "Remote" },
-          { icon: <DollarSign size={12} color="#00d68f" />, text: match.stipend || "Negotiable" },
-          ...(match.duration ? [{ icon: <Calendar size={12} color="#00b4d8" />, text: match.duration }] : []),
+          { icon: <MapPin size={12} />, text: match.location || "Remote" },
+          { icon: <DollarSign size={12} />, text: match.stipend || "Negotiable" },
+          ...(match.duration ? [{ icon: <Calendar size={12} />, text: match.duration }] : []),
         ].map((item, i) => (
           <div
             key={i}
             style={{
               display: "flex",
               alignItems: "center",
-              gap: "5px",
+              gap: "6px",
               fontSize: "12px",
+              fontWeight: 600,
               color: "var(--text-secondary)",
-              background: "var(--bg-elevated)",
+              background: "rgba(255, 255, 255, 0.7)",
               padding: "4px 10px",
-              borderRadius: "20px",
-              border: "1px solid var(--border)",
+              borderRadius: "999px",
+              border: "1px solid rgba(255, 255, 255, 0.8)",
             }}
           >
             {item.icon}
@@ -190,31 +176,18 @@ function JobCard({
       {match.suitability_assessment && (
         <div
           style={{
-            padding: "10px 12px",
-            borderRadius: "10px",
-            background:
-              match.suitability_level === "highly_suited"
-                ? "rgba(0, 214, 143, 0.05)"
-                : match.suitability_level === "partially_suited"
-                ? "rgba(255, 209, 102, 0.05)"
-                : "rgba(255, 77, 109, 0.05)",
-            border: `1px solid ${
-              match.suitability_level === "highly_suited"
-                ? "rgba(0, 214, 143, 0.15)"
-                : match.suitability_level === "partially_suited"
-                ? "rgba(255, 209, 102, 0.15)"
-                : "rgba(255, 77, 109, 0.15)"
-            }`,
-            fontSize: "12px",
-            color:
-              match.suitability_level === "highly_suited"
-                ? "#00d68f"
-                : match.suitability_level === "partially_suited"
-                ? "#ffd166"
-                : "#ff4d6d",
+            padding: "12px 14px",
+            borderRadius: "12px",
+            background: "rgba(0, 0, 0, 0.03)",
+            border: "1px solid rgba(0, 0, 0, 0.05)",
+            fontSize: "12.5px",
+            color: "var(--text-secondary)",
             lineHeight: 1.5,
           }}
         >
+          <span style={{ fontWeight: 700, color: "var(--text-primary)", display: "block", marginBottom: "2px" }}>
+            Suitability Assessment
+          </span>
           {match.suitability_assessment}
         </div>
       )}
@@ -223,14 +196,27 @@ function JobCard({
       {match.matched_projects && match.matched_projects.length > 0 && (
         <div>
           <div style={{ display: "flex", alignItems: "center", gap: "5px", marginBottom: "6px" }}>
-            <Sparkles size={11} color="var(--accent)" />
-            <span style={{ fontSize: "10px", fontWeight: 700, color: "var(--accent)", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+            <Sparkles size={12} color="var(--text-primary)" />
+            <span style={{ fontSize: "11px", fontWeight: 700, color: "var(--text-secondary)", textTransform: "uppercase", letterSpacing: "0.05em" }}>
               Matched Resume Projects ({match.matched_projects.length})
             </span>
           </div>
-          <div style={{ display: "flex", flexWrap: "wrap", gap: "5px" }}>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
             {match.matched_projects.map((p, i) => (
-              <span key={i} className="skill-pill skill-pill-neutral" style={{ fontSize: "10.5px" }}>{p}</span>
+              <span
+                key={i}
+                style={{
+                  fontSize: "11px",
+                  fontWeight: 600,
+                  padding: "3px 9px",
+                  borderRadius: "6px",
+                  background: "#ffffff",
+                  color: "var(--text-primary)",
+                  border: "1px solid rgba(0,0,0,0.06)",
+                }}
+              >
+                {p}
+              </span>
             ))}
           </div>
         </div>
@@ -240,30 +226,56 @@ function JobCard({
       <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
         {match.matched_skills?.length > 0 && (
           <div>
-            <div style={{ display: "flex", alignItems: "center", gap: "5px", marginBottom: "7px" }}>
-              <CheckCircle2 size={12} color="#00d68f" />
-              <span style={{ fontSize: "11px", fontWeight: 700, color: "#00d68f", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "5px", marginBottom: "6px" }}>
+              <CheckCircle2 size={12} color="#16a34a" />
+              <span style={{ fontSize: "11px", fontWeight: 700, color: "#166534", textTransform: "uppercase", letterSpacing: "0.05em" }}>
                 Matched Skills ({match.matched_skills.length})
               </span>
             </div>
-            <div style={{ display: "flex", flexWrap: "wrap", gap: "5px" }}>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
               {match.matched_skills.map((s, i) => (
-                <span key={i} className="skill-pill skill-pill-matched">{s}</span>
+                <span
+                  key={i}
+                  style={{
+                    fontSize: "11.5px",
+                    fontWeight: 600,
+                    padding: "3px 9px",
+                    borderRadius: "6px",
+                    background: "#f0fdf4",
+                    color: "#166534",
+                    border: "1px solid #bbf7d0",
+                  }}
+                >
+                  {s}
+                </span>
               ))}
             </div>
           </div>
         )}
         {match.missing_skills?.length > 0 && (
           <div>
-            <div style={{ display: "flex", alignItems: "center", gap: "5px", marginBottom: "7px" }}>
-              <AlertCircle size={12} color="#ff4d6d" />
-              <span style={{ fontSize: "11px", fontWeight: 700, color: "#ff4d6d", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "5px", marginBottom: "6px" }}>
+              <AlertCircle size={12} color="var(--text-muted)" />
+              <span style={{ fontSize: "11px", fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.05em" }}>
                 Missing Skills ({match.missing_skills.length})
               </span>
             </div>
-            <div style={{ display: "flex", flexWrap: "wrap", gap: "5px" }}>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
               {match.missing_skills.map((s, i) => (
-                <span key={i} className="skill-pill skill-pill-missing">{s}</span>
+                <span
+                  key={i}
+                  style={{
+                    fontSize: "11.5px",
+                    fontWeight: 600,
+                    padding: "3px 9px",
+                    borderRadius: "6px",
+                    background: "rgba(0, 0, 0, 0.04)",
+                    color: "var(--text-secondary)",
+                    border: "1px solid rgba(0, 0, 0, 0.06)",
+                  }}
+                >
+                  {s}
+                </span>
               ))}
             </div>
           </div>
@@ -271,7 +283,7 @@ function JobCard({
       </div>
 
       {/* Apply and Tailor buttons */}
-      <div style={{ borderTop: "1px solid var(--border)", paddingTop: "14px", marginTop: "auto", display: "flex", flexDirection: "column", gap: "8px" }}>
+      <div style={{ borderTop: "1px solid var(--border)", paddingTop: "16px", marginTop: "auto", display: "flex", flexDirection: "column", gap: "8px" }}>
         {match.url ? (
           <a
             href={match.url}
@@ -281,42 +293,40 @@ function JobCard({
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              gap: "7px",
+              gap: "8px",
               textDecoration: "none",
               fontWeight: 700,
               fontSize: "13.5px",
-              color: "white",
-              padding: "11px",
-              borderRadius: "10px",
-              background: "linear-gradient(135deg, #6c5ce7, #8b5cf6)",
-              boxShadow: "0 2px 10px rgba(108,92,231,0.25)",
-              transition: "opacity 0.2s",
+              color: "#ffffff",
+              padding: "12px",
+              borderRadius: "999px",
+              background: "var(--text-primary)",
+              boxShadow: "0 4px 14px rgba(5, 5, 5, 0.12)",
+              transition: "transform 0.15s ease, opacity 0.15s ease",
             }}
-            onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.opacity = "0.85"; }}
-            onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.opacity = "1"; }}
           >
-            Apply on {match.source || "Internshala"} <ExternalLink size={13} />
+            Apply on {match.source || "Internshala"} <ExternalLink size={14} />
           </a>
         ) : (
           <button
+            type="button"
             style={{
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              gap: "7px",
+              gap: "8px",
               width: "100%",
-              fontWeight: 600,
+              fontWeight: 700,
               fontSize: "13.5px",
-              color: "var(--text-secondary)",
-              padding: "11px",
-              borderRadius: "10px",
-              background: "var(--bg-elevated)",
-              border: "1px solid var(--border)",
+              color: "#ffffff",
+              padding: "12px",
+              borderRadius: "999px",
+              background: "var(--text-primary)",
+              border: "none",
               cursor: "pointer",
-              fontFamily: "var(--font-body)",
             }}
           >
-            Quick Apply <ExternalLink size={13} />
+            Quick Apply <ExternalLink size={14} />
           </button>
         )}
         
@@ -327,25 +337,19 @@ function JobCard({
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              gap: "7px",
+              gap: "8px",
               textDecoration: "none",
               fontWeight: 700,
               fontSize: "13.5px",
-              color: "#00b4d8",
+              color: "var(--text-primary)",
               padding: "11px",
-              borderRadius: "10px",
-              border: "1px solid rgba(0, 180, 216, 0.3)",
-              background: "rgba(0, 180, 216, 0.05)",
-              transition: "all 0.2s",
-            }}
-            onMouseEnter={(e) => { 
-              (e.currentTarget as HTMLElement).style.background = "rgba(0, 180, 216, 0.15)"; 
-            }}
-            onMouseLeave={(e) => { 
-              (e.currentTarget as HTMLElement).style.background = "rgba(0, 180, 216, 0.05)"; 
+              borderRadius: "999px",
+              border: "1px solid rgba(0, 0, 0, 0.12)",
+              background: "#ffffff",
+              transition: "background-color 0.15s ease",
             }}
           >
-            <Wand2 size={13} /> Tailor Resume for this Job
+            <Wand2 size={14} /> Tailor Resume for this Job
           </a>
         )}
       </div>
@@ -394,13 +398,13 @@ export default function RecommendationsPage() {
   };
 
   const fetchSaved = async () => {
-    if (user) {
-      try {
-        const saved = await api.getSavedInternships();
-        setSavedJobIds(saved.map((s: { id: number }) => s.id));
-      } catch (e) {
-        console.error("Failed to load saved jobs:", e);
+    try {
+      const saved = await api.getSavedInternships().catch(() => []);
+      if (Array.isArray(saved)) {
+        setSavedJobIds(saved.map((s: { id: number }) => s.id).filter((id) => typeof id === "number"));
       }
+    } catch (e) {
+      console.error("Failed to load saved jobs:", e);
     }
   };
 
@@ -537,60 +541,56 @@ export default function RecommendationsPage() {
       </div>
 
       {/* Search + Filter bar */}
-      <div style={{ marginBottom: "32px" }}>
+      <div style={{ marginBottom: "28px" }}>
         <form
           onSubmit={handleSearchSubmit}
-          className="glass-light"
+          className="dashboard-panel"
           style={{
             padding: "16px 24px",
             display: "flex",
             gap: "12px",
             alignItems: "center",
             flexWrap: "wrap",
-            borderRadius: 24,
-            border: "1px solid var(--border)",
           }}
         >
-          <div style={{ position: "relative", flex: "1 1 220px" }}>
-            <Search size={14} color="var(--text-muted)" style={{ position: "absolute", left: "12px", top: "50%", transform: "translateY(-50%)" }} />
+          <div style={{ position: "relative", flex: "1 1 240px" }}>
+            <Search size={14} color="var(--text-muted)" style={{ position: "absolute", left: "14px", top: "50%", transform: "translateY(-50%)" }} />
             <input
               type="text"
               placeholder="Search ML, python, web dev..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="input-base"
-              style={{ paddingLeft: "36px", background: "var(--bg-surface)", border: "1px solid var(--border)", borderRadius: "12px", padding: "10px 12px 10px 36px", width: "100%", fontSize: 14 }}
+              className="dashboard-input"
+              style={{
+                width: "100%",
+                paddingLeft: "38px",
+                background: "rgba(255, 255, 255, 0.8)",
+              }}
             />
           </div>
 
           <button
             type="submit"
-            className="btn-primary"
-            style={{ display: "flex", alignItems: "center", gap: "6px", padding: "11px 20px" }}
+            className="dashboard-filter-button"
+            style={{
+              background: "var(--text-primary)",
+              color: "#ffffff",
+              borderColor: "var(--text-primary)",
+            }}
           >
-            <Search size={14} /> Search
+            <Search size={13} /> Search
           </button>
 
           <button
             type="button"
             onClick={() => setShowFilters(!showFilters)}
+            className="dashboard-filter-button"
             style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "6px",
-              background: showFilters ? "var(--accent-light)" : "var(--bg-surface)",
-              border: showFilters ? "1px solid var(--accent)" : "1px solid var(--border)",
-              borderRadius: "10px",
-              padding: "10px 16px",
-              color: showFilters ? "var(--accent)" : "var(--text-secondary)",
-              fontSize: "13px",
-              cursor: "pointer",
-              fontFamily: "var(--font-body)",
-              fontWeight: 500,
-              transition: "all 0.15s",
+              background: showFilters ? "#ffffff" : "rgba(251, 251, 250, 0.58)",
+              borderColor: showFilters ? "var(--text-primary)" : "rgba(255, 255, 255, 0.7)",
             }}
           >
-            <SlidersHorizontal size={14} /> Filters
+            <SlidersHorizontal size={13} /> Filters
           </button>
 
           <button
@@ -602,18 +602,10 @@ export default function RecommendationsPage() {
               setStipendMin("");
               setDurationMax("");
               setMinScore(0);
-              // Trigger a fetch without filters
               api.getMatches(selectedEmail, "").then(setMatches).catch(e => setError(e.message)); 
             }}
-            style={{
-              background: "none",
-              border: "none",
-              color: "var(--text-muted)",
-              fontSize: "13px",
-              cursor: "pointer",
-              fontFamily: "var(--font-body)",
-              padding: "8px 12px",
-            }}
+            className="dashboard-filter-button"
+            style={{ background: "transparent", border: "none" }}
           >
             Reset
           </button>

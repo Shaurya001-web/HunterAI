@@ -25,28 +25,28 @@ async def upload_file(
     user_upload_dir = os.path.join(upload_base_dir, current_user.id)
     os.makedirs(user_upload_dir, exist_ok=True)
     
-    # Save file always as resume.pdf for simplicity/standardization or keep original filename
-    file_path = os.path.join(user_upload_dir, "resume.pdf")
-    content = await file.read()
+    # Validate PDF format
+    if file.content_type != "application/pdf" and not (file.filename and file.filename.lower().endswith(".pdf")):
+        raise HTTPException(status_code=400, detail="Invalid file format. Only PDF files (.pdf) are allowed.")
 
+    MAX_FILE_SIZE = 5 * 1024 * 1024  # 5 MB
+    content = await file.read()
+    if len(content) > MAX_FILE_SIZE:
+        raise HTTPException(status_code=400, detail="File size exceeds maximum limit of 5MB.")
+
+    file_path = os.path.join(user_upload_dir, "resume.pdf")
     with open(file_path, "wb") as f:
         f.write(content)
 
     # Sync to Supabase Storage if configured and not in dev mock sandbox
     supabase_url = os.getenv("SUPABASE_URL") or os.getenv("NEXT_PUBLIC_SUPABASE_URL")
-    is_mock = False
-    if authorization:
-        try:
-            scheme, token = authorization.split()
-            if token.startswith("mock_token:"):
-                is_mock = True
-        except Exception:
-            pass
+    parts = authorization.split() if authorization else []
+    token = parts[1] if len(parts) > 1 else parts[0] if len(parts) == 1 else ""
+    is_mock = token.startswith("mock_token:")
 
-    if supabase_url and not is_mock and authorization:
+    if supabase_url and not is_mock and authorization and token:
         import httpx
         try:
-            scheme, token = authorization.split()
             upload_url = f"{supabase_url.rstrip('/')}/storage/v1/object/resumes/{current_user.id}/resume.pdf"
             headers = {
                 "Authorization": f"Bearer {token}",

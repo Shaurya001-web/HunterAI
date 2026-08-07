@@ -92,7 +92,60 @@ Resume Text:
             res = await asyncio.wait_for(llm_model.ainvoke(prompt_text), timeout=15.0)
             json_text = res.content
         except Exception as gemini_err:
-            raise Exception(f"Gemini Rate Limit Hit. Groq fallback also failed: {groq_err}. Please ensure GROQ_API_KEY is set in your Render environment variables.")
+            if not os.getenv("GROQ_API_KEY") and not os.getenv("GOOGLE_API_KEY"):
+                print("No LLM API keys found in backend/config/.env. Using extracted text profile fallback.")
+                import re
+                
+                # Dynamic email extraction
+                email_match = re.search(r'[\w\.-]+@[\w\.-]+\.\w+', text)
+                extracted_email = email_match.group(0) if email_match else "candidate@example.com"
+                
+                # Dynamic phone extraction
+                phone_match = re.search(r'[\+]?[(]?[0-9]{3}[)]?[-\s\.]?[0-9]{3}[-\s\.]?[0-9]{4,6}', text)
+                extracted_phone = phone_match.group(0) if phone_match else ""
+                
+                # Dynamic name extraction (first non-empty line)
+                lines = [l.strip() for l in text.splitlines() if l.strip()]
+                extracted_name = lines[0] if lines else "Candidate"
+                if len(extracted_name) > 40:
+                    extracted_name = "Candidate"
+                
+                # Dynamic skills extraction from text
+                extracted_skills = []
+                skills_section_match = re.search(r'(?i)(?:skills|expertise|competencies)[:\n]+(.*?)(?=\n\n|\n[A-Z\s]{4,}:|\Z)', text, re.DOTALL)
+                if skills_section_match:
+                    raw_skills = skills_section_match.group(1)
+                    extracted_skills = [s.strip("•-*\t ") for s in re.split(r'[\n,•|\/]', raw_skills) if s.strip("•-*\t ") and len(s.strip()) < 35]
+                
+                # Known skills keyword match fallback if section parsing produced nothing
+                if not extracted_skills:
+                    common_skills = [
+                        "Project Management", "Public Relations", "Teamwork", "Time Management", "Leadership",
+                        "Effective Communication", "Critical Thinking", "Marketing", "Human Resources", "Sales",
+                        "SEO", "Customer Relations", "Strategic Planning", "Digital Marketing", "Content Creation",
+                        "Python", "React", "JavaScript", "TypeScript", "HTML", "CSS", "SQL", "Java", "C++"
+                    ]
+                    text_lower = text.lower()
+                    for sk in common_skills:
+                        if re.search(r'\b' + re.escape(sk.lower()) + r'\b', text_lower):
+                            extracted_skills.append(sk)
+                
+                return {
+                    "name": extracted_name,
+                    "email": extracted_email,
+                    "phone": extracted_phone,
+                    "skills": extracted_skills,
+                    "projects": [
+                        {
+                            "title": "Resume Document",
+                            "description": text[:200] if text else "Uploaded resume document",
+                            "technologies": extracted_skills[:3]
+                        }
+                    ] if text else [],
+                    "education": [],
+                    "experience": []
+                }
+            raise Exception(f"Gemini Rate Limit Hit. Groq fallback also failed: {groq_err}. Please check your API keys.")
 
     if json_text:
         cleaned_json = str(json_text).strip()

@@ -61,10 +61,14 @@ async def get_saved_internships(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    prof = current_user.profile
-    if not prof or not prof.saved_internships:
+    profile = db.query(Profile).filter(Profile.user_id == current_user.id).first()
+    if not profile or not profile.saved_internships:
         return []
-    saved_ids = prof.saved_internships
+    
+    saved_ids = [id for id in profile.saved_internships if isinstance(id, int)]
+    if not saved_ids:
+        return []
+
     jobs = db.query(Job).filter(Job.id.in_(saved_ids)).all()
     return [
         {
@@ -118,4 +122,3 @@ async def unsave_internship(
             prof.saved_internships = saved
             db.commit()
     return {"message": "Internship unsaved successfully"}
-

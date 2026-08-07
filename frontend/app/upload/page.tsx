@@ -23,10 +23,36 @@ export default function UploadPage() {
   const [dragging, setDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const isPdf = (f: File) => {
+    return f.type === "application/pdf" || f.name.toLowerCase().endsWith(".pdf");
+  };
+
+  const validateAndSetFile = (selectedFile: File) => {
+    if (!isPdf(selectedFile)) {
+      setFile(null);
+      setStatus("error");
+      setErrorMsg("Invalid file format. Only PDF files (.pdf) are allowed.");
+      return false;
+    }
+    if (selectedFile.size > 5 * 1024 * 1024) {
+      setFile(null);
+      setStatus("error");
+      setErrorMsg("File size exceeds 5MB limit. Please upload a smaller PDF file.");
+      return false;
+    }
+    setFile(selectedFile);
+    setStatus("idle");
+    setErrorMsg("");
+    return true;
+  };
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files?.[0]) {
-      setFile(e.target.files[0]);
-      setStatus("idle");
+      const selected = e.target.files[0];
+      const valid = validateAndSetFile(selected);
+      if (!valid && fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
     }
   };
 
@@ -35,18 +61,17 @@ export default function UploadPage() {
     setDragging(false);
     const dropped = e.dataTransfer.files[0];
     if (!dropped) return;
-    if (dropped.type !== "application/pdf") {
-      setStatus("error");
-      setErrorMsg("Please upload a PDF file only.");
-      return;
-    }
-    setFile(dropped);
-    setStatus("idle");
+    validateAndSetFile(dropped);
   };
 
   const handleUpload = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!file) return;
+    if (!isPdf(file)) {
+      setStatus("error");
+      setErrorMsg("Invalid file format. Only PDF files (.pdf) are allowed.");
+      return;
+    }
     setLoading(true);
     setStatus("idle");
     try {
@@ -62,7 +87,12 @@ export default function UploadPage() {
     } catch (err: unknown) {
       const error = err as Error;
       setStatus("error");
-      setErrorMsg(error.message || "Upload failed. Make sure the backend is running at localhost:8000.");
+      const isFetchError = error.message?.includes("Failed to fetch");
+      setErrorMsg(
+        isFetchError
+          ? "Could not connect to backend server (localhost:8000). Please verify the backend is running."
+          : error.message || "Upload failed. Please try again."
+      );
     } finally {
       setLoading(false);
     }
@@ -205,7 +235,7 @@ export default function UploadPage() {
                 <input
                   ref={fileInputRef}
                   type="file"
-                  accept="application/pdf"
+                  accept="application/pdf,.pdf"
                   style={{ display: "none" }}
                   onChange={handleFileChange}
                 />

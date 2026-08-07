@@ -20,29 +20,26 @@ def get_current_user(
         try:
             scheme, token = str(authorization).split(maxsplit=1)
             if scheme.lower() == "bearer" and token.startswith("mock_token:"):
-                # Format: mock_token:<user_id>:<email>:<name>
-                # Use maxsplit=3 on the token part so names with colons are preserved
+                # Format: mock_token:<user_id>[:<email>:<username>]
                 parts = token.split(":", maxsplit=3)
-                if len(parts) >= 4:
-                    user_id = parts[1]
-                    email = parts[2]
-                    username = parts[3]
+                user_id = parts[1] if len(parts) > 1 and parts[1] else "guest_user"
+                email = parts[2] if len(parts) > 2 and parts[2] else f"{user_id}@hunterai.local"
+                username = parts[3] if len(parts) > 3 and parts[3] else "Guest User"
+                
+                db_user = db.query(User).filter(User.id == user_id).first()
+                if not db_user:
+                    db_user = db.query(User).filter(User.email == email).first()
                     
-                    db_user = db.query(User).filter(User.id == user_id).first()
-                    if not db_user:
-                        # Fallback check for email to prevent UNIQUE constraint crash!
-                        db_user = db.query(User).filter(User.email == email).first()
-                        
-                    if not db_user:
-                        db_user = User(
-                            id=user_id,
-                            username=username,
-                            email=email
-                        )
-                        db.add(db_user)
-                        db.commit()
-                        db.refresh(db_user)
-                    return db_user
+                if not db_user:
+                    db_user = User(
+                        id=user_id,
+                        username=username,
+                        email=email
+                    )
+                    db.add(db_user)
+                    db.commit()
+                    db.refresh(db_user)
+                return db_user
         except Exception as e:
             print(f"Error parsing mock token: {e}")
 
