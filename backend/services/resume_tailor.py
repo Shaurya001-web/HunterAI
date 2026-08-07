@@ -60,10 +60,10 @@ Here is the User's Original Resume Data:
     except Exception as groq_e:
         print(f"Groq failed: {groq_e}. Falling back to Gemini...")
         try:
-            llm = init_chat_model(model="gemini-2.5-flash", model_provider="google_genai", temperature=0.2)
+            llm = init_chat_model(model="gemini-1.5-flash", model_provider="google_genai", temperature=0.2)
             response = await llm.ainvoke(prompt)
         except Exception as gemini_e:
-            raise Exception(f"Gemini Rate Limit Hit. Groq fallback also failed: {groq_e}. Please ensure GROQ_API_KEY is set in your Render environment variables.")
+            raise Exception(f"AI Service Error. Primary (Groq) failed: {groq_e}. Fallback (Gemini) failed: {gemini_e}. Ensure your API keys are correct and have quota.")
             
     return str(response.content).strip()
 
@@ -137,10 +137,10 @@ Output the final optimized JSON matching the input User's Original Resume Data f
             except Exception as groq_e:
                 print(f"Groq failed in JSON generation: {groq_e}. Falling back to Gemini...")
                 try:
-                    llm = init_chat_model(model="gemini-2.5-flash", model_provider="google_genai", temperature=0)
+                    llm = init_chat_model(model="gemini-1.5-flash", model_provider="google_genai", temperature=0)
                     response = await llm.ainvoke(prompt)
                 except Exception as gemini_e:
-                    raise Exception(f"Gemini Rate Limit Hit. Groq fallback also failed: {groq_e}. Please ensure GROQ_API_KEY is set in your Render environment variables.")
+                    raise Exception(f"AI Service Error in JSON pass. Primary (Groq) failed: {groq_e}. Fallback (Gemini) failed: {gemini_e}. Ensure your API keys are correct and have quota.")
                     
             raw = str(response.content).strip()
             
