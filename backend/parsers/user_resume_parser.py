@@ -123,7 +123,7 @@ Resume Text:
 """
     json_text = ""
     try:
-        llm_model = init_chat_model(model="llama-3.3-70b-versatile", model_provider="groq")
+        llm_model = init_chat_model(model="llama-3.1-8b-instant", model_provider="groq")
         res = await asyncio.wait_for(llm_model.ainvoke(prompt_text), timeout=15.0)
         json_text = res.content
     except Exception as groq_err:

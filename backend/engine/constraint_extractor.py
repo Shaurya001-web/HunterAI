@@ -42,7 +42,7 @@ def extract_job_constraints(job_title: str, company: str, location_str: str, sti
     
     try:
         response = client.chat.completions.create(
-            model="llama-3.3-70b-versatile",
+            model="llama-3.1-8b-instant",
             messages=[
                 {"role": "system", "content": "You are a JSON extractor. Always return valid JSON."},
                 {"role": "user", "content": prompt}

@@ -231,39 +231,89 @@ def calculate_selection_probability_penalty(user_profile: Dict[str, Any], job: D
 def evaluate_suitability(user_profile: Dict[str, Any], job: Dict[str, Any], keyword: Optional[str] = None) -> Dict[str, Any]:
     """
     Evaluates candidate suitability for a job based on an industry-standard ATS scoring algorithm (100 points max).
-    - Strict Skills Match: 45%
-    - Keyword Match: 25%
-    - Work Experience / Project Relevance: 15%
+    - Strict Skills Match (explicit + implicit from title): 35%
+    - Keyword Density Match: 25%
+    - Work Experience / Project Relevance: 20%
     - Education & Certifications: 10%
-    - Resume Formatting / Completeness: 5%
+    - Resume Formatting / Completeness: 10%
     """
     user_skills = user_profile.get("skills", [])
-    job_skills = job.get("required_skills", [])
+    job_skills_raw = job.get("required_skills", [])
     
-    # 2. Strict Skills Match (45 points max)
-    match_result = calculate_match(user_skills, job_skills)
-    skills_score = (match_result["match_score"] / 100.0) * 45.0
-    
-    # Extract keywords from job for keyword matching
+    # ── IMPLICIT SKILL EXTRACTION FROM JOB TITLE ──
+    # Many scraped jobs only list 1-2 required skills, but the title implies much more.
+    # e.g. "Python Full Stack Developer" implies: python, frontend, backend, database, api, web development
     job_title = str(job.get("job_title", "")).lower()
-    job_keywords = set([job_title] + [s.lower() for s in job_skills if s])
     
-    # Extract user text for keyword matching
-    user_text = []
-    user_text.extend([str(s).lower() for s in user_skills])
+    TITLE_IMPLIED_SKILLS = {
+        "full stack": ["frontend", "backend", "html", "css", "javascript", "api", "database", "web development"],
+        "frontend": ["html", "css", "javascript", "react", "ui", "responsive design"],
+        "backend": ["api", "database", "server", "rest", "sql"],
+        "data scientist": ["python", "machine learning", "statistics", "pandas", "numpy", "data analysis"],
+        "data analyst": ["sql", "excel", "python", "data visualization", "statistics", "tableau"],
+        "devops": ["docker", "kubernetes", "ci/cd", "aws", "linux", "terraform", "jenkins"],
+        "machine learning": ["python", "tensorflow", "pytorch", "scikit-learn", "deep learning", "model training"],
+        "ai engineer": ["python", "machine learning", "deep learning", "nlp", "llm", "neural networks"],
+        "software engineer": ["data structures", "algorithms", "git", "testing", "system design"],
+        "web developer": ["html", "css", "javascript", "responsive design", "api", "web development"],
+        "mobile": ["android", "ios", "react native", "flutter"],
+        "cloud": ["aws", "azure", "gcp", "docker", "kubernetes"],
+        "product manager": ["roadmap", "agile", "stakeholder management", "user research", "analytics"],
+        "ui/ux": ["figma", "wireframing", "user research", "prototyping", "design thinking"],
+        "designer": ["figma", "adobe", "wireframing", "prototyping", "visual design"],
+    }
     
-    # Check projects for keyword / job title relevance
-    query = (keyword or job_title).strip().lower()
+    implied_skills = set()
+    for title_keyword, skills in TITLE_IMPLIED_SKILLS.items():
+        if title_keyword in job_title:
+            implied_skills.update(skills)
+    
+    # Also add each word from the job title as a keyword if it's meaningful
+    title_words = [w for w in job_title.split() if len(w) > 2 and w not in {"the", "and", "for", "with", "intern", "internship", "job", "role", "position", "developer", "engineer"}]
+    implied_skills.update(title_words)
+    
+    # Combine explicit required skills with implicit title-derived skills
+    all_required_skills = list(set([s.strip() for s in job_skills_raw if s and str(s).strip()]))
+    implicit_only = [s for s in implied_skills if s.lower() not in [r.lower() for r in all_required_skills]]
+    
+    # ── 1. STRICT SKILLS MATCH (35 points max) ──
+    # Score against explicit required_skills (primary weight)
+    match_result = calculate_match(user_skills, all_required_skills)
+    explicit_skills_ratio = match_result["match_score"] / 100.0  # 0.0 to 1.0
+    
+    # Also score against implicit title-derived skills (secondary weight)
+    if implicit_only:
+        implicit_match = calculate_match(user_skills, implicit_only)
+        implicit_ratio = implicit_match["match_score"] / 100.0
+    else:
+        implicit_ratio = explicit_skills_ratio  # no implicit skills to check
+    
+    # Weighted blend: explicit skills matter more, but implicit skills provide differentiation
+    blended_skills_ratio = (explicit_skills_ratio * 0.6) + (implicit_ratio * 0.4)
+    skills_score = blended_skills_ratio * 35.0
+    
+    # ── 2. KEYWORD DENSITY MATCH (25 points max) ──
+    # Build a rich set of keywords from job title + required skills + implied skills
+    all_job_keywords = set()
+    all_job_keywords.update([s.lower() for s in all_required_skills if s])
+    all_job_keywords.update([s.lower() for s in implied_skills if s])
+    # Add meaningful words from job title
+    all_job_keywords.update(title_words)
+    # Remove very short or generic terms
+    all_job_keywords = {k for k in all_job_keywords if len(k) > 2}
+    
+    # Build the full user text corpus from skills + projects + experience
+    user_text_parts = []
+    user_text_parts.extend([str(s).lower() for s in user_skills])
+    
     projects = user_profile.get("projects", [])
     matched_projects = []
     
-    # Get all search terms to check for projects
+    query = (keyword or job_title).strip().lower()
     search_terms = [query]
     for key, synonyms in SKILL_SATISFACTION_MAP.items():
         if key in query or any(syn in query for syn in [key] + synonyms):
             search_terms.extend(synonyms)
-            
-    # Clean and deduplicate search terms
     search_terms = list(set([t.lower() for t in search_terms if t]))
     
     for proj in projects:
@@ -280,55 +330,87 @@ def evaluate_suitability(user_profile: Dict[str, Any], job: Dict[str, Any], keyw
         raw_techs = proj.get("technologies") or proj.get("techStack") or []
         proj_techs = [str(t).lower() for t in raw_techs if t]
         
-        user_text.extend([proj_title_val, proj_desc] + proj_techs)
+        user_text_parts.extend([proj_title_val, proj_desc] + proj_techs)
         
         is_relevant = False
         for term in search_terms:
             if term in proj_title_val or term in proj_desc or any(term in tech for tech in proj_techs):
-                if len(term) <= 2 and term not in proj_techs: # strict for short terms
+                if len(term) <= 2 and term not in proj_techs:
                     continue
                 is_relevant = True
                 break
         if is_relevant:
             matched_projects.append(proj.get("title") or "Unnamed Project")
-            
-    num_matched_projects = len(matched_projects)
     
-    # 1. Keyword Match (25 points max)
-    # Check how many job keywords appear in user's profile text
-    user_text_str = " ".join(user_text)
+    # Also include experience descriptions in user text
+    experience = user_profile.get("experience", [])
+    for exp in experience:
+        if isinstance(exp, dict):
+            exp_role = str(exp.get("role", "") or exp.get("title", "")).lower()
+            exp_desc = exp.get("description") or exp.get("summary") or ""
+            if isinstance(exp_desc, list):
+                exp_desc = " ".join(exp_desc)
+            user_text_parts.extend([exp_role, str(exp_desc).lower()])
+    
+    user_text_str = " ".join(user_text_parts)
+    
+    # Granular keyword scoring: count how many distinct job keywords appear
     keyword_hits = 0
-    valid_job_keywords = [k for k in job_keywords if len(k) > 2]
-    if valid_job_keywords:
-        for kw in valid_job_keywords:
+    if all_job_keywords:
+        for kw in all_job_keywords:
             if kw in user_text_str:
                 keyword_hits += 1
-        keyword_score = (keyword_hits / len(valid_job_keywords)) * 25.0
+        keyword_score = (keyword_hits / len(all_job_keywords)) * 25.0
     else:
-        keyword_score = 25.0 # If no valid keywords, give benefit of doubt
-        
-    # 3. Work Experience / Project Relevance (15 points max)
-    experience = user_profile.get("experience", [])
-    has_experience = len(experience) > 0
+        keyword_score = 12.5
+    
+    num_matched_projects = len(matched_projects)
+    
+    # ── 3. WORK EXPERIENCE / PROJECT RELEVANCE (20 points max) ──
+    # Graduated scoring instead of binary
     experience_score = 0.0
-    if num_matched_projects > 0 or has_experience:
-        experience_score = 15.0 # Give full 15 if they have any related projects or some experience
-        
-    # 4. Education & Certifications (10 points max)
+    has_experience = len(experience) > 0
+    
+    if has_experience:
+        experience_score += 8.0  # Base points for having any experience
+        # Bonus for relevant experience (check if role titles match)
+        for exp in experience:
+            if isinstance(exp, dict):
+                exp_role = str(exp.get("role", "") or exp.get("title", "")).lower()
+                if any(term in exp_role for term in search_terms if len(term) > 2):
+                    experience_score += 4.0
+                    break
+    
+    # Project relevance scoring (graduated, not binary)
+    if num_matched_projects >= 3:
+        experience_score += 8.0
+    elif num_matched_projects == 2:
+        experience_score += 6.0
+    elif num_matched_projects == 1:
+        experience_score += 4.0
+    elif len(projects) > 0:
+        experience_score += 1.0  # At least they have projects
+    
+    experience_score = min(experience_score, 20.0)
+    
+    # ── 4. EDUCATION & CERTIFICATIONS (10 points max) ──
     education = user_profile.get("education", [])
     education_score = 10.0 if len(education) > 0 else 0.0
     
-    # 5. Resume Formatting / Completeness (5 points max)
+    # ── 5. RESUME COMPLETENESS (10 points max) ──
     completeness_score = 0.0
-    if len(user_skills) > 0: completeness_score += 1.25
-    if len(projects) > 0: completeness_score += 1.25
-    if len(experience) > 0: completeness_score += 1.25
-    if len(education) > 0: completeness_score += 1.25
+    if len(user_skills) > 0: completeness_score += 2.0
+    if len(user_skills) >= 5: completeness_score += 1.0  # Bonus for having many skills
+    if len(projects) > 0: completeness_score += 2.0
+    if len(projects) >= 2: completeness_score += 1.0  # Bonus for multiple projects
+    if len(experience) > 0: completeness_score += 2.0
+    if len(education) > 0: completeness_score += 2.0
+    completeness_score = min(completeness_score, 10.0)
     
-    # Base ATS Score
+    # ── BASE ATS SCORE ──
     raw_ats_score = keyword_score + skills_score + experience_score + education_score + completeness_score
     
-    # Apply old selection probability penalties to keep the system rigorous
+    # Apply selection probability penalties
     score = calculate_selection_probability_penalty(user_profile, job, raw_ats_score, num_matched_projects)
     
     # Check Hard Constraints (Dealbreakers)

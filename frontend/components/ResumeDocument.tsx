@@ -41,11 +41,9 @@ const styles = StyleSheet.create({
   },
   bold: {
     fontFamily: 'Times-Bold',
-    fontWeight: 'bold',
   },
   italic: {
     fontFamily: 'Times-Italic',
-    fontStyle: 'italic',
   },
   row: {
     flexDirection: 'row',

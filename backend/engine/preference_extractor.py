@@ -94,7 +94,7 @@ def _call_groq(user_text: str) -> str:
 
     client = Groq(api_key=os.environ["GROQ_API_KEY"])
     completion = client.chat.completions.create(
-        model="llama-3.3-70b-versatile",
+        model="llama-3.1-8b-instant",
         temperature=0,
         max_tokens=500,
         response_format={"type": "json_object"},

@@ -51,7 +51,7 @@ if not logger.handlers:
 GROQ_API_KEY      = os.getenv("GROQ_API_KEY")
 GOOGLE_API_KEY    = os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")
 
-DEFAULT_GROQ_MODEL   = os.getenv("DEFAULT_GROQ_MODEL",   "llama-3.3-70b-versatile")
+DEFAULT_GROQ_MODEL   = os.getenv("DEFAULT_GROQ_MODEL",   "llama-3.1-8b-instant")
 DEFAULT_GEMINI_MODEL = os.getenv("DEFAULT_GEMINI_MODEL", "gemini-2.5-flash")
 
 DEFAULT_TIMEOUT     = int(os.getenv("LLM_TIMEOUT",     "20"))

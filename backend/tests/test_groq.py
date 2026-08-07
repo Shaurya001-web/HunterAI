@@ -9,7 +9,7 @@ def test_groq_connection():
     load_dotenv(path_env)
 
     try:
-        llm_model = init_chat_model(model="llama-3.3-70b-versatile", model_provider="groq")
+        llm_model = init_chat_model(model="llama-3.1-8b-instant", model_provider="groq")
         res = llm_model.invoke("hi")
         print("Groq test response:", res.content)
         return True

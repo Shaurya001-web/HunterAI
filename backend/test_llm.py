@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 load_dotenv("config/.env")
 async def main():
     try:
-        llm = init_chat_model(model="llama-3.3-70b-versatile", model_provider="groq")
+        llm = init_chat_model(model="llama-3.1-8b-instant", model_provider="groq")
         res = await llm.ainvoke("Return a valid JSON object with key 'hello' and value 'world'.")
         print("Response from Groq Llama 3.3:", repr(res.content))
     except Exception as e:

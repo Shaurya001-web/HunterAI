@@ -20,7 +20,7 @@ def ask_llm(prompt: str) -> str:
     if groq_key and groq_key.startswith("gsk_"):
         try:
             from langchain.chat_models import init_chat_model
-            llm = init_chat_model(model="llama-3.3-70b-versatile", model_provider="groq", temperature=0.2)
+            llm = init_chat_model(model="llama-3.1-8b-instant", model_provider="groq", temperature=0.2)
             resp = llm.invoke(prompt)
             if resp and resp.content:
                 return str(resp.content)
