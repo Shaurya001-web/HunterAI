@@ -72,7 +72,34 @@ SKILL_SATISFACTION_MAP = {
     "web development": ["web development", "react", "next.js", "nextjs", "angular", "vue", "node", "express", "html", "css", "js", "javascript", "typescript", "web", "website", "django", "flask", "frontend", "backend"],
     "frontend": ["frontend", "front-end", "react", "next.js", "angular", "vue", "html", "css", "javascript", "typescript", "tailwind"],
     "backend": ["backend", "back-end", "node", "express", "django", "flask", "fastapi", "spring boot", "java", "python", "go", "ruby"],
-    "software engineering": ["software engineering", "java", "c++", "c#", "python", "go", "rust", "algorithm", "data structures", "system design", "docker", "kubernetes", "git"]
+    "software engineering": ["software engineering", "java", "c++", "c#", "python", "go", "rust", "algorithm", "data structures", "system design", "docker", "kubernetes", "git"],
+    # --- HR & Talent Acquisition ---
+    "human resources": ["human resources", "hr", "talent acquisition", "recruiting", "recruitment", "onboarding", "payroll", "hris", "employee relations", "people operations"],
+    "hr": ["hr", "human resources", "talent acquisition", "recruiting", "recruitment", "onboarding", "payroll", "hris", "people operations"],
+    "talent acquisition": ["talent acquisition", "recruiting", "recruitment", "sourcing", "linkedin recruiter", "applicant tracking", "ats", "hiring", "headhunting", "hr"],
+    "recruiting": ["recruiting", "talent acquisition", "sourcing", "linkedin recruiter", "applicant tracking", "ats", "hiring", "headhunting"],
+    "payroll": ["payroll", "hr", "hris", "compensation", "benefits", "sap hr", "workday"],
+    # --- Consulting & Strategy ---
+    "consulting": ["consulting", "management consulting", "strategy", "business analysis", "business analyst", "advisory", "stakeholder management", "problem solving", "presentation", "ppt", "powerpoint"],
+    "management consulting": ["management consulting", "consulting", "strategy", "mck", "bcg", "bain", "business analysis", "advisory"],
+    "business analysis": ["business analysis", "business analyst", "requirements gathering", "process improvement", "stakeholder management", "use cases", "sql", "excel", "data analysis"],
+    "strategy": ["strategy", "consulting", "business development", "market research", "competitive analysis", "go-to-market", "planning"],
+    # --- Business Development & Sales ---
+    "business development": ["business development", "bd", "sales", "crm", "lead generation", "negotiation", "partnerships", "key account management", "client relations"],
+    "sales": ["sales", "business development", "crm", "lead generation", "negotiation", "key account management", "client relations", "b2b", "b2c"],
+    "crm": ["crm", "salesforce", "hubspot", "zoho", "pipedrive", "customer relationship", "sales"],
+    # --- Marketing & Communications ---
+    "marketing": ["marketing", "digital marketing", "seo", "sem", "social media", "content marketing", "email marketing", "brand management", "market research", "google analytics"],
+    "digital marketing": ["digital marketing", "seo", "sem", "google ads", "facebook ads", "social media", "content marketing", "email marketing", "analytics"],
+    "communication": ["communication", "presentation", "public speaking", "writing", "copywriting", "stakeholder management", "cross-functional"],
+    # --- Finance & Accounting ---
+    "finance": ["finance", "financial analysis", "financial modeling", "excel", "accounting", "budgeting", "forecasting", "investment", "valuation", "cfa", "ca"],
+    "financial analysis": ["financial analysis", "financial modeling", "excel", "valuation", "dcf", "bloomberg", "accounting", "finance"],
+    "accounting": ["accounting", "tally", "gst", "taxation", "audit", "finance", "bookkeeping", "sap fi"],
+    # --- Operations & Project Management ---
+    "project management": ["project management", "pmp", "agile", "scrum", "jira", "trello", "stakeholder management", "risk management", "ms project", "planning"],
+    "operations": ["operations", "process improvement", "lean", "six sigma", "supply chain", "logistics", "inventory", "project management"],
+    "supply chain": ["supply chain", "logistics", "inventory", "procurement", "vendor management", "erp", "sap", "operations"],
 }
 
 import re
@@ -261,6 +288,32 @@ def evaluate_suitability(user_profile: Dict[str, Any], job: Dict[str, Any], keyw
         "product manager": ["roadmap", "agile", "stakeholder management", "user research", "analytics"],
         "ui/ux": ["figma", "wireframing", "user research", "prototyping", "design thinking"],
         "designer": ["figma", "adobe", "wireframing", "prototyping", "visual design"],
+        # --- HR & Talent ---
+        "hr": ["hr", "human resources", "recruiting", "talent acquisition", "onboarding", "employee relations", "hris", "payroll"],
+        "human resource": ["human resources", "hr", "recruiting", "talent acquisition", "onboarding", "employee relations", "hris", "payroll"],
+        "talent acquisition": ["recruiting", "sourcing", "linkedin recruiter", "applicant tracking", "ats", "hr", "hiring"],
+        "recruiter": ["recruiting", "sourcing", "talent acquisition", "linkedin recruiter", "hr", "communication"],
+        # --- Consulting & Strategy ---
+        "consultant": ["consulting", "strategy", "business analysis", "stakeholder management", "presentation", "powerpoint", "excel", "communication"],
+        "consulting": ["strategy", "business analysis", "problem solving", "presentation", "stakeholder management", "excel", "powerpoint"],
+        "strategy": ["business analysis", "market research", "competitive analysis", "consulting", "excel", "powerpoint"],
+        "business analyst": ["business analysis", "requirements gathering", "sql", "excel", "process improvement", "stakeholder management", "use cases"],
+        # --- Business Development & Sales ---
+        "business development": ["bd", "sales", "crm", "lead generation", "negotiation", "partnerships", "communication"],
+        "sales": ["crm", "lead generation", "negotiation", "b2b", "client relations", "communication", "business development"],
+        # --- Marketing ---
+        "marketing": ["seo", "sem", "social media", "content marketing", "email marketing", "google analytics", "brand management", "market research"],
+        "digital marketing": ["seo", "sem", "google ads", "social media", "content marketing", "email marketing", "analytics"],
+        "content": ["content writing", "copywriting", "seo", "social media", "blogging", "communication"],
+        "brand": ["brand management", "marketing", "social media", "communication", "design"],
+        # --- Finance & Accounting ---
+        "finance": ["financial analysis", "financial modeling", "excel", "accounting", "budgeting", "forecasting", "valuation"],
+        "financial analyst": ["financial modeling", "excel", "valuation", "dcf", "bloomberg", "accounting", "finance"],
+        "accounting": ["tally", "gst", "taxation", "audit", "bookkeeping", "excel", "sap fi"],
+        # --- Operations & Project Management ---
+        "project manager": ["project management", "agile", "scrum", "jira", "stakeholder management", "risk management", "planning"],
+        "operations": ["process improvement", "lean", "supply chain", "logistics", "inventory", "project management"],
+        "supply chain": ["logistics", "inventory", "procurement", "vendor management", "erp", "sap", "operations"],
     }
     
     implied_skills = set()

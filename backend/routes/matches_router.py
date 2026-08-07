@@ -101,17 +101,28 @@ def get_matches(
             "projects": profile.projects
         }
 
-        # 2. Trigger background scraping
+        # 2. Trigger background scraping using top-3 skills from resume
         scrape_keyword = keyword
         if not scrape_keyword and profile.skills:
-            top_skill = profile.skills[0]
-            matching_jobs_count = db.query(Job).filter(cast(Job.skills, String).ilike(f"%{top_skill}%")).count()
-            if matching_jobs_count < 10 or db.query(Job).filter(Job.source == "Naukri").count() < 3:
-                scrape_keyword = top_skill
-                
+            # Use top 3 skills (not just first) so HR/consulting/etc resumes get the right jobs
+            top_skills = [s for s in profile.skills[:3] if s and str(s).strip()]
+            for skill in top_skills:
+                matching_count = db.query(Job).filter(
+                    cast(Job.skills, String).ilike(f"%{skill}%")
+                ).count()
+                # Re-scrape if fewer than 15 relevant jobs exist for this skill
+                if matching_count < 15:
+                    scrape_keyword = skill
+                    break
+
         if scrape_keyword:
-            # P1-1 Fix: Do this asynchronously
+            # Fire background scrape for each top skill so the DB fills up with relevant jobs
             background_tasks.add_task(background_scrape_jobs, scrape_keyword)
+            # Also kick off scrapes for other top skills (non-blocking)
+            if not keyword and profile.skills:
+                for extra_skill in profile.skills[1:3]:
+                    if extra_skill and extra_skill != scrape_keyword:
+                        background_tasks.add_task(background_scrape_jobs, extra_skill)
         
         # 3. Hybrid Filtering - Phase 1: Cheap SQL Filtering
         query = db.query(Job)
@@ -180,10 +191,13 @@ def get_matches(
             
         # 4. Score and Rank using the matching engine
         ranked_matches = rank_jobs(user_profile_dict, engine_jobs, keyword)
-        
+
+        # 5. Filter out 0% matches — no point showing completely irrelevant jobs
+        relevant_matches = [m for m in ranked_matches if m.get("score", 0) > 0]
+
         # P1-8 Fix: Stop destructive Match writes. Do not delete and recreate.
-        
-        return ranked_matches
+
+        return relevant_matches
     except HTTPException:
         raise
     except Exception as e:
