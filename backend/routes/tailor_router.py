@@ -51,7 +51,7 @@ async def generate_plan_endpoint(
             "job_title": job.title,
             "company": job.company,
             "required_skills": job.skills,
-            "description": ""
+            "description": f"Role requires {', '.join(job.skills) if job.skills else 'various skills'}. Constraints: {job.constraints}"
         }
         
         # Generate plan
@@ -90,7 +90,7 @@ async def tailor_resume_endpoint(
             "job_title": job.title,
             "company": job.company,
             "required_skills": job.skills,
-            "description": "" # Needs fetching or just skills if no description exists
+            "description": f"Role requires {', '.join(job.skills) if job.skills else 'various skills'}. Constraints: {job.constraints}"
         }
         
         # Hash profile for caching

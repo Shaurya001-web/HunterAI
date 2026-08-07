@@ -62,20 +62,10 @@ def get_current_user(
 
     payload = None
 
-    # Dynamically extract Supabase URL from the token's 'iss' claim if it is not configured in the environment.
-    # This enables robust JWKS signature verification even when env vars are missing.
     extracted_supabase_url = supabase_url
     if not extracted_supabase_url:
-        try:
-            unverified_payload = jwt.decode(token, options={"verify_signature": False})
-            iss = unverified_payload.get("iss")
-            if iss and ("supabase.co" in iss or "supabase.net" in iss or "localhost" in iss or "127.0.0.1" in iss):
-                if "/auth/v1" in iss:
-                    extracted_supabase_url = iss.split("/auth/v1")[0]
-                else:
-                    extracted_supabase_url = iss
-        except Exception as e:
-            print(f"Could not extract issuer from token: {e}")
+        # P0-4 Fix: Do not extract arbitrary issuer from unverified token
+        pass
     
     # Try JWKS asymmetric verification (highly recommended for new projects signed with ECC/ES256)
     if extracted_supabase_url:
@@ -95,39 +85,45 @@ def get_current_user(
             print(f"JWKS verification check bypassed or failed: {e}. Falling back to symmetric HS256 secret verification...")
 
     if not payload:
+        is_dev = os.getenv("DEV_MODE", "false").lower() == "true"
         if not jwt_secret or jwt_secret == "YOUR_SUPABASE_JWT_SECRET":
-            user_id = "local_dev_user"
-            email = "dev@hunterai.local"
-            username = "Local Developer"
-            db_user = db.query(User).filter(User.id == user_id).first()
-            if not db_user:
-                db_user = User(id=user_id, username=username, email=email)
-                db.add(db_user)
-                db.commit()
-                db.refresh(db_user)
-            return db_user
+            if is_dev:
+                user_id = "local_dev_user"
+                email = "dev@hunterai.local"
+                username = "Local Developer"
+                db_user = db.query(User).filter(User.id == user_id).first()
+                if not db_user:
+                    db_user = User(id=user_id, username=username, email=email)
+                    db.add(db_user)
+                    db.commit()
+                    db.refresh(db_user)
+                return db_user
+            else:
+                raise HTTPException(status_code=401, detail="Authentication not configured")
             
         try:
             payload = jwt.decode(
                 token,
                 jwt_secret,
                 algorithms=["HS256"],
-                options={"verify_aud": False}
+                audience="authenticated",
+                options={"verify_aud": True}
             )
         except jwt.ExpiredSignatureError:
             raise HTTPException(status_code=401, detail="Authentication token has expired")
         except jwt.InvalidTokenError as e:
-            # Local dev fallback if placeholder secret or invalid local token
-            user_id = "local_dev_user"
-            email = "dev@hunterai.local"
-            username = "Local Developer"
-            db_user = db.query(User).filter(User.id == user_id).first()
-            if not db_user:
-                db_user = User(id=user_id, username=username, email=email)
-                db.add(db_user)
-                db.commit()
-                db.refresh(db_user)
-            return db_user
+            if is_dev:
+                user_id = "local_dev_user"
+                email = "dev@hunterai.local"
+                username = "Local Developer"
+                db_user = db.query(User).filter(User.id == user_id).first()
+                if not db_user:
+                    db_user = User(id=user_id, username=username, email=email)
+                    db.add(db_user)
+                    db.commit()
+                    db.refresh(db_user)
+                return db_user
+            raise HTTPException(status_code=401, detail="Invalid authentication token")
 
 
     user_id = payload.get("sub")

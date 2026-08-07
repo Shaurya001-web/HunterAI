@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { MapPin, Banknote, Bookmark as BookmarkIcon, CalendarDays, ExternalLink } from "lucide-react";
 import Link from "next/link";
+import { api } from "@/lib/api";
 
 interface Job {
   id: number;
@@ -26,10 +27,7 @@ export default function BookmarksPage() {
   useEffect(() => {
     if (!user) return;
     
-    fetch("http://127.0.0.1:8000/profile/saved", {
-      headers: { Authorization: `Bearer ${user.id}` }
-    })
-      .then(res => res.json())
+    api.getSavedInternships()
       .then(data => {
         setJobs(Array.isArray(data) ? data : []);
         setLoading(false);
@@ -45,10 +43,7 @@ export default function BookmarksPage() {
     setJobs(prev => prev.filter(j => j.id !== id));
     
     try {
-      await fetch(`http://127.0.0.1:8000/profile/saved/${id}`, {
-        method: "DELETE",
-        headers: { Authorization: `Bearer ${user.id}` }
-      });
+      await api.unsaveInternship(id);
     } catch (e) {
       console.error(e);
     }

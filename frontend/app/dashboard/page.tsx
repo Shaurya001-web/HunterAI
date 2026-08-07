@@ -24,12 +24,12 @@ function getTimeOfDay() {
   return "Good evening";
 }
 
-function createMockToken(authUser?: { id: string; email: string; username: string; isGuest?: boolean } | null) {
-  if (authUser && !authUser.isGuest) {
-    return `mock_token:${authUser.id}:${authUser.email}:${authUser.username}`;
+function maybeSetGuestToken(authUser?: { id: string; email: string; username: string; isGuest?: boolean } | null) {
+  // P0-3 Fix: Only use mock token for guest workflow, do not override real session token
+  if (authUser?.isGuest) {
+    const id = typeof window !== "undefined" ? localStorage.getItem("guest_user_id") || "guest_123" : "guest_123";
+    api.setToken(`mock_token:${id}:${id}@hunterai.local:Guest User`);
   }
-  const id = typeof window !== "undefined" ? localStorage.getItem("guest_user_id") || "guest_123" : "guest_123";
-  return `mock_token:${id}:${id}@hunterai.local:Guest User`;
 }
 
 export default function Dashboard() {
@@ -55,7 +55,7 @@ export default function Dashboard() {
     else setLoading(true);
 
     try {
-      api.setToken(createMockToken(user));
+      maybeSetGuestToken(user);
       const profiles = await api.getProfiles().catch(() => []);
       const selectedEmail = typeof window !== "undefined" ? localStorage.getItem("selectedProfileEmail") : null;
       const selectedProfile = profiles.find((item: Profile) => item.email === selectedEmail) || profiles.at(-1) || null;
@@ -99,7 +99,7 @@ export default function Dashboard() {
     setUploading(true);
     setError("");
     try {
-      api.setToken(createMockToken(user));
+      maybeSetGuestToken(user);
       const data = await api.uploadResume(file);
       if (data.profile?.email) {
         localStorage.setItem("selectedProfileEmail", data.profile.email);

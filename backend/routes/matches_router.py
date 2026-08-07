@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Depends, BackgroundTasks
 from sqlalchemy.orm import Session
 from sqlalchemy import or_
 from engine.matching_engine import rank_jobs
@@ -14,8 +14,62 @@ from typing import Optional
 
 router = APIRouter()
 
+def background_scrape_jobs(scrape_keyword: str, db: Session):
+    try:
+        scraped_jobs = []
+        def fetch_source(source_fn, keyword, limit, source_name):
+            try:
+                results = source_fn(keyword, limit=limit)
+                if results:
+                    for r in results:
+                        r["source"] = source_name
+                return results or []
+            except Exception as e:
+                print(f"On-demand {source_name} scraping failed: {e}")
+                return []
+
+        # Concurrently scrape from all sources
+        with ThreadPoolExecutor(max_workers=3) as executor:
+            futures = [
+                executor.submit(fetch_source, scrape_internshala, scrape_keyword, 15, "Internshala"),
+                executor.submit(fetch_source, scrape_naukri, scrape_keyword, 10, "Naukri"),
+                executor.submit(fetch_source, scrape_linkedin, scrape_keyword, 10, "LinkedIn")
+            ]
+            for future in futures:
+                scraped_jobs.extend(future.result())
+        
+        # Save new jobs to database
+        for sj in scraped_jobs:
+            # Check for duplicate
+            existing = db.query(Job).filter(
+                Job.title == sj["job_title"],
+                Job.company == sj["company"]
+            ).first()
+            
+            if not existing:
+                new_job = Job(
+                    title=sj["job_title"],
+                    company=sj["company"],
+                    skills=sj["required_skills"],
+                    location=sj.get("location"),
+                    stipend=sj.get("stipend"),
+                    duration=sj.get("duration"),
+                    url=sj.get("url"),
+                    source=sj.get("source"),
+                    is_remote=sj.get("is_remote", False),
+                    stipend_min=sj.get("stipend_min", 0),
+                    duration_months=sj.get("duration_months", 0),
+                    constraints=sj.get("constraints", {})
+                )
+                db.add(new_job)
+        db.commit()
+    except Exception as e:
+        db.rollback()
+        print(f"Background scrape failed: {e}")
+
 @router.get("/matches")
 def get_matches(
+    background_tasks: BackgroundTasks,
     keyword: Optional[str] = None,
     location: Optional[str] = None,
     remote_only: bool = False,
@@ -28,18 +82,9 @@ def get_matches(
     db: Session = Depends(get_db)
 ):
     try:
-        # 1. Fetch user profile from database
-        profile = None
+        # P0-2 Fix: Ignore email parameter, always use current_user.id
+        profile = db.query(Profile).filter(Profile.user_id == current_user.id).first()
         target_user = current_user
-        if email:
-            target_user_db = db.query(User).filter(User.email == email).first()
-            if target_user_db:
-                target_user = target_user_db
-                profile = db.query(Profile).filter(Profile.user_id == target_user.id).first()
-        
-        if not profile:
-            profile = db.query(Profile).filter(Profile.user_id == current_user.id).first()
-            target_user = current_user
 
         if not profile:
             raise HTTPException(status_code=400, detail="No profile found. Please upload a resume first.")
@@ -53,74 +98,34 @@ def get_matches(
             "projects": profile.projects
         }
 
-        # 2. Collect jobs (either scraping or querying existing)
+        # 2. Trigger background scraping
         scrape_keyword = keyword
-        
-        # If no keyword was searched, check if we have jobs matching their new top skill
         if not scrape_keyword and profile.skills:
             top_skill = profile.skills[0]
             matching_jobs_count = db.query(Job).filter(Job.skills.ilike(f"%{top_skill}%")).count()
-            
-            # Auto-scrape if we lack jobs for their skill or lack multi-source diversity
             if matching_jobs_count < 10 or db.query(Job).filter(Job.source == "Naukri").count() < 3:
                 scrape_keyword = top_skill
-        if scrape_keyword:
-            scraped_jobs = []
-            
-            def fetch_source(source_fn, keyword, limit, source_name):
-                try:
-                    results = source_fn(keyword, limit=limit)
-                    if results:
-                        for r in results:
-                            r["source"] = source_name
-                    return results or []
-                except Exception as e:
-                    print(f"On-demand {source_name} scraping failed: {e}")
-                    return []
-
-            # Concurrently scrape from all sources
-            with ThreadPoolExecutor(max_workers=3) as executor:
-                futures = [
-                    executor.submit(fetch_source, scrape_internshala, scrape_keyword, 15, "Internshala"),
-                    executor.submit(fetch_source, scrape_naukri, scrape_keyword, 10, "Naukri"),
-                    executor.submit(fetch_source, scrape_linkedin, scrape_keyword, 10, "LinkedIn")
-                ]
-                for future in futures:
-                    scraped_jobs.extend(future.result())
-            
-            # Save new jobs to database
-            for sj in scraped_jobs:
-                # Check for duplicate
-                existing = db.query(Job).filter(
-                    Job.title == sj["job_title"],
-                    Job.company == sj["company"]
-                ).first()
                 
-                if not existing:
-                    new_job = Job(
-                        title=sj["job_title"],
-                        company=sj["company"],
-                        skills=sj["required_skills"],
-                        location=sj.get("location"),
-                        stipend=sj.get("stipend"),
-                        duration=sj.get("duration"),
-                        url=sj.get("url"),
-                        source=sj.get("source"),
-                        is_remote=sj.get("is_remote", False),
-                        stipend_min=sj.get("stipend_min", 0),
-                        duration_months=sj.get("duration_months", 0),
-                        constraints=sj.get("constraints", {})
-                    )
-                    db.add(new_job)
-            db.commit()
+        if scrape_keyword:
+            # P1-1 Fix: Do this asynchronously
+            background_tasks.add_task(background_scrape_jobs, scrape_keyword, db)
         
         # 3. Hybrid Filtering - Phase 1: Cheap SQL Filtering
         query = db.query(Job)
         
+        # P1-2 Fix: Actually use the keyword to filter!
+        if keyword:
+            safe_keyword = keyword.replace("%", "\\%").replace("_", "\\_")
+            query = query.filter(or_(
+                Job.title.ilike(f"%{safe_keyword}%"),
+                Job.skills.ilike(f"%{safe_keyword}%")
+            ))
+            
         if remote_only:
             query = query.filter(Job.is_remote == True)
         elif location:
-            query = query.filter(Job.location.ilike(f"%{location}%"))
+            safe_loc = location.replace("%", "\\%").replace("_", "\\_")
+            query = query.filter(Job.location.ilike(f"%{safe_loc}%"))
             
         if stipend_min:
             query = query.filter(Job.stipend_min >= stipend_min)
@@ -173,21 +178,7 @@ def get_matches(
         # 4. Score and Rank using the matching engine
         ranked_matches = rank_jobs(user_profile_dict, engine_jobs, keyword)
         
-        # 5. Persist calculated matches in database for user
-        # Clean old matches for this user first to keep matches list updated
-        db.query(Match).filter(Match.user_id == target_user.id).delete()
-        
-        for rm in ranked_matches:
-            if "id" in rm and rm["id"]:
-                db_match = Match(
-                    user_id=target_user.id,
-                    job_id=rm["id"],
-                    score=rm["score"],
-                    matched_skills=rm["matched_skills"],
-                    missing_skills=rm["missing_skills"]
-                )
-                db.add(db_match)
-        db.commit()
+        # P1-8 Fix: Stop destructive Match writes. Do not delete and recreate.
         
         return ranked_matches
     except HTTPException:

@@ -226,6 +226,23 @@ export const api = {
     const data = await res.json();
     return data.suggestions;
   },
+
+  parseSectionWithAI: async (sectionType: string, userPrompt: string) => {
+    const res = await fetch(`${BASE_URL}/resume-ai/parse-section`, {
+      method: 'POST',
+      headers: await getHeaders({ 'Content-Type': 'application/json' }),
+      body: JSON.stringify({ section_type: sectionType, user_prompt: userPrompt }),
+    });
+    if (!res.ok) {
+      let errDetail = 'AI parse failed';
+      try {
+        const errJson = await res.json();
+        errDetail = errJson.detail || errDetail;
+      } catch (e) {}
+      throw new Error(errDetail);
+    }
+    return res.json();
+  },
 };
 
 export default api;
