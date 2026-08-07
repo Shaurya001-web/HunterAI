@@ -9,7 +9,6 @@ import { PageHeader } from "./PageHeader";
 const pageTitles: Record<string, string> = {
   "/dashboard": "Dashboard",
   "/upload": "Upload Resume",
-  "/profile": "Profile",
   "/recommendations": "Recommendations",
 };
 

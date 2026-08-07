@@ -10,7 +10,6 @@ import { AuthModal } from "@/components/auth/AuthModal";
 const NAV = [
   { href: "/dashboard", label: "Dashboard",       icon: LayoutDashboard },
   { href: "/upload",    label: "Upload",          icon: Upload },
-  { href: "/profile",   label: "Profile",          icon: User },
   { href: "/recommendations", label: "Matches", icon: Sparkles },
   { href: "/bookmarks", label: "Saved",           icon: Bookmark },
   { href: "/chat",      label: "AI Chat",         icon: Bot },

@@ -8,7 +8,6 @@ import { Menu, X, LayoutDashboard, UploadCloud, User, Sparkles } from "lucide-re
 const navItems = [
   { href: "/dashboard",       label: "Dashboard",       icon: LayoutDashboard },
   { href: "/upload",          label: "Upload Resume",   icon: UploadCloud },
-  { href: "/profile",         label: "Profile",         icon: User },
   { href: "/recommendations", label: "Recommendations", icon: Sparkles },
 ];
 

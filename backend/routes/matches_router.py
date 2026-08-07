@@ -8,13 +8,14 @@ from scrapers.linkedin_scraper import scrape_linkedin
 from concurrent.futures import ThreadPoolExecutor
 from routes.auth import get_current_user
 from config.models import User, Profile, Job, Match
-from config.database import get_db
+from config.database import get_db, SessionLocal
 
 from typing import Optional
 
 router = APIRouter()
 
-def background_scrape_jobs(scrape_keyword: str, db: Session):
+def background_scrape_jobs(scrape_keyword: str):
+    db = SessionLocal()
     try:
         scraped_jobs = []
         def fetch_source(source_fn, keyword, limit, source_name):
@@ -66,6 +67,8 @@ def background_scrape_jobs(scrape_keyword: str, db: Session):
     except Exception as e:
         db.rollback()
         print(f"Background scrape failed: {e}")
+    finally:
+        db.close()
 
 @router.get("/matches")
 def get_matches(
@@ -108,7 +111,7 @@ def get_matches(
                 
         if scrape_keyword:
             # P1-1 Fix: Do this asynchronously
-            background_tasks.add_task(background_scrape_jobs, scrape_keyword, db)
+            background_tasks.add_task(background_scrape_jobs, scrape_keyword)
         
         # 3. Hybrid Filtering - Phase 1: Cheap SQL Filtering
         query = db.query(Job)

@@ -137,7 +137,7 @@ def calculate_match(user_skills: List[str], job_skills: List[str]) -> Dict[str, 
             missing_skills.append(req_skill)
             
     num_matched = len(matched_skills)
-    num_required = len(valid_job_skills)
+    num_required = max(len(valid_job_skills), 4) # Assume at least 4 skills for any job to prevent 100% scores on 1-skill jobs
     
     match_score = round((num_matched / num_required) * 100, 2)
     
@@ -360,9 +360,11 @@ def evaluate_suitability(user_profile: Dict[str, Any], job: Dict[str, Any], keyw
         for kw in all_job_keywords:
             if kw in user_text_str:
                 keyword_hits += 1
-        keyword_score = (keyword_hits / len(all_job_keywords)) * 25.0
+        # Require 75% of keywords to get max points, and assume at least 5 keywords
+        hit_ratio = keyword_hits / max(len(all_job_keywords), 5)
+        keyword_score = min((hit_ratio / 0.75) * 25.0, 25.0)
     else:
-        keyword_score = 12.5
+        keyword_score = 5.0
     
     num_matched_projects = len(matched_projects)
     
@@ -372,24 +374,26 @@ def evaluate_suitability(user_profile: Dict[str, Any], job: Dict[str, Any], keyw
     has_experience = len(experience) > 0
     
     if has_experience:
-        experience_score += 8.0  # Base points for having any experience
+        experience_score += 3.0  # Reduced base points for having any experience
         # Bonus for relevant experience (check if role titles match)
         for exp in experience:
             if isinstance(exp, dict):
                 exp_role = str(exp.get("role", "") or exp.get("title", "")).lower()
                 if any(term in exp_role for term in search_terms if len(term) > 2):
-                    experience_score += 4.0
+                    experience_score += 5.0
                     break
     
-    # Project relevance scoring (graduated, not binary)
-    if num_matched_projects >= 3:
-        experience_score += 8.0
+    # Project relevance scoring (graduated, tougher)
+    if num_matched_projects >= 4:
+        experience_score += 15.0
+    elif num_matched_projects == 3:
+        experience_score += 12.0
     elif num_matched_projects == 2:
-        experience_score += 6.0
+        experience_score += 8.0
     elif num_matched_projects == 1:
         experience_score += 4.0
     elif len(projects) > 0:
-        experience_score += 1.0  # At least they have projects
+        experience_score += 0.0  # No free points if projects aren't matched
     
     experience_score = min(experience_score, 20.0)
     
@@ -399,10 +403,10 @@ def evaluate_suitability(user_profile: Dict[str, Any], job: Dict[str, Any], keyw
     
     # ── 5. RESUME COMPLETENESS (10 points max) ──
     completeness_score = 0.0
-    if len(user_skills) > 0: completeness_score += 2.0
-    if len(user_skills) >= 5: completeness_score += 1.0  # Bonus for having many skills
-    if len(projects) > 0: completeness_score += 2.0
-    if len(projects) >= 2: completeness_score += 1.0  # Bonus for multiple projects
+    if len(user_skills) > 0: completeness_score += 1.0
+    if len(user_skills) >= 8: completeness_score += 2.0  # Tougher bonus for having many skills
+    if len(projects) > 0: completeness_score += 1.0
+    if len(projects) >= 3: completeness_score += 2.0  # Tougher bonus for multiple projects
     if len(experience) > 0: completeness_score += 2.0
     if len(education) > 0: completeness_score += 2.0
     completeness_score = min(completeness_score, 10.0)
