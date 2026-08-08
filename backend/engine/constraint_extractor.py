@@ -42,4 +42,7 @@ def extract_job_constraints(
         "stipend_min_val": _parse_amount(stipend_str),
         "duration_months": int(duration_match.group(1)) if duration_match else None,
         "dealbreakers": [],
+        # Retain source text once during ingestion so tailoring has actual job
+        # context instead of reconstructing a generic description from skills.
+        "description_excerpt": description[:6_000],
     }

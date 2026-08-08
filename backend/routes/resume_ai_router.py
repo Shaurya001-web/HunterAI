@@ -1,7 +1,7 @@
 import os
 import json
 from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import List, Optional, Literal
 from routes.auth import get_current_user
 
@@ -19,10 +19,10 @@ router = APIRouter(prefix="/resume-ai", tags=["Resume AI"])
 
 class GenerateResumeRequest(BaseModel):
     target_role: Optional[str] = None
-    raw_experience: str
-    raw_projects: str
-    raw_education: str
-    known_skills: List[str] = []
+    raw_experience: str = Field(max_length=12_000)
+    raw_projects: str = Field(max_length=12_000)
+    raw_education: str = Field(max_length=6_000)
+    known_skills: List[str] = Field(default_factory=list)
 
 class ImproveSectionRequest(BaseModel):
     section_type: Literal['summary', 'experience', 'project', 'headline']
@@ -35,39 +35,39 @@ class ImproveSectionResponse(BaseModel):
 # --- Output Schema for Bulk Generate ---
 
 class ExperienceItem(BaseModel):
-    role: str
-    company: str
-    duration: str
-    description: Optional[str] = None
+    role: str = ""
+    company: str = ""
+    duration: str = ""
+    description: str = ""
 
 class EducationItem(BaseModel):
-    institution: str
-    degree: str
-    year: str
+    institution: str = ""
+    degree: str = ""
+    year: str = ""
 
 class ProjectItem(BaseModel):
-    name: str
-    techStack: Optional[List[str]] = None
-    description: Optional[str] = None
+    name: str = ""
+    techStack: List[str] = Field(default_factory=list)
+    description: str = ""
 
 class ResumeDataSchema(BaseModel):
-    firstName: str
-    lastName: str
-    headline: Optional[str] = None
-    email: Optional[str] = None
-    phone: Optional[str] = None
-    city: Optional[str] = None
-    country: Optional[str] = None
-    linkedin: Optional[str] = None
-    github: Optional[str] = None
-    portfolio: Optional[str] = None
-    summary: Optional[str] = None
-    experience: Optional[List[ExperienceItem]] = []
-    education: Optional[List[EducationItem]] = []
-    skills: Optional[List[str]] = []
-    projects: Optional[List[ProjectItem]] = []
-    certifications: Optional[List[str]] = []
-    achievements: Optional[List[str]] = []
+    firstName: str = ""
+    lastName: str = ""
+    headline: str = ""
+    email: str = ""
+    phone: str = ""
+    city: str = ""
+    country: str = ""
+    linkedin: str = ""
+    github: str = ""
+    portfolio: str = ""
+    summary: str = ""
+    experience: List[ExperienceItem] = Field(default_factory=list)
+    education: List[EducationItem] = Field(default_factory=list)
+    skills: List[str] = Field(default_factory=list)
+    projects: List[ProjectItem] = Field(default_factory=list)
+    certifications: List[str] = Field(default_factory=list)
+    achievements: List[str] = Field(default_factory=list)
 
 
 def get_genai_client():
@@ -110,8 +110,9 @@ INSTRUCTIONS:
 1. Turn the raw experience and projects into properly written resume bullet points (use action verbs + quantified impact where possible).
 2. Infer a strong, professional 'summary' based on the target role and provided background.
 3. Infer a professional 'headline'.
-4. Keep it truthful. Do NOT invent companies, dates, degrees, or metrics that are not present in or reasonably inferred from the input.
-5. If the user provided partial name/contact info in the notes, use it for firstName, lastName, email, etc. Otherwise leave them blank or generic (e.g. 'Jane', 'Doe').
+4. Keep it truthful. Do NOT invent companies, dates, degrees, skills, certifications, achievements, contact details, or metrics.
+5. If the user did not provide a name or contact detail, leave that field as an empty string. Never use placeholder people, companies, projects, or examples.
+6. If a field is unknown, use an empty string or empty list. A target role may guide wording only; it is not evidence of user experience.
 """
     try:
         response = client.models.generate_content(
@@ -127,11 +128,18 @@ INSTRUCTIONS:
             raise ValueError("Empty response from Gemini")
         
         # The response text should be valid JSON matching the schema
-        result_dict = json.loads(response.text)
+        result_dict = ResumeDataSchema.model_validate_json(response.text).model_dump()
+        # The builder expects stable client-side keys, which are presentation
+        # identifiers only and never resume facts.
+        for index, item in enumerate(result_dict["experience"]):
+            item["id"] = f"ai-exp-{index}"
+        for index, item in enumerate(result_dict["education"]):
+            item["id"] = f"ai-edu-{index}"
+        for index, item in enumerate(result_dict["projects"]):
+            item["id"] = f"ai-project-{index}"
         return result_dict
-    except Exception as e:
-        print("Generate error:", e)
-        raise HTTPException(status_code=500, detail=str(e))
+    except Exception:
+        raise HTTPException(status_code=502, detail="Unable to generate a valid resume draft. Please try again.")
 
 class SuggestionsSchema(BaseModel):
     suggestions: List[str]
@@ -253,4 +261,3 @@ INSTRUCTIONS:
     except Exception as e:
         print(f"Parse section error ({req.section_type}):", e)
         raise HTTPException(status_code=500, detail=str(e))
-

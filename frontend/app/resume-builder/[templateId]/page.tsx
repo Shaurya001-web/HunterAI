@@ -56,7 +56,8 @@ export default function ResumeBuilderWizardPage() {
       
       try {
         if (!user.isGuest) {
-          const profile = await api.getProfiles();
+          const profiles = await api.getProfiles();
+          const profile = Array.isArray(profiles) ? profiles[0] : profiles;
           if (profile) {
             setResumeData(mapProfileToResumeData(profile));
             setHasStarted(true); // Skip intake if we autofilled from profile

@@ -7,7 +7,7 @@ import json
 from config.database import get_db
 from config.models import User, Profile, Job, TailoredResume
 from routes.auth import get_current_user
-from services.resume_tailor import tailor_resume_json
+from services.resume_tailor import TAILORING_VERSION, tailor_resume_json
 from engine.matching_engine import evaluate_suitability
 from pydantic import BaseModel
 
@@ -51,7 +51,7 @@ async def generate_plan_endpoint(
             "job_title": job.title,
             "company": job.company,
             "required_skills": job.skills,
-            "description": f"Role requires {', '.join(job.skills) if job.skills else 'various skills'}. Constraints: {job.constraints}"
+            "description": job.constraints.get("description_excerpt") or f"Role requires {', '.join(job.skills) if job.skills else 'various skills'}."
         }
         
         # Generate plan
@@ -92,11 +92,14 @@ async def tailor_resume_endpoint(
             "job_title": job.title,
             "company": job.company,
             "required_skills": job.skills,
-            "description": f"Role requires {', '.join(job.skills) if job.skills else 'various skills'}. Constraints: {job.constraints}"
+            "description": job.constraints.get("description_excerpt") or f"Role requires {', '.join(job.skills) if job.skills else 'various skills'}."
         }
         
         # Hash profile for caching
-        profile_hash_str = json.dumps(user_profile_dict, sort_keys=True)
+        # Cache only output produced by the current factual-tailoring policy.
+        profile_hash_str = json.dumps(
+            {"version": TAILORING_VERSION, "profile": user_profile_dict}, sort_keys=True
+        )
         profile_hash = hashlib.sha256(profile_hash_str.encode()).hexdigest()
         
         # 2. Check Cache
@@ -122,6 +125,8 @@ async def tailor_resume_endpoint(
         
         # Re-attach name to tailored profile so it can be used for rendering
         tailored_json["name"] = current_user.username
+        tailored_json["email"] = current_user.email
+        tailored_json.update(current_user.urls or {})
         
         # 5. Calculate new ATS score
         suitability_after = evaluate_suitability(tailored_json, job_dict)

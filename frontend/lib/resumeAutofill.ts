@@ -48,7 +48,7 @@ export function mapProfileToResumeData(profile: Profile | null): ResumeData {
     company: exp.company || "",
     role: exp.role || "",
     duration: exp.duration || "",
-    description: "",
+    description: exp.description || exp.summary || "",
   }));
 
   // Projects mapping

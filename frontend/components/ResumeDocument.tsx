@@ -72,25 +72,31 @@ export const ResumeDocument = ({ data }: ResumeDocumentProps) => (
       
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.name}>{data.name || 'SHAURYA MISHRA'}</Text>
-        <Text style={styles.contact}>
-          {data.city ? `${data.city}${data.country ? `, ${data.country}` : ''}` : 'Prayagraj, Uttar Pradesh, India'} | {data.phone || '+91 77558 98628'} | {data.email || 'mishrashaurya2008@gmail.com'}
-        </Text>
-        <Text style={styles.contact}>
-          {data.linkedin || 'LinkedIn'} | {data.github || 'GitHub'} | {data.portfolio || 'LeetCode'}
-        </Text>
+        <Text style={styles.name}>{data.name || [data.firstName, data.lastName].filter(Boolean).join(' ')}</Text>
+        {(data.city || data.country || data.phone || data.email) && (
+          <Text style={styles.contact}>
+            {[data.city && `${data.city}${data.country ? `, ${data.country}` : ''}`, data.phone, data.email].filter(Boolean).join(' | ')}
+          </Text>
+        )}
+        {(data.linkedin || data.github || data.portfolio) && (
+          <Text style={styles.contact}>
+            {[data.linkedin, data.github, data.portfolio].filter(Boolean).join(' | ')}
+          </Text>
+        )}
       </View>
 
       {/* Career Objective */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Career Objective</Text>
-        <Text>{data.summary || 'Execution-focused Computer Science and Engineering student specializing in AI/ML and Full-Stack development. Possesses hands-on technical expertise building multi-agent AI systems, production-style backend APIs, structured data pipelines, and NLP classifiers. Proficient in Next.js, FastAPI, Supabase, and machine learning frameworks. Seeking an engineering internship to contribute to active repositories and deploy scalable software solutions.'}</Text>
-      </View>
+      {data.summary && (
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Career Objective</Text>
+          <Text>{data.summary}</Text>
+        </View>
+      )}
 
       {/* Education */}
-      <View style={styles.section}>
+      {data.education && data.education.length > 0 && <View style={styles.section}>
         <Text style={styles.sectionTitle}>Education</Text>
-        {data.education && data.education.length > 0 ? data.education.map((edu: any, i: number) => (
+        {data.education.map((edu: any, i: number) => (
           <View key={i} style={{ marginBottom: 4 }}>
             <View style={styles.row}>
               <Text style={styles.bold}>{edu.degree || edu.institution}</Text>
@@ -101,60 +107,28 @@ export const ResumeDocument = ({ data }: ResumeDocumentProps) => (
               <Text>{edu.gpa ? `GPA: ${edu.gpa}` : ''}</Text>
             </View>
           </View>
-        )) : (
-          <>
-            <View style={{ marginBottom: 4 }}>
-              <View style={styles.row}>
-                <Text style={styles.bold}>Bachelor of Engineering in Computer Science &amp; Engineering (AI &amp; ML)</Text>
-                <Text>(2025--2029)</Text>
-              </View>
-              <View style={styles.row}>
-                <Text>Chandigarh University, Mohali, Punjab</Text>
-                <Text>SGPA: 7.63 / 10.0</Text>
-              </View>
-            </View>
-            <View style={{ marginBottom: 4 }}>
-              <View style={styles.row}>
-                <Text style={styles.bold}>Senior Secondary Education (Class XII) — CBSE Board</Text>
-                <Text>(2024--2025)</Text>
-              </View>
-              <View style={styles.row}>
-                <Text>Sadhguru Public Hr. Secondary School, Uttar Pradesh</Text>
-                <Text>Percentage: 73%</Text>
-              </View>
-            </View>
-            <View style={{ marginBottom: 4 }}>
-              <View style={styles.row}>
-                <Text style={styles.bold}>Secondary Education (Class X) — CBSE Board</Text>
-                <Text>(2022--2023)</Text>
-              </View>
-              <View style={styles.row}>
-                <Text>Sadhguru Public Hr. Secondary School, Uttar Pradesh</Text>
-                <Text>Percentage: 86%</Text>
-              </View>
-            </View>
-          </>
-        )}
-      </View>
+        ))}
+      </View>}
 
       {/* Projects */}
       {data.projects && data.projects.length > 0 && (
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Projects</Text>
-          {data.projects.map((proj: any, i: number) => (
-            <View key={i} style={{ marginBottom: 6 }}>
+          {data.projects.map((proj: any, i: number) => {
+            const technologies = proj.technologies || proj.techStack;
+            return <View key={i} style={{ marginBottom: 6 }}>
               <View style={styles.row}>
-                <Text style={styles.bold}>{proj.title}</Text>
+                <Text style={styles.bold}>{proj.title || proj.name}</Text>
               </View>
-              {proj.technologies && (
-                <Text style={styles.italic}>Tech Stack: {Array.isArray(proj.technologies) ? proj.technologies.join(', ') : proj.technologies}</Text>
+              {technologies && (
+                <Text style={styles.italic}>Tech Stack: {Array.isArray(technologies) ? technologies.join(', ') : technologies}</Text>
               )}
               <View style={styles.bulletPoint}>
                 <Text style={styles.bullet}>•</Text>
                 <Text style={styles.bulletText}>{proj.description}</Text>
               </View>
-            </View>
-          ))}
+            </View>;
+          })}
         </View>
       )}
 
@@ -186,27 +160,8 @@ export const ResumeDocument = ({ data }: ResumeDocumentProps) => (
         </View>
       )}
 
-      {/* Achievements */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Achievements</Text>
-        <View style={styles.bulletPoint}>
-          <Text style={styles.bullet}>•</Text>
-          <Text style={styles.bulletText}>Selected for the Data Science / AI Engineer internship selection track at Unessa Foundation through a competitive profile screening on Internshala (May 2026).</Text>
-        </View>
-        <View style={styles.bulletPoint}>
-          <Text style={styles.bullet}>•</Text>
-          <Text style={styles.bulletText}>Contributed to an open-source Google Summer of Code (GSoC) organization repository by submitting a verified pull request.</Text>
-        </View>
-      </View>
-
-      {/* Certifications */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Certifications</Text>
-        <View style={styles.bulletPoint}><Text style={styles.bullet}>•</Text><Text style={styles.bulletText}>Microsoft Certified: Azure AI Fundamentals (AI-900) — Microsoft</Text></View>
-        <View style={styles.bulletPoint}><Text style={styles.bullet}>•</Text><Text style={styles.bulletText}>Programming Foundations with JavaScript, HTML and CSS — Duke University</Text></View>
-        <View style={styles.bulletPoint}><Text style={styles.bullet}>•</Text><Text style={styles.bulletText}>Introduction to Artificial Intelligence — Intel Corporation</Text></View>
-        <View style={styles.bulletPoint}><Text style={styles.bullet}>•</Text><Text style={styles.bulletText}>Generative Artificial Intelligence — LinkedIn</Text></View>
-      </View>
+      {data.achievements?.length > 0 && <View style={styles.section}><Text style={styles.sectionTitle}>Achievements</Text>{data.achievements.map((item: string, index: number) => <View key={index} style={styles.bulletPoint}><Text style={styles.bullet}>•</Text><Text style={styles.bulletText}>{item}</Text></View>)}</View>}
+      {data.certifications?.length > 0 && <View style={styles.section}><Text style={styles.sectionTitle}>Certifications</Text>{data.certifications.map((item: string, index: number) => <View key={index} style={styles.bulletPoint}><Text style={styles.bullet}>•</Text><Text style={styles.bulletText}>{item}</Text></View>)}</View>}
 
     </Page>
   </Document>
