@@ -61,40 +61,46 @@ def generate_pdf_report(data: dict) -> bytes:
     pdf.set_font('Helvetica', '', 11)
     pdf.set_text_color(44, 62, 80)
     pdf.cell(0, 6, f"Candidate: {data.get('candidate_name')}", ln=True)
-    pdf.cell(0, 6, f"Target Role: {data.get('target_role')}", ln=True)
     pdf.cell(0, 6, f"Generated: {data.get('generated_date')}", ln=True)
     
     # 1. TASK INFORMATION
     pdf.section_title(1, 'TASK INFORMATION')
-    pdf.key_value('Task', 'AI Job Match Analysis')
+    pdf.key_value('Task', 'AI Dashboard Summary')
     pdf.key_value('Task ID', data.get('task_id'))
     pdf.key_value('Status', data.get('status'))
-    pdf.key_value('Created', data.get('generated_date'))
     
-    # 2. JOB INFORMATION
-    pdf.section_title(2, 'JOB INFORMATION')
-    pdf.key_value('Job Title', data.get('job_title'))
-    pdf.key_value('Company', data.get('company'))
-    pdf.key_value('Location', data.get('location'))
-    pdf.key_value('Experience Required', data.get('experience_required'))
-    pdf.key_value('Job Source', data.get('job_source'))
-    pdf.key_value('Job Link', data.get('job_link'))
+    # 2. DASHBOARD STATISTICS
+    pdf.section_title(2, 'DASHBOARD STATISTICS')
+    pdf.key_value('Total Jobs Matched', str(data.get('total_matches')))
+    pdf.key_value('Average Match Score', f"{data.get('avg_score')}%")
+    pdf.key_value('Best Fit Score', f"{data.get('top_score')}%")
     
-    # 3. AI MATCH ANALYSIS
-    pdf.section_title(3, 'AI MATCH ANALYSIS')
-    
-    pdf.set_font('Helvetica', 'B', 12)
-    pdf.set_text_color(41, 128, 185)
-    pdf.cell(0, 8, f"Overall Match Score: {data.get('overall_score')}%", ln=True)
-    pdf.ln(2)
-    
-    pdf.key_value('Resume Match', f"{data.get('resume_score', 'Not Available')}%")
-    pdf.key_value('Skills Match', f"{data.get('skills_score', 'Not Available')}%")
-    pdf.key_value('Experience Match', f"{data.get('experience_score', 'Not Available')}%")
-    pdf.key_value('Education Match', f"{data.get('education_score', 'Not Available')}%")
-    
-    # 4. MATCHING SKILLS
-    pdf.section_title(4, 'MATCHING SKILLS')
+    # 3. TOP 5 MATCHED INTERNSHIPS
+    pdf.section_title(3, 'TOP 5 MATCHED INTERNSHIPS')
+    top_5 = data.get('top_5_matches', [])
+    if top_5:
+        for i, match in enumerate(top_5, 1):
+            pdf.set_font('Helvetica', 'B', 11)
+            pdf.set_text_color(41, 128, 185)
+            pdf.cell(0, 6, f"#{i} - {match['job_title']}", ln=True)
+            
+            pdf.set_font('Helvetica', '', 10)
+            pdf.set_text_color(44, 62, 80)
+            pdf.cell(50, 6, f"Company:", 0, 0)
+            pdf.set_text_color(0, 0, 0)
+            pdf.multi_cell(pdf.epw - 50, 6, match['company'])
+            
+            pdf.set_text_color(44, 62, 80)
+            pdf.cell(50, 6, f"Match Score:", 0, 0)
+            pdf.set_text_color(39, 174, 96) # Green
+            pdf.multi_cell(pdf.epw - 50, 6, f"{match['score']}%")
+            
+            pdf.ln(2)
+    else:
+        pdf.bullet_item("No job matches found yet. Upload a resume to get started.", icon="-")
+        
+    # 4. FREQUENT SKILL MATCHES
+    pdf.section_title(4, 'TOP MATCHED SKILLS (Across roles)')
     skills = data.get('matched_skills', [])
     if skills:
         for skill in skills:
@@ -102,8 +108,8 @@ def generate_pdf_report(data: dict) -> bytes:
     else:
         pdf.bullet_item("Not Available", icon="-")
         
-    # 5. SKILL GAPS
-    pdf.section_title(5, 'SKILL GAPS')
+    # 5. FREQUENT SKILL GAPS
+    pdf.section_title(5, 'TOP SKILL GAPS (Across roles)')
     gaps = data.get('skill_gaps', [])
     if gaps:
         for gap in gaps:
@@ -111,25 +117,15 @@ def generate_pdf_report(data: dict) -> bytes:
     else:
         pdf.bullet_item("None", icon="-")
         
-    # 6. AI RECOMMENDATIONS
-    pdf.section_title(6, 'AI RECOMMENDATIONS')
-    recs = data.get('recommendations', [])
-    if recs:
-        for i, rec in enumerate(recs, 1):
-            pdf.bullet_item(rec, icon=f"{i}.")
-    else:
-        pdf.bullet_item("No recommendations available.", icon="-")
-        
-    # 7. AGENT NOTES
-    pdf.section_title(7, 'AGENT NOTES')
+    # 6. SUMMARY
+    pdf.section_title(6, 'SUMMARY')
     pdf.set_font('Helvetica', '', 10)
     pdf.set_text_color(0, 0, 0)
-    pdf.multi_cell(pdf.epw, 6, str(data.get('agent_notes', 'Not Available')))
-    
-    # 8. TASK STATUS
-    pdf.section_title(8, 'TASK STATUS')
-    pdf.key_value('Status', 'Completed')
-    pdf.key_value('AI Analysis', 'Completed')
-    pdf.key_value('Recommendation', 'Generated')
+    summary_text = f"Candidate '{data.get('candidate_name')}' has matched with {data.get('total_matches')} total opportunities with a top score of {data.get('top_score')}%. "
+    if gaps:
+        summary_text += f"To improve match rates, consider focusing on gaining experience in: {', '.join(gaps[:3])}."
+    else:
+        summary_text += "Profile looks incredibly strong for the target roles."
+    pdf.multi_cell(pdf.epw, 6, summary_text)
     
     return pdf.output(dest="S")

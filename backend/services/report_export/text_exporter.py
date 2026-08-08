@@ -1,92 +1,56 @@
 def generate_text_report(data: dict) -> str:
-    # Ensure gaps and recommendations are lists
-    skill_gaps = data.get("skill_gaps", [])
-    recommendations = data.get("recommendations", [])
-    matched_skills = data.get("matched_skills", [])
+    lines = []
+    lines.append("="*56)
+    lines.append("                    HUNTERAI")
+    lines.append("              DASHBOARD SUMMARY REPORT")
+    lines.append("="*56)
+    lines.append("")
+    lines.append(f"Candidate: {data.get('candidate_name')}")
+    lines.append(f"Generated: {data.get('generated_date')}")
+    lines.append("")
+    lines.append("-" * 56)
+    lines.append("1. DASHBOARD STATISTICS")
+    lines.append("-" * 56)
+    lines.append(f"Total Jobs Matched: {data.get('total_matches')}")
+    lines.append(f"Average Match Score: {data.get('avg_score')}%")
+    lines.append(f"Best Fit Score: {data.get('top_score')}%")
+    lines.append("")
     
-    # Format the lists to strings with bullet points
-    matched_skills_str = "\n".join([f"✓ {skill}" for skill in matched_skills]) if matched_skills else "Not Available"
-    skill_gaps_str = "\n".join([f"✗ {skill}" for skill in skill_gaps]) if skill_gaps else "None"
-    
-    recs_str = ""
-    if recommendations:
-        for i, rec in enumerate(recommendations, 1):
-            recs_str += f"{i}. {rec}\n"
+    lines.append("-" * 56)
+    lines.append("2. TOP 5 MATCHED INTERNSHIPS")
+    lines.append("-" * 56)
+    top_5 = data.get("top_5_matches", [])
+    if top_5:
+        for i, match in enumerate(top_5, 1):
+            lines.append(f"#{i} - {match['job_title']}")
+            lines.append(f"    Company: {match['company']}")
+            lines.append(f"    Score: {match['score']}%")
+            lines.append(f"    Link: {match['url']}")
+            lines.append("")
     else:
-        recs_str = "No recommendations available."
+        lines.append("No job matches found yet.")
+        lines.append("")
+        
+    lines.append("-" * 56)
+    lines.append("3. TOP MATCHED SKILLS (Across roles)")
+    lines.append("-" * 56)
+    skills = data.get("matched_skills", [])
+    if skills:
+        for s in skills:
+            lines.append(f" [+] {s}")
+    else:
+        lines.append(" Not Available")
+    lines.append("")
 
-    return f"""========================================================
-                    HUNTERAI
-              AI JOB ANALYSIS REPORT
-========================================================
+    lines.append("-" * 56)
+    lines.append("4. TOP SKILL GAPS (Across roles)")
+    lines.append("-" * 56)
+    gaps = data.get("skill_gaps", [])
+    if gaps:
+        for g in gaps:
+            lines.append(f" [-] {g}")
+    else:
+        lines.append(" None")
+    lines.append("")
 
-Candidate: {data.get("candidate_name", "Not Available")}
-Target Role: {data.get("target_role", "Not Available")}
-Generated: {data.get("generated_date", "Not Available")}
-
---------------------------------------------------------
-1. TASK INFORMATION
---------------------------------------------------------
-
-Task: AI Job Match Analysis
-Task ID: {data.get("task_id", "HAI-001")}
-Status: {data.get("status", "Completed")}
-Created: {data.get("generated_date", "Not Available")}
-
---------------------------------------------------------
-2. JOB INFORMATION
---------------------------------------------------------
-
-Job Title: {data.get("job_title", "Not Available")}
-Company: {data.get("company", "Not Available")}
-Location: {data.get("location", "Not Available")}
-Experience Required: {data.get("experience_required", "Not Available")}
-Job Source: {data.get("job_source", "Not Available")}
-Job Link: {data.get("job_link", "Not Available")}
-
---------------------------------------------------------
-3. AI MATCH ANALYSIS
---------------------------------------------------------
-
-Overall Match Score: {data.get("overall_score", "Not Available")}%
-
-Resume Match:        {data.get("resume_score", "Not Available")}%
-Skills Match:        {data.get("skills_score", "Not Available")}%
-Experience Match:    {data.get("experience_score", "Not Available")}%
-Education Match:     {data.get("education_score", "Not Available")}%
-
---------------------------------------------------------
-4. MATCHING SKILLS
---------------------------------------------------------
-
-{matched_skills_str}
-
---------------------------------------------------------
-5. SKILL GAPS
---------------------------------------------------------
-
-{skill_gaps_str}
-
---------------------------------------------------------
-6. AI RECOMMENDATIONS
---------------------------------------------------------
-
-{recs_str.strip()}
-
---------------------------------------------------------
-7. AGENT NOTES
---------------------------------------------------------
-
-{data.get("agent_notes", "Not Available")}
-
---------------------------------------------------------
-8. TASK STATUS
---------------------------------------------------------
-
-Status: Completed
-AI Analysis: Completed
-Recommendation: Generated
-
---------------------------------------------------------
-Generated by HunterAI
-========================================================"""
+    return "\n".join(lines)

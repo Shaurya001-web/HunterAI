@@ -4,67 +4,55 @@ from config.models import User, Profile, Match, Job
 
 def build_report_data(user: User, db: Session) -> dict:
     profile = user.profile
-    # Get the best match if available
-    best_match = db.query(Match).filter(Match.user_id == user.id).order_by(Match.score.desc()).first()
+    # Fetch all matches for the user
+    matches = db.query(Match).filter(Match.user_id == user.id).order_by(Match.score.desc()).all()
     
     candidate_name = user.username or (user.email.split("@")[0] if user.email else "Not Available")
     generated_date = datetime.datetime.now().strftime("%d %B %Y")
     
+    total_matches = len(matches)
+    avg_score = int(sum(m.score or 0 for m in matches) / total_matches) if total_matches > 0 else 0
+    top_score = int(matches[0].score or 0) if total_matches > 0 else 0
+    
+    # Extract top 5 matches
+    top_5_matches = []
+    all_matched_skills = {}
+    all_skill_gaps = {}
+    
+    for i, match in enumerate(matches):
+        if i < 5:
+            job = match.job
+            top_5_matches.append({
+                "job_title": job.title or "Unknown Role",
+                "company": job.company or "Unknown Company",
+                "score": int(match.score) if match.score else 0,
+                "url": job.url or "Not Available"
+            })
+            
+        # Aggregate skills for summary
+        for s in (match.matched_skills or []):
+            all_matched_skills[s] = all_matched_skills.get(s, 0) + 1
+        for s in (match.missing_skills or []):
+            all_skill_gaps[s] = all_skill_gaps.get(s, 0) + 1
+            
+    # Sort aggregated skills by frequency
+    sorted_matched = sorted(all_matched_skills.items(), key=lambda x: x[1], reverse=True)
+    sorted_gaps = sorted(all_skill_gaps.items(), key=lambda x: x[1], reverse=True)
+    
+    matched_skills = [k for k, v in sorted_matched[:8]]
+    skill_gaps = [k for k, v in sorted_gaps[:8]]
+    
     data = {
         "candidate_name": candidate_name,
-        "target_role": "Not Available",
         "generated_date": generated_date,
-        "task_id": "HAI-001",
+        "task_id": "HAI-DASH",
         "status": "Completed",
-        "job_title": "Not Available",
-        "company": "Not Available",
-        "location": "Not Available",
-        "experience_required": "Not Available",
-        "job_source": "Not Available",
-        "job_link": "Not Available",
-        "overall_score": "Not Available",
-        "resume_score": "Not Available",
-        "skills_score": "Not Available",
-        "experience_score": "Not Available",
-        "education_score": "Not Available",
-        "matched_skills": [],
-        "skill_gaps": [],
-        "recommendations": [],
-        "agent_notes": "Not Available"
+        "total_matches": total_matches,
+        "avg_score": avg_score,
+        "top_score": top_score,
+        "top_5_matches": top_5_matches,
+        "matched_skills": matched_skills,
+        "skill_gaps": skill_gaps,
     }
-
-    if best_match:
-        job = best_match.job
-        data["target_role"] = job.title or "Not Available"
-        data["job_title"] = job.title or "Not Available"
-        data["company"] = job.company or "Not Available"
-        data["location"] = job.location or "Not Available"
-        data["experience_required"] = job.duration or "Not Available"
-        data["job_source"] = job.source or "Hunter AI"
-        data["job_link"] = job.url or "Not Available"
-        
-        data["overall_score"] = int(best_match.score) if best_match.score is not None else "Not Available"
-        data["matched_skills"] = best_match.matched_skills or []
-        data["skill_gaps"] = best_match.missing_skills or []
-        
-        recs = []
-        for i, skill in enumerate(data["skill_gaps"][:4]):
-            if i == 0:
-                recs.append(f"Learn {skill} fundamentals.")
-            elif i == 1:
-                recs.append(f"Improve {skill} knowledge.")
-            elif i == 2:
-                recs.append(f"Add a deployed project using {skill}.")
-            else:
-                recs.append(f"Mention {skill} experience more clearly in the resume.")
-        data["recommendations"] = recs if recs else ["Profile looks strong for this role."]
-
-        if hasattr(best_match, "suitability_assessment") and best_match.suitability_assessment:
-            data["agent_notes"] = best_match.suitability_assessment
-        else:
-            if len(data["skill_gaps"]) > 0:
-                data["agent_notes"] = f"The candidate has a strong foundation but lacks experience in {', '.join(data['skill_gaps'][:2])}."
-            else:
-                data["agent_notes"] = "The candidate is a strong fit for this role."
-
+    
     return data
