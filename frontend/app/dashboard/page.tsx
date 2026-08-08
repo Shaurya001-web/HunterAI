@@ -394,6 +394,8 @@ export default function Dashboard() {
               >
                 <Sparkles size={15} /> Resume Builder
               </a>
+            </div>
+          </div>
         </div>
       )}
 
