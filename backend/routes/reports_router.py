@@ -5,7 +5,7 @@ import io
 
 from config.database import get_db
 from config.models import User
-from routes.auth_router import get_current_user
+from routes.auth import get_current_user
 
 from services.report_export.report_builder import build_report_data
 from services.report_export.text_exporter import generate_text_report
