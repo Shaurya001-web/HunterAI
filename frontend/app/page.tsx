@@ -305,7 +305,7 @@ export default function Home() {
               ) : (
                 <>
                   <Link
-                    href="/profile"
+                    href="/dashboard"
                     className="border font-bold border-gray-400 rounded-full hover:bg-gray-600 hover:text-white hover:shadow-2xl px-3 py-1.5 sm:px-6 sm:py-2 flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm hover:opacity-70 cursor-pointer whitespace-nowrap text-black"
                     style={{ textDecoration: 'none' }}
                   >

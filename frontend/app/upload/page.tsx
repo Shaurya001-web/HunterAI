@@ -186,7 +186,7 @@ export default function UploadPage() {
                   View Recommendations <ArrowRight size={15} />
                 </Link>
                 <Link
-                  href="/profile"
+                  href="/dashboard"
                   style={{
                     display: "flex",
                     alignItems: "center",
