@@ -13,6 +13,7 @@ Usage:
 import json
 import logging
 import os
+from functools import lru_cache
 from typing import List, Optional
 
 from pydantic import BaseModel, Field, ValidationError
@@ -119,6 +120,7 @@ def _call_gemini(user_text: str) -> str:
     return response.text
 
 
+@lru_cache(maxsize=256)
 def extract_preferences(user_text: str) -> PreferenceFilters:
     """
     Convert free-text preferences into a validated PreferenceFilters object.

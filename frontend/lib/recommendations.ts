@@ -44,12 +44,17 @@ export class RecommendationApiError extends Error {}
  */
 export async function fetchPreferenceRecommendations(
   text: string,
-  userId: string,
+  _userId: string,
 ): Promise<PreferenceResponse> {
+  const headers: Record<string, string> = { "Content-Type": "application/json" };
+  const { createClient } = await import("@/lib/supabase/client");
+  const { data: { session } } = await createClient().auth.getSession();
+  if (session?.access_token) headers.Authorization = `Bearer ${session.access_token}`;
+
   const res = await fetch(`${API_BASE_URL}/api/recommendations/preferences`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ text, user_id: userId }),
+    headers,
+    body: JSON.stringify({ text }),
   });
 
   if (!res.ok) {

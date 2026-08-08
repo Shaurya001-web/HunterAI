@@ -1,3 +1,7 @@
+import logging
+import threading
+import time
+
 from fastapi import APIRouter, HTTPException, Depends, BackgroundTasks
 from sqlalchemy.orm import Session
 from sqlalchemy import or_, cast, String
@@ -13,6 +17,25 @@ from config.database import get_db, SessionLocal
 from typing import Optional
 
 router = APIRouter()
+logger = logging.getLogger(__name__)
+
+# A search request must never trigger the same expensive scrape repeatedly.
+# This is deliberately process-local; production deployments should replace it
+# with Redis/a scheduled worker while retaining this request-level safeguard.
+SCRAPE_COOLDOWN_SECONDS = 15 * 60
+_last_scrape_at: dict[str, float] = {}
+_scrape_lock = threading.Lock()
+
+
+def should_refresh_keyword(keyword: str) -> bool:
+    normalized = keyword.strip().lower()
+    now = time.monotonic()
+    with _scrape_lock:
+        previous = _last_scrape_at.get(normalized, 0.0)
+        if now - previous < SCRAPE_COOLDOWN_SECONDS:
+            return False
+        _last_scrape_at[normalized] = now
+        return True
 
 def background_scrape_jobs(scrape_keyword: str):
     db = SessionLocal()
@@ -24,9 +47,13 @@ def background_scrape_jobs(scrape_keyword: str):
                 if results:
                     for r in results:
                         r["source"] = source_name
-                return results or []
-            except Exception as e:
-                print(f"On-demand {source_name} scraping failed: {e}")
+                result_list = results or []
+                logger.info(
+                    "Scrape source=%s keyword=%s jobs=%d", source_name, keyword, len(result_list)
+                )
+                return result_list
+            except Exception:
+                logger.exception("On-demand %s scraping failed", source_name)
                 return []
 
         # Concurrently scrape from all sources
@@ -38,17 +65,21 @@ def background_scrape_jobs(scrape_keyword: str):
             ]
             for future in futures:
                 scraped_jobs.extend(future.result())
+
+        if not scraped_jobs:
+            logger.warning("No jobs returned while refreshing keyword '%s'", scrape_keyword)
+            return
         
-        # Save new jobs to database
+        # One query replaces the previous SELECT-per-job duplicate check.
+        urls = [job.get("url") for job in scraped_jobs if job.get("url")]
+        existing_urls = set()
+        if urls:
+            existing_urls = {url for (url,) in db.query(Job.url).filter(Job.url.in_(urls)).all()}
+
+        new_jobs = []
         for sj in scraped_jobs:
-            # Check for duplicate
-            existing = db.query(Job).filter(
-                Job.title == sj["job_title"],
-                Job.company == sj["company"]
-            ).first()
-            
-            if not existing:
-                new_job = Job(
+            if sj.get("url") not in existing_urls:
+                new_jobs.append(Job(
                     title=sj["job_title"],
                     company=sj["company"],
                     skills=sj["required_skills"],
@@ -61,12 +92,16 @@ def background_scrape_jobs(scrape_keyword: str):
                     stipend_min=sj.get("stipend_min", 0),
                     duration_months=sj.get("duration_months", 0),
                     constraints=sj.get("constraints", {})
-                )
-                db.add(new_job)
-        db.commit()
-    except Exception as e:
+                ))
+        if new_jobs:
+            db.add_all(new_jobs)
+            db.commit()
+        logger.info(
+            "Refreshed keyword '%s': %d scraped, %d new", scrape_keyword, len(scraped_jobs), len(new_jobs)
+        )
+    except Exception:
         db.rollback()
-        print(f"Background scrape failed: {e}")
+        logger.exception("Background scrape failed for keyword '%s'", scrape_keyword)
     finally:
         db.close()
 
@@ -115,13 +150,13 @@ def get_matches(
                     scrape_keyword = skill
                     break
 
-        if scrape_keyword:
+        if scrape_keyword and should_refresh_keyword(scrape_keyword):
             # Fire background scrape for each top skill so the DB fills up with relevant jobs
             background_tasks.add_task(background_scrape_jobs, scrape_keyword)
             # Also kick off scrapes for other top skills (non-blocking)
             if not keyword and profile.skills:
                 for extra_skill in profile.skills[1:3]:
-                    if extra_skill and extra_skill != scrape_keyword:
+                    if extra_skill and extra_skill != scrape_keyword and should_refresh_keyword(extra_skill):
                         background_tasks.add_task(background_scrape_jobs, extra_skill)
         
         # 3. Hybrid Filtering - Phase 1: Cheap SQL Filtering
