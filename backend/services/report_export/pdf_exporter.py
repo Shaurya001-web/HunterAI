@@ -33,8 +33,9 @@ class PremiumReportPDF(FPDF):
         
         self.set_font('Helvetica', '', 10)
         self.set_text_color(0, 0, 0)
-        # Using multi_cell to handle long values (like links or notes) gracefully
-        self.multi_cell(0, 6, str(value))
+        # Using multi_cell to handle long values gracefully. 
+        # Manually specify width instead of 0 to avoid "Not enough horizontal space" error
+        self.multi_cell(self.epw - 50, 6, str(value))
         
     def bullet_item(self, text, icon="[+]"):
         self.set_font('Helvetica', '', 10)
@@ -50,7 +51,7 @@ class PremiumReportPDF(FPDF):
             self.cell(10, 6, str(icon), 0, 0)
             
         self.set_text_color(0, 0, 0)
-        self.multi_cell(0, 6, str(text))
+        self.multi_cell(self.epw - 10, 6, str(text))
 
 def generate_pdf_report(data: dict) -> bytes:
     pdf = PremiumReportPDF()
@@ -123,7 +124,7 @@ def generate_pdf_report(data: dict) -> bytes:
     pdf.section_title(7, 'AGENT NOTES')
     pdf.set_font('Helvetica', '', 10)
     pdf.set_text_color(0, 0, 0)
-    pdf.multi_cell(0, 6, str(data.get('agent_notes', 'Not Available')))
+    pdf.multi_cell(pdf.epw, 6, str(data.get('agent_notes', 'Not Available')))
     
     # 8. TASK STATUS
     pdf.section_title(8, 'TASK STATUS')
