@@ -1,5 +1,6 @@
 import asyncio
 import json
+import os
 import re
 from typing import Any
 
@@ -8,6 +9,11 @@ from pydantic import BaseModel, ConfigDict
 
 
 TAILORING_VERSION = "factual-v2"
+
+
+def _llm_tailoring_enabled() -> bool:
+    """Keep free-tier deployments deterministic unless AI tailoring is enabled."""
+    return os.environ.get("TAILORING_USE_LLM", "false").lower() == "true"
 
 
 class TailoredProfile(BaseModel):
@@ -134,6 +140,8 @@ async def _invoke_with_fallback(prompt: str, temperature: float) -> str:
 
 async def generate_tailor_plan(user_profile: dict, job_data: dict, feedback: str | None = None) -> str:
     job_data = sanitize_job_data(job_data)
+    if not _llm_tailoring_enabled():
+        return deterministic_tailor_plan(user_profile, job_data)
     prompt = f"""You are a resume editor. Produce a concise Markdown plan for tailoring this resume.
 
 Rules: use only facts present in SOURCE RESUME. You may suggest reordering existing skills and rewriting existing bullets. Do not propose adding a skill, metric, role, project, education item, or certification that is absent from the source.
@@ -160,6 +168,8 @@ async def tailor_resume_json(user_profile: dict, job_data: dict, approved_plan: 
         "education": _as_dict_list(user_profile.get("education", [])),
         "experience": _as_dict_list(user_profile.get("experience", [])),
     }
+    if not _llm_tailoring_enabled():
+        return deterministic_tailor(source, job_data)
     prompt = f"""You are a factual resume editor. Tailor ONLY the wording and order of this existing resume for the target job.
 
 NON-NEGOTIABLE RULES:

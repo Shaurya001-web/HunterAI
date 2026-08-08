@@ -13,6 +13,7 @@ Usage:
 import json
 import logging
 import os
+import re
 from functools import lru_cache
 from typing import List, Optional
 
@@ -120,6 +121,25 @@ def _call_gemini(user_text: str) -> str:
     return response.text
 
 
+def _extract_preferences_locally(user_text: str) -> PreferenceFilters:
+    """Low-cost parser for the common filters accepted by the UI."""
+    text = user_text.lower()
+    locations = ["remote"] if any(term in text for term in ("remote", "wfh", "work from home", "anywhere")) else []
+    amount_match = re.search(r"(?:₹|rs\.?|inr|\$)\s*([\d,.]+)\s*(k)?", text)
+    stipend = None
+    if amount_match:
+        stipend = int(float(amount_match.group(1).replace(",", "")) * (1_000 if amount_match.group(2) else 1))
+    roles = [
+        phrase for phrase in ("machine learning", "data science", "data analyst", "backend", "frontend", "full stack", "software engineering", "marketing", "design")
+        if phrase in text
+    ]
+    return PreferenceFilters(
+        preferred_locations=locations,
+        min_stipend_monthly=stipend,
+        role_keywords=roles,
+    )
+
+
 @lru_cache(maxsize=256)
 def extract_preferences(user_text: str) -> PreferenceFilters:
     """
@@ -132,6 +152,9 @@ def extract_preferences(user_text: str) -> PreferenceFilters:
     user_text = (user_text or "").strip()
     if not user_text:
         return PreferenceFilters()
+
+    if os.getenv("PREFERENCE_PARSER_USE_LLM", "false").lower() != "true":
+        return _extract_preferences_locally(user_text)
 
     raw_json: Optional[str] = None
 

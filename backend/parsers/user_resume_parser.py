@@ -60,20 +60,22 @@ def extract_profile_regex(text: str) -> dict:
         "email": extracted_email,
         "phone": extracted_phone,
         "skills": extracted_skills,
-        "projects": [
-            {
-                "title": "Resume Document",
-                "description": text[:200] if text else "Uploaded resume document",
-                "technologies": extracted_skills[:3]
-            }
-        ] if text else [],
+        # Do not manufacture a placeholder project from arbitrary resume text.
+        # Empty sections are preferable to a repeated, fictitious project.
+        "projects": [],
         "education": [],
         "experience": []
     }
 async def parse_resume_to_json(pdf_path: str) -> dict:
     text = extract_text(pdf_path)
     if not text or not text.strip():
-        print("PDF text extraction empty. Skipping LLM.")
+        print("PDF text extraction empty. Using local parser.")
+        return extract_profile_regex(text)
+
+    # Upload must remain available when AI quotas are exhausted. The local
+    # parser extracts only evidence found in the PDF; deployments can opt into
+    # LLM enrichment explicitly after configuring sufficient provider quota.
+    if os.getenv("RESUME_PARSER_USE_LLM", "false").lower() != "true":
         return extract_profile_regex(text)
         
     prompt_text = f"""
@@ -182,5 +184,4 @@ async def response():
     return data
 if __name__ == "__main__":
     asyncio.run(response())
-
 

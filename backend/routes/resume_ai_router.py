@@ -86,6 +86,11 @@ def get_genai_client():
     return genai.Client(api_key=api_key)
 
 
+def builder_ai_enabled() -> bool:
+    """AI drafting is opt-in so the free tier never blocks the builder."""
+    return os.getenv("RESUME_BUILDER_USE_LLM", "false").lower() == "true"
+
+
 def build_factual_draft_fallback(req: GenerateResumeRequest) -> dict:
     """Keep the builder usable during an AI-provider outage without inventing facts."""
     experience = [ExperienceItem(description=req.raw_experience.strip())] if req.raw_experience.strip() else []
@@ -113,6 +118,8 @@ def finalize_resume_draft(result_dict: dict) -> dict:
 
 @router.post("/generate")
 async def generate_resume_draft(req: GenerateResumeRequest, current_user=Depends(get_current_user)):
+    if not builder_ai_enabled():
+        return build_factual_draft_fallback(req)
     try:
         client = get_genai_client()
     except HTTPException:
@@ -167,6 +174,8 @@ class SuggestionsSchema(BaseModel):
 
 @router.post("/improve-section", response_model=ImproveSectionResponse)
 async def improve_section(req: ImproveSectionRequest, current_user=Depends(get_current_user)):
+    if not builder_ai_enabled():
+        return {"suggestions": [req.current_text] if req.current_text.strip() else []}
     client = get_genai_client()
     
     context_str = ""
@@ -236,8 +245,20 @@ class SkillsSectionSchema(BaseModel):
     skills: List[str]
 
 
+def local_section_defaults(section_type: str) -> dict:
+    if section_type == "personal":
+        return PersonalSectionSchema().model_dump()
+    if section_type == "summary":
+        return {"summary": ""}
+    if section_type == "skills":
+        return {"skills": []}
+    return {section_type: []}
+
+
 @router.post("/parse-section")
 async def parse_section_from_casual_text(req: ParseSectionRequest, current_user=Depends(get_current_user)):
+    if not builder_ai_enabled():
+        return local_section_defaults(req.section_type)
     client = get_genai_client()
     
     schema_map = {
