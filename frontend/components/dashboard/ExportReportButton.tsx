@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Download, FileText, X, LoaderCircle, CheckCircle2 } from "lucide-react";
 import { api } from "@/lib/api";
+import { Profile, JobMatch } from "@/types";
 
 type ExportFormat = "pdf" | "csv" | "html";
 
@@ -13,8 +14,8 @@ const formats: { id: ExportFormat; label: string; description: string }[] = [
 ];
 
 interface ExportReportButtonProps {
-  profile?: { name?: string; email?: string; skills?: string[]; [key: string]: unknown } | null;
-  matches?: { job_title?: string; score?: number; [key: string]: unknown }[];
+  profile?: Profile | null;
+  matches?: JobMatch[];
 }
 
 export default function ExportReportButton({ profile, matches }: ExportReportButtonProps) {
