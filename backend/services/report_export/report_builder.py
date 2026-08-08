@@ -1,74 +1,70 @@
-"""Build reports from persisted Hunter AI data only; this module never calls AI or scoring."""
-from collections import Counter
-from datetime import datetime, timezone
-from typing import Any
+import datetime
+from sqlalchemy.orm import Session
+from config.models import User, Profile, Match, Job
 
-from config.models import Job, Match, Profile, TailoredResume, User
-from .schemas import CareerReport, ReportSection
-
-
-def _value_or_unavailable(value: Any) -> Any:
-    return value if value not in (None, "", [], {}) else "Not Available"
-
-
-def _completion(profile: Profile | None) -> int:
-    if not profile:
-        return 0
-    return min(100, (35 if profile.skills else 0) + (30 if profile.projects else 0) +
-               (25 if profile.experience else 0) + 10)
-
-
-def _format_resume_summary(profile: Profile | None) -> dict[str, Any]:
-    if not profile:
-        return {"status": "Not Available"}
-    return {
-        "skills": profile.skills or [],
-        "education": profile.education or [],
-        "experience": profile.experience or [],
-        "projects": profile.projects or [],
+def build_report_data(user: User, db: Session) -> dict:
+    profile = user.profile
+    # Get the best match if available
+    best_match = db.query(Match).filter(Match.user_id == user.id).order_by(Match.score.desc()).first()
+    
+    candidate_name = user.username or (user.email.split("@")[0] if user.email else "Not Available")
+    generated_date = datetime.datetime.now().strftime("%d %B %Y")
+    
+    data = {
+        "candidate_name": candidate_name,
+        "target_role": "Not Available",
+        "generated_date": generated_date,
+        "task_id": "HAI-001",
+        "status": "Completed",
+        "job_title": "Not Available",
+        "company": "Not Available",
+        "location": "Not Available",
+        "experience_required": "Not Available",
+        "job_source": "Not Available",
+        "job_link": "Not Available",
+        "overall_score": "Not Available",
+        "resume_score": "Not Available",
+        "skills_score": "Not Available",
+        "experience_score": "Not Available",
+        "education_score": "Not Available",
+        "matched_skills": [],
+        "skill_gaps": [],
+        "recommendations": [],
+        "agent_notes": "Not Available"
     }
 
+    if best_match:
+        job = best_match.job
+        data["target_role"] = job.title or "Not Available"
+        data["job_title"] = job.title or "Not Available"
+        data["company"] = job.company or "Not Available"
+        data["location"] = job.location or "Not Available"
+        data["experience_required"] = job.duration or "Not Available"
+        data["job_source"] = job.source or "Hunter AI"
+        data["job_link"] = job.url or "Not Available"
+        
+        data["overall_score"] = int(best_match.score) if best_match.score is not None else "Not Available"
+        data["matched_skills"] = best_match.matched_skills or []
+        data["skill_gaps"] = best_match.missing_skills or []
+        
+        recs = []
+        for i, skill in enumerate(data["skill_gaps"][:4]):
+            if i == 0:
+                recs.append(f"Learn {skill} fundamentals.")
+            elif i == 1:
+                recs.append(f"Improve {skill} knowledge.")
+            elif i == 2:
+                recs.append(f"Add a deployed project using {skill}.")
+            else:
+                recs.append(f"Mention {skill} experience more clearly in the resume.")
+        data["recommendations"] = recs if recs else ["Profile looks strong for this role."]
 
-def build_report(user: User, db) -> CareerReport:
-    profile = db.query(Profile).filter(Profile.user_id == user.id).first()
-    matches = db.query(Match).filter(Match.user_id == user.id).order_by(Match.score.desc()).all()
-    tailored = db.query(TailoredResume).filter(TailoredResume.user_id == user.id).order_by(TailoredResume.created_at.desc()).all()
+        if hasattr(best_match, "suitability_assessment") and best_match.suitability_assessment:
+            data["agent_notes"] = best_match.suitability_assessment
+        else:
+            if len(data["skill_gaps"]) > 0:
+                data["agent_notes"] = f"The candidate has a strong foundation but lacks experience in {', '.join(data['skill_gaps'][:2])}."
+            else:
+                data["agent_notes"] = "The candidate is a strong fit for this role."
 
-    missing = Counter(skill for match in matches for skill in (match.missing_skills or []) if skill)
-    jobs = [{
-        "title": match.job.title, "company": match.job.company, "score": round(match.score),
-        "location": match.job.location or "Not Available", "matched_skills": match.matched_skills or [],
-        "missing_skills": match.missing_skills or [], "source": match.job.source or "Not Available",
-    } for match in matches if match.job]
-    best_score = round(matches[0].score) if matches else "Not Available"
-    latest_tailor = tailored[0] if tailored else None
-    saved_jobs = []
-    if profile and profile.saved_internships:
-        saved_jobs = db.query(Job).filter(Job.id.in_(profile.saved_internships)).all()
-
-    sections = [
-        ReportSection("Resume Summary", _format_resume_summary(profile)),
-        ReportSection("ATS Score", best_score),
-        ReportSection("ATS Breakdown", {"top_match_score": best_score, "matched_opportunities": len(matches)} if matches else "Not Available"),
-        ReportSection("Strengths", list(profile.skills or []) if profile else "Not Available"),
-        ReportSection("Weaknesses", list(missing.keys()) or "Not Available"),
-        ReportSection("Skill Analysis", {"parsed_skills": profile.skills or []} if profile else "Not Available"),
-        ReportSection("Missing Skills", list(missing.keys()) or "Not Available"),
-        ReportSection("Resume Improvement Suggestions", "Not Available"),
-        ReportSection("Resume Tailoring Suggestions", latest_tailor.tailored_json if latest_tailor else "Not Available"),
-        ReportSection("Top Recommended Jobs", jobs or "Not Available"),
-        ReportSection("Career Growth Suggestions", "Not Available"),
-        ReportSection("Market Intelligence", "Not Available"),
-        ReportSection("Recent Activity", {
-            "saved_jobs": [{"title": job.title, "company": job.company} for job in saved_jobs],
-            "tailored_resumes_generated": len(tailored),
-        } if saved_jobs or tailored else "Not Available"),
-        ReportSection("Overall AI Summary", "Not Available"),
-    ]
-    return CareerReport(
-        candidate_name=user.username or user.email.split("@")[0], candidate_email=user.email,
-        generated_at=datetime.now(timezone.utc).strftime("%d %b %Y, %H:%M UTC"),
-        profile_completion=_completion(profile),
-        resume_parsing_status="Complete" if profile else "Not Available", sections=sections,
-    )
-
+    return data

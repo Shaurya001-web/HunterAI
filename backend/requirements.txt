@@ -25,3 +25,4 @@ layoutparser[detectron2]
 spacy
 pdfplumber
 camelot-py[cv]
+fpdf2

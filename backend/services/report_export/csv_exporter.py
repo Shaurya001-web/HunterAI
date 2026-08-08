@@ -1,24 +1,59 @@
 import csv
 import io
-import json
-from .schemas import CareerReport
 
-
-def export_csv(report: CareerReport) -> bytes:
-    buffer = io.StringIO()
-    writer = csv.DictWriter(buffer, fieldnames=["section", "field", "value"])
-    writer.writeheader()
-    writer.writerow({"section": "Candidate Information", "field": "name", "value": report.candidate_name})
-    writer.writerow({"section": "Candidate Information", "field": "email", "value": report.candidate_email})
-    writer.writerow({"section": "Report Metadata", "field": "generation_date", "value": report.generated_at})
-    writer.writerow({"section": "Profile", "field": "completion", "value": report.profile_completion})
-    writer.writerow({"section": "Profile", "field": "resume_parsing_status", "value": report.resume_parsing_status})
-    for section in report.sections:
-        value = section.value
-        if isinstance(value, dict):
-            for key, item in value.items():
-                writer.writerow({"section": section.title, "field": key, "value": json.dumps(item, ensure_ascii=False) if isinstance(item, (dict, list)) else item})
-        else:
-            writer.writerow({"section": section.title, "field": "value", "value": json.dumps(value, ensure_ascii=False) if isinstance(value, (dict, list)) else value})
-    return buffer.getvalue().encode("utf-8-sig")
-
+def generate_csv_report(data: dict) -> str:
+    output = io.StringIO()
+    writer = csv.writer(output)
+    
+    # Write Candidate Info
+    writer.writerow(["Candidate Name", data.get("candidate_name")])
+    writer.writerow(["Target Role", data.get("target_role")])
+    writer.writerow(["Generated Date", data.get("generated_date")])
+    writer.writerow([])
+    
+    # Write Task Info
+    writer.writerow(["Task", "AI Job Match Analysis"])
+    writer.writerow(["Task ID", data.get("task_id")])
+    writer.writerow(["Status", data.get("status")])
+    writer.writerow([])
+    
+    # Write Job Info
+    writer.writerow(["Job Title", data.get("job_title")])
+    writer.writerow(["Company", data.get("company")])
+    writer.writerow(["Location", data.get("location")])
+    writer.writerow(["Experience Required", data.get("experience_required")])
+    writer.writerow(["Job Source", data.get("job_source")])
+    writer.writerow(["Job Link", data.get("job_link")])
+    writer.writerow([])
+    
+    # Write Scores
+    writer.writerow(["Overall Match Score", data.get("overall_score")])
+    writer.writerow(["Resume Match", data.get("resume_score")])
+    writer.writerow(["Skills Match", data.get("skills_score")])
+    writer.writerow(["Experience Match", data.get("experience_score")])
+    writer.writerow(["Education Match", data.get("education_score")])
+    writer.writerow([])
+    
+    # Write Matched Skills
+    writer.writerow(["Matching Skills"])
+    for skill in data.get("matched_skills", []):
+        writer.writerow(["", skill])
+    writer.writerow([])
+    
+    # Write Skill Gaps
+    writer.writerow(["Skill Gaps"])
+    for skill in data.get("skill_gaps", []):
+        writer.writerow(["", skill])
+    writer.writerow([])
+    
+    # Write Recommendations
+    writer.writerow(["Recommendations"])
+    for i, rec in enumerate(data.get("recommendations", []), 1):
+        writer.writerow(["", f"{i}. {rec}"])
+    writer.writerow([])
+    
+    # Write Agent Notes
+    writer.writerow(["Agent Notes"])
+    writer.writerow(["", data.get("agent_notes")])
+    
+    return output.getvalue()
