@@ -257,22 +257,6 @@ export const api = {
     return res.json();
   },
 
-  exportCareerReport: async (format: "pdf" | "csv" | "html"): Promise<Blob> => {
-    const res = await fetch(`${BASE_URL}/reports/export/${format}`, {
-      method: "POST",
-      headers: await getHeaders({ "Content-Type": "application/json" }),
-      body: JSON.stringify({}),
-    });
-    if (!res.ok) {
-      let errDetail = `Export failed (${res.status})`;
-      try {
-        const errJson = await res.json();
-        errDetail = errJson.detail || errDetail;
-      } catch (e) {}
-      throw new Error(errDetail);
-    }
-    return res.blob();
-  },
 };
 
 export default api;
