@@ -87,6 +87,38 @@ def enforce_factual_integrity(source: dict, candidate: dict, job_data: dict) -> 
     }
 
 
+def deterministic_tailor(source: dict, job_data: dict) -> dict:
+    """Useful, truthful fallback when all AI providers are temporarily unavailable."""
+    required = {str(skill).strip().lower() for skill in job_data.get("required_skills", [])}
+    skills = list(source.get("skills", []) or [])
+    prioritized = [skill for skill in skills if str(skill).lower() in required]
+    prioritized.extend(skill for skill in skills if skill not in prioritized)
+    return {
+        "skills": prioritized,
+        "projects": _as_dict_list(source.get("projects", [])),
+        "education": _as_dict_list(source.get("education", [])),
+        "experience": _as_dict_list(source.get("experience", [])),
+    }
+
+
+def deterministic_tailor_plan(user_profile: dict, job_data: dict) -> str:
+    """Produce a factual plan without consuming an LLM quota."""
+    source_skills = [str(skill) for skill in user_profile.get("skills", []) or []]
+    required_skills = [str(skill) for skill in job_data.get("required_skills", []) or []]
+    matched = [skill for skill in source_skills if skill.lower() in {item.lower() for item in required_skills}]
+    missing = [skill for skill in required_skills if skill.lower() not in {item.lower() for item in source_skills}]
+    sections = ["## Factual tailoring plan"]
+    if matched:
+        sections.append("### Existing skills to prioritize\n" + ", ".join(matched))
+    if missing:
+        sections.append("### Job keywords not claimed\n" + ", ".join(missing) + "\nDo not add these unless they already appear in the source resume.")
+    if user_profile.get("projects"):
+        sections.append("### Projects\nReorder existing project bullets to lead with the most relevant verified technologies and outcomes.")
+    if user_profile.get("experience"):
+        sections.append("### Experience\nRewrite only existing bullets for clarity; preserve employers, titles, dates, and numbers.")
+    return "\n\n".join(sections)
+
+
 async def _invoke_with_fallback(prompt: str, temperature: float) -> str:
     try:
         llm = init_chat_model(model="llama-3.1-8b-instant", model_provider="groq", temperature=temperature)
@@ -114,7 +146,10 @@ SOURCE RESUME:
 """
     if feedback:
         prompt += f"\nUser preference for this plan: {feedback}\n"
-    return await _invoke_with_fallback(prompt, temperature=0.2)
+    try:
+        return await _invoke_with_fallback(prompt, temperature=0.2)
+    except RuntimeError:
+        return deterministic_tailor_plan(user_profile, job_data)
 
 
 async def tailor_resume_json(user_profile: dict, job_data: dict, approved_plan: str | None = None) -> dict:
@@ -154,4 +189,7 @@ SOURCE RESUME (authoritative facts):
         except Exception as error:
             last_error = error
             prompt += "\nYour prior response was invalid. Return valid JSON and preserve source facts exactly.\n"
-    raise RuntimeError("Unable to produce a valid factual tailored resume.") from last_error
+    # A rate limit must not prevent the user from receiving their own factual
+    # resume. Return a deterministic, job-reordered version until AI capacity
+    # is available again.
+    return deterministic_tailor(source, job_data)

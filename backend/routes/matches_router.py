@@ -23,6 +23,7 @@ logger = logging.getLogger(__name__)
 # This is deliberately process-local; production deployments should replace it
 # with Redis/a scheduled worker while retaining this request-level safeguard.
 SCRAPE_COOLDOWN_SECONDS = 15 * 60
+EXPECTED_SOURCES = {"Internshala", "LinkedIn", "Naukri"}
 _last_scrape_at: dict[str, float] = {}
 _scrape_lock = threading.Lock()
 
@@ -142,11 +143,17 @@ def get_matches(
             # Use top 3 skills (not just first) so HR/consulting/etc resumes get the right jobs
             top_skills = [s for s in profile.skills[:3] if s and str(s).strip()]
             for skill in top_skills:
-                matching_count = db.query(Job).filter(
+                matching_jobs = db.query(Job).filter(
                     cast(Job.skills, String).ilike(f"%{skill}%")
-                ).count()
-                # Re-scrape if fewer than 15 relevant jobs exist for this skill
-                if matching_count < 15:
+                )
+                matching_count = matching_jobs.count()
+                represented_sources = {
+                    source for (source,) in matching_jobs.with_entities(Job.source).distinct().all()
+                    if source
+                }
+                # A large Internshala-only cache is not a healthy multi-source
+                # result set. Refresh missing sources at the cooldown boundary.
+                if matching_count < 15 or EXPECTED_SOURCES - represented_sources:
                     scrape_keyword = skill
                     break
 

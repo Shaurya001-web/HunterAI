@@ -86,9 +86,37 @@ def get_genai_client():
     return genai.Client(api_key=api_key)
 
 
+def build_factual_draft_fallback(req: GenerateResumeRequest) -> dict:
+    """Keep the builder usable during an AI-provider outage without inventing facts."""
+    experience = [ExperienceItem(description=req.raw_experience.strip())] if req.raw_experience.strip() else []
+    projects = [ProjectItem(description=req.raw_projects.strip())] if req.raw_projects.strip() else []
+    education = [EducationItem(degree=req.raw_education.strip())] if req.raw_education.strip() else []
+    return finalize_resume_draft(ResumeDataSchema(
+        headline=req.target_role.strip() if req.target_role else "",
+        experience=experience,
+        projects=projects,
+        education=education,
+        skills=[skill.strip() for skill in req.known_skills if skill.strip()],
+    ).model_dump())
+
+
+def finalize_resume_draft(result_dict: dict) -> dict:
+    """Add stable presentation keys without changing user-provided resume facts."""
+    for index, item in enumerate(result_dict["experience"]):
+        item["id"] = f"ai-exp-{index}"
+    for index, item in enumerate(result_dict["education"]):
+        item["id"] = f"ai-edu-{index}"
+    for index, item in enumerate(result_dict["projects"]):
+        item["id"] = f"ai-project-{index}"
+    return result_dict
+
+
 @router.post("/generate")
 async def generate_resume_draft(req: GenerateResumeRequest, current_user=Depends(get_current_user)):
-    client = get_genai_client()
+    try:
+        client = get_genai_client()
+    except HTTPException:
+        return build_factual_draft_fallback(req)
     
     prompt = f"""
 You are an expert resume writer. Turn the following raw notes into a fully structured professional resume draft.
@@ -128,18 +156,11 @@ INSTRUCTIONS:
             raise ValueError("Empty response from Gemini")
         
         # The response text should be valid JSON matching the schema
-        result_dict = ResumeDataSchema.model_validate_json(response.text).model_dump()
-        # The builder expects stable client-side keys, which are presentation
-        # identifiers only and never resume facts.
-        for index, item in enumerate(result_dict["experience"]):
-            item["id"] = f"ai-exp-{index}"
-        for index, item in enumerate(result_dict["education"]):
-            item["id"] = f"ai-edu-{index}"
-        for index, item in enumerate(result_dict["projects"]):
-            item["id"] = f"ai-project-{index}"
-        return result_dict
+        return finalize_resume_draft(ResumeDataSchema.model_validate_json(response.text).model_dump())
     except Exception:
-        raise HTTPException(status_code=502, detail="Unable to generate a valid resume draft. Please try again.")
+        # Rate limits and transient provider failures should never discard the
+        # user's notes or make the builder unusable.
+        return build_factual_draft_fallback(req)
 
 class SuggestionsSchema(BaseModel):
     suggestions: List[str]
