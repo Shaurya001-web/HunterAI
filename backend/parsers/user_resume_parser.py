@@ -72,6 +72,10 @@ def extract_profile_regex(text: str) -> dict:
     }
 async def parse_resume_to_json(pdf_path: str) -> dict:
     text = extract_text(pdf_path)
+    if not text or not text.strip():
+        print("PDF text extraction empty. Skipping LLM.")
+        return extract_profile_regex(text)
+        
     prompt_text = f"""
 You are an expert ATS resume parser. Your job is to extract candidate information and output a clean, strict JSON file adhering strictly to the schema rules below.
 
