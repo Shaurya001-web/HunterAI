@@ -4,6 +4,7 @@ import { useEffect, useState, useRef } from "react";
 import { api } from "@/lib/api";
 import { Profile, JobMatch } from "@/types";
 import { useAuth } from "@/components/auth/AuthProvider";
+import { RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid, BarChart, Bar, Cell } from "recharts";
 import {
   Filter,
   RefreshCw,
@@ -16,7 +17,6 @@ import {
   Sparkles,
   CheckCircle2
 } from "lucide-react";
-import ExportReportButton from "@/components/dashboard/ExportReportButton";
 
 function getTimeOfDay() {
   const h = new Date().getHours();
@@ -501,12 +501,6 @@ export default function Dashboard() {
               </div>
             ))}
           </div>
-        </div>
-
-        {/* Quick Actions */}
-        <div className="dashboard-panel" style={{ padding: "20px 24px" }}>
-          <p style={{ fontSize: "12px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.1em", color: "var(--text-muted)", margin: "0 0 14px" }}>Quick Actions</p>
-          <ExportReportButton profile={profile} matches={matches} />
         </div>
 
         {/* Lower Two-Column Grid */}
