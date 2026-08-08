@@ -394,13 +394,6 @@ export default function Dashboard() {
               >
                 <Sparkles size={15} /> Resume Builder
               </a>
-            </div>
-          </div>
-
-          <div>
-            <p style={{ fontSize: "12px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.1em", color: "var(--text-muted)", margin: "0 0 10px" }}>Quick Actions</p>
-            <ExportReportButton />
-          </div>
         </div>
       )}
 
@@ -506,6 +499,12 @@ export default function Dashboard() {
               </div>
             ))}
           </div>
+        </div>
+
+        {/* Quick Actions */}
+        <div className="dashboard-panel" style={{ padding: "20px 24px" }}>
+          <p style={{ fontSize: "12px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.1em", color: "var(--text-muted)", margin: "0 0 14px" }}>Quick Actions</p>
+          <ExportReportButton profile={profile} matches={matches} />
         </div>
 
         {/* Lower Two-Column Grid */}
