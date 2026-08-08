@@ -116,9 +116,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               </Link>
             );
           })}
-          
-          <div style={{ marginTop: "16px", padding: "0 12px", display: collapsed ? "none" : "block" }}>
-            <ExportReportButton />
+          <div style={{ marginTop: "16px", padding: "0 12px", display: "flex", justifyContent: "center" }}>
+            <ExportReportButton collapsed={collapsed} />
           </div>
         </nav>
 

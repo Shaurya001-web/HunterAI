@@ -16,9 +16,10 @@ const formats: { id: ExportFormat; label: string; description: string }[] = [
 interface ExportReportButtonProps {
   profile?: Profile | null;
   matches?: JobMatch[];
+  collapsed?: boolean;
 }
 
-export default function ExportReportButton({ profile, matches }: ExportReportButtonProps) {
+export default function ExportReportButton({ profile, matches, collapsed }: ExportReportButtonProps) {
   const [open, setOpen] = useState(false);
   const [format, setFormat] = useState<ExportFormat>("pdf");
   const [generating, setGenerating] = useState(false);
@@ -55,34 +56,20 @@ export default function ExportReportButton({ profile, matches }: ExportReportBut
         type="button"
         id="export-career-report-btn"
         onClick={() => { setOpen(true); setMessage(""); }}
+        className="nav-item"
+        title={collapsed ? "Export Report" : undefined}
         style={{
           border: "none",
-          cursor: "pointer",
-          borderRadius: "14px",
-          padding: "18px 20px",
-          background: "linear-gradient(135deg, #24256b, #5b5ce2)",
-          color: "#fff",
+          background: "transparent",
+          width: "100%",
           textAlign: "left",
           display: "flex",
-          gap: "13px",
-          alignItems: "center",
-          boxShadow: "0 10px 24px rgba(71,72,190,.25)",
-          width: "100%",
-          maxWidth: "420px",
-          transition: "opacity 0.15s",
+          cursor: "pointer",
+          padding: 0,
         }}
       >
-        <span style={{ background: "rgba(255,255,255,.16)", padding: "10px", borderRadius: "11px", display: "grid" }}>
-          <FileText size={20} />
-        </span>
-        <span>
-          <span style={{ display: "block", fontSize: "14px", fontWeight: 800 }}>
-            Export Career Intelligence Report
-          </span>
-          <span style={{ display: "block", marginTop: "3px", fontSize: "12px", opacity: 0.8 }}>
-            PDF, CSV, or printable HTML
-          </span>
-        </span>
+        <FileText size={18} style={{ opacity: 0.65, flexShrink: 0 }} />
+        {!collapsed && <span>Export Report</span>}
       </button>
 
       {/* Modal */}
@@ -91,7 +78,7 @@ export default function ExportReportButton({ profile, matches }: ExportReportBut
           role="dialog"
           aria-modal="true"
           aria-label="Export Career Intelligence Report"
-          onClick={() => !generating && setOpen(false)}
+          onClick={() => setOpen(false)}
           style={{
             position: "fixed",
             inset: 0,
@@ -130,7 +117,6 @@ export default function ExportReportButton({ profile, matches }: ExportReportBut
               <button
                 aria-label="Close"
                 type="button"
-                disabled={generating}
                 onClick={() => setOpen(false)}
                 style={{ border: "none", background: "transparent", color: "#667085", cursor: "pointer", height: "fit-content" }}
               >
