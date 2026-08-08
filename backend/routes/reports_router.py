@@ -25,7 +25,7 @@ def export_career_report(format: str, db: Session = Depends(get_db), current_use
         if format.lower() == "pdf":
             pdf_bytes = generate_pdf_report(report_data)
             return Response(
-                content=pdf_bytes,
+                content=bytes(pdf_bytes),
                 media_type="application/pdf",
                 headers={"Content-Disposition": "attachment; filename=hunter-ai-career-intelligence-report.pdf"}
             )
