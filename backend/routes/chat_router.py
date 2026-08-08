@@ -17,6 +17,9 @@ import os
 GROQ_API_KEY = os.environ.get("GROQ_API_KEY")
 client = Groq(api_key=GROQ_API_KEY) if GROQ_API_KEY else None
 
+# Get Gemini API Key from environment
+GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY") or os.environ.get("GOOGLE_API_KEY")
+
 # Define Pydantic BaseModel for structured response
 class ActionItem(BaseModel):
     category: str = Field(description="The category of the action item (e.g., 'Skills', 'Experience', 'Formatting')")
@@ -74,25 +77,39 @@ async def chat_with_gemini(
     }}
     """
 
-    if not client:
-        raise HTTPException(status_code=500, detail="Groq API Key is not configured on the server.")
+    # Try Groq first
+    if client:
+        try:
+            response = client.chat.completions.create(
+                model="llama-3.1-8b-instant",
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": request.message}
+                ],
+                response_format={"type": "json_object"},
+                temperature=0.7,
+            )
+            content = response.choices[0].message.content
+            return json.loads(content)
+        except Exception as e:
+            print(f"Groq API Error: {e}")
 
-    try:
-        response = client.chat.completions.create(
-            model="mixtral-8x7b-32768",
-            messages=[
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": request.message}
-            ],
-            response_format={"type": "json_object"},
-            temperature=0.7,
-        )
-        
-        # Parse the JSON string response back to a dict so FastAPI can serialize it
-        content = response.choices[0].message.content
-        if not content:
-            content = "{}"
-        return json.loads(content)
-    except Exception as e:
-        print(f"Groq API Error: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+    # Fallback to Gemini
+    if GEMINI_API_KEY:
+        try:
+            import re
+            from google import genai as google_genai
+            gemini_client = google_genai.Client(api_key=GEMINI_API_KEY)
+            gemini_resp = gemini_client.models.generate_content(
+                model="gemini-2.5-flash",
+                contents=f"{system_prompt}\nUser Query: {request.message}",
+            )
+            raw = gemini_resp.text or "{}"
+            # Strip markdown fences if present
+            json_match = re.search(r'```(?:json)?\s*(\{.*?\})\s*```', raw, re.DOTALL)
+            raw = json_match.group(1) if json_match else raw[raw.find('{'):raw.rfind('}')+1]
+            return json.loads(raw)
+        except Exception as e:
+            print(f"[Chat] Gemini fallback failed: {e}")
+
+    raise HTTPException(status_code=500, detail="Failed to generate insights using all available AI services.")

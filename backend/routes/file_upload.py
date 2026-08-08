@@ -1,7 +1,8 @@
 import os
 from fastapi import APIRouter, UploadFile, Depends, HTTPException, File, Header
 from sqlalchemy.orm import Session
-from parsers.user_resume_parser import parse_resume_to_json
+from parsers.user_resume_parser import parse_resume_to_json, extract_text, extract_profile_regex
+from ats.llm import LLMRateLimitError
 from routes.auth import get_current_user
 from config.models import User, Profile
 from config.database import get_db
@@ -66,7 +67,26 @@ async def upload_file(
     # Automatically parse the resume
     try:
         profile_data = await parse_resume_to_json(file_path)
-        
+    except LLMRateLimitError as rate_err:
+        # Both AI providers are rate-limited — degrade gracefully to regex parser
+        print(f"[Upload] LLM rate-limited, using regex fallback: {rate_err}")
+        try:
+            text = extract_text(file_path)
+            profile_data = extract_profile_regex(text)
+        except Exception as regex_err:
+            db.rollback()
+            raise HTTPException(
+                status_code=500,
+                detail=f"File uploaded successfully, but parsing failed: {regex_err}"
+            )
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(
+            status_code=500,
+            detail=f"File uploaded successfully, but parsing or saving failed: {e}"
+        )
+
+    try:
         # Sync name if user didn't have one set in auth
         if not current_user.username and profile_data.get("name"):
             current_user.username = profile_data["name"]
@@ -113,5 +133,5 @@ async def upload_file(
         db.rollback()
         raise HTTPException(
             status_code=500,
-            detail=f"File uploaded successfully, but parsing or saving failed: {e}"
+            detail=f"File uploaded successfully, but saving profile failed: {e}"
         )
