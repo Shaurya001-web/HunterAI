@@ -112,7 +112,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               <Link key={href} href={href} className={`nav-item ${active ? "active" : ""}`} title={collapsed ? label : undefined}>
                 <Icon size={18} style={{ opacity: active ? 1 : 0.65, flexShrink: 0 }} />
                 {!collapsed && <span>{label}</span>}
-                {label === "Dashboard" && !collapsed && <span className="nav-item-badge">12</span>}
               </Link>
             );
           })}
