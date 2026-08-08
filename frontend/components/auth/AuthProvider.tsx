@@ -8,6 +8,7 @@ interface AuthUser {
   id: string;
   email: string;
   username: string;
+  role: "candidate" | "recruiter";
   isGuest?: boolean;
 }
 
@@ -19,11 +20,12 @@ interface AuthContextType {
   authLoading: boolean;
   setAuthError: (err: string) => void;
   signIn: (email: string, pass: string) => Promise<boolean>;
-  signUp: (email: string, pass: string, username?: string) => Promise<boolean>;
+  signUp: (email: string, pass: string, username?: string, role?: "candidate" | "recruiter") => Promise<boolean>;
   signOut: () => Promise<void>;
   enterSandboxMode: () => void;
   signInWithGoogle: () => Promise<void>;
   updateProfile: (newUsername: string) => Promise<boolean>;
+  setUserRole: (role: "candidate" | "recruiter") => Promise<boolean>;
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -39,6 +41,7 @@ const AuthContext = createContext<AuthContextType>({
   enterSandboxMode: () => {},
   signInWithGoogle: async () => {},
   updateProfile: async () => false,
+  setUserRole: async () => false,
 });
 
 export const useAuth = () => useContext(AuthContext);
@@ -85,6 +88,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             id: session.user.id,
             email: session.user.email ?? "",
             username: session.user.user_metadata?.full_name || session.user.user_metadata?.name || session.user.email?.split("@")[0] || "",
+            role: (session.user.user_metadata?.role as "candidate" | "recruiter") || "candidate",
             isGuest: false
           };
           setUser(parsedUser);
@@ -103,6 +107,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         id: guestId,
         email: `${guestId}@hunterai.local`,
         username: "Guest User",
+        role: "candidate" as const,
         isGuest: true
       };
       const guestToken = `mock_token:${guestUser.id}:${guestUser.email}:${guestUser.username}`;
@@ -124,6 +129,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             id: session.user.id,
             email: session.user.email ?? "",
             username: session.user.user_metadata?.full_name || session.user.user_metadata?.name || session.user.email?.split("@")[0] || "",
+            role: (session.user.user_metadata?.role as "candidate" | "recruiter") || "candidate",
             isGuest: false
           };
           setUser(parsedUser);
@@ -153,9 +159,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             id: data.user.id,
             email: data.user.email ?? "",
             username: data.user.user_metadata?.full_name || data.user.user_metadata?.name || data.user.email?.split("@")[0] || "",
+            role: (data.user.user_metadata?.role as "candidate" | "recruiter") || "candidate",
             isGuest: false
           };
           setUser(newUser);
+          // Fetch role from backend profile
+          try {
+            const profile = await api.getProfile();
+            if (profile.role) {
+              newUser.role = profile.role;
+              setUser({ ...newUser });
+            }
+          } catch (e) { /* ignore */ }
           return true;
         }
       } else {
@@ -164,6 +179,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           id: `mock_user_${email.replace(/[^a-zA-Z0-9]/g, "")}`,
           email,
           username: email.split("@")[0],
+          role: "candidate" as const,
           isGuest: false
         };
         const t = `mock_token:${newUser.id}:${newUser.email}:${newUser.username}`;
@@ -171,6 +187,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setToken(t);
         api.setToken(t);
         localStorage.setItem("mock_auth_user", JSON.stringify(newUser));
+        // Fetch role from backend
+        try {
+          const profile = await api.getProfile();
+          if (profile.role) {
+            newUser.role = profile.role;
+            setUser({ ...newUser });
+            localStorage.setItem("mock_auth_user", JSON.stringify(newUser));
+          }
+        } catch (e) { /* ignore */ }
         return true;
       }
     } catch (err) {
@@ -182,7 +207,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return false;
   };
 
-  const signUp = async (email: string, pass: string, username?: string): Promise<boolean> => {
+  const signUp = async (email: string, pass: string, username?: string, role?: "candidate" | "recruiter"): Promise<boolean> => {
     if (!email || !pass) return false;
     setAuthError("");
     setAuthLoading(true);
@@ -208,9 +233,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             id: data.user.id,
             email: data.user.email ?? "",
             username: data.user.user_metadata?.username || data.user.user_metadata?.name || data.user.email?.split("@")[0] || "",
+            role: role || "candidate",
             isGuest: false
           };
           setUser(newUser);
+          // Set role on backend
+          if (role) {
+            try { await api.saveProfile({ role }); } catch (e) { /* ignore */ }
+          }
           return true;
         } else {
           setAuthError("Verification email sent! Please check your inbox.");
@@ -222,6 +252,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           id: `mock_user_${email.replace(/[^a-zA-Z0-9]/g, "")}`,
           email,
           username: username || email.split("@")[0],
+          role: role || "candidate",
           isGuest: false
         };
         const t = `mock_token:${newUser.id}:${newUser.email}:${newUser.username}`;
@@ -229,6 +260,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setToken(t);
         api.setToken(t);
         localStorage.setItem("mock_auth_user", JSON.stringify(newUser));
+        // Set role on backend
+        if (role) {
+          try { await api.saveProfile({ role }); } catch (e) { /* ignore */ }
+        }
         return true;
       }
     } catch (err) {
@@ -245,6 +280,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       id: "mock_user_demo",
       email: "demo@hunterai.local",
       username: "Demo User",
+      role: "candidate" as const,
       isGuest: false
     };
     const t = `mock_token:${sandboxUser.id}:${sandboxUser.email}:${sandboxUser.username}`;
@@ -272,6 +308,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           id: "mock_google_user",
           email: "google_user@example.com",
           username: "Google User",
+          role: "candidate" as const,
           isGuest: false
         };
         const t = `mock_token:${newUser.id}:${newUser.email}:${newUser.username}`;
@@ -298,10 +335,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         });
         if (error) throw error;
         if (data.user) {
-          const updatedUser = {
+          const updatedUser: AuthUser = {
             id: data.user.id,
             email: data.user.email ?? "",
             username: newUsername,
+            role: user?.role || "candidate",
             isGuest: false
           };
           setUser(updatedUser);
@@ -357,12 +395,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       id: guestId,
       email: `${guestId}@hunterai.local`,
       username: "Guest User",
+      role: "candidate" as const,
       isGuest: true
     };
     const guestToken = `mock_token:${guestUser.id}:${guestUser.email}:${guestUser.username}`;
     setUser(guestUser);
     setToken(guestToken);
     setLoading(false);
+  };
+
+  const setUserRole = async (role: "candidate" | "recruiter"): Promise<boolean> => {
+    try {
+      await api.saveProfile({ role });
+      if (user) {
+        const updated = { ...user, role };
+        setUser(updated);
+        if (!user.isGuest) {
+          localStorage.setItem("mock_auth_user", JSON.stringify(updated));
+        }
+      }
+      return true;
+    } catch (e) {
+      console.error("Failed to set role:", e);
+      return false;
+    }
   };
 
   if (loading) {
@@ -377,7 +433,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, token, loading, authError, authLoading, setAuthError, signIn, signUp, signOut, enterSandboxMode, signInWithGoogle, updateProfile }}>
+    <AuthContext.Provider value={{ user, token, loading, authError, authLoading, setAuthError, signIn, signUp, signOut, enterSandboxMode, signInWithGoogle, updateProfile, setUserRole }}>
       {children}
     </AuthContext.Provider>
   );

@@ -38,6 +38,9 @@ export default function Dashboard() {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [matches, setMatches] = useState<JobMatch[]>([]);
   const [savedIds, setSavedIds] = useState<Set<number>>(new Set());
+  const [recruiterOpenings, setRecruiterOpenings] = useState<any[]>([]);
+  const [myApplications, setMyApplications] = useState<any[]>([]);
+  const [applyingId, setApplyingId] = useState<number | null>(null);
   const [keyword, setKeyword] = useState("");
   const [location, setLocation] = useState("");
   const [remoteOnly, setRemoteOnly] = useState(false);
@@ -63,7 +66,7 @@ export default function Dashboard() {
       setProfile(selectedProfile);
 
       const emailToUse = selectedProfile?.email || user?.email || undefined;
-      const [nextMatches, saved] = await Promise.all([
+      const [nextMatches, saved, openings, apps] = await Promise.all([
         api.getMatches(
           emailToUse,
           filters?.keyword?.trim() || undefined,
@@ -71,16 +74,33 @@ export default function Dashboard() {
           filters?.remoteOnly
         ).catch(() => []),
         api.getSavedInternships().catch(() => []),
+        api.browseJobPostings({ keyword: filters?.keyword, location: filters?.location, remote_only: filters?.remoteOnly }).catch(() => []),
+        api.getMyApplications().catch(() => []),
       ]);
 
       setMatches(nextMatches || []);
       setSavedIds(new Set(saved.map((job: any) => job.id).filter((id: any): id is number => typeof id === "number")));
+      setRecruiterOpenings(openings || []);
+      setMyApplications(apps || []);
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Failed to load dashboard";
       setError(`${message}. Make sure the HunterAI backend is running at http://127.0.0.1:8000.`);
     } finally {
       setLoading(false);
       setRefreshing(false);
+    }
+  };
+
+  const handleApplyToRecruiterJob = async (postingId: number) => {
+    setApplyingId(postingId);
+    try {
+      await api.applyToJob(postingId);
+      const updatedApps = await api.getMyApplications().catch(() => []);
+      setMyApplications(updatedApps);
+    } catch (e) {
+      alert(e instanceof Error ? e.message : "Failed to apply");
+    } finally {
+      setApplyingId(null);
     }
   };
 
@@ -500,6 +520,140 @@ export default function Dashboard() {
                 </div>
               </div>
             ))}
+          </div>
+
+          {/* Direct Recruiter Openings Section */}
+          <div style={{ background: "rgba(255, 255, 255, 0.75)", border: "1px solid var(--border-strong)", borderRadius: "20px", padding: "20px 24px", boxShadow: "0 4px 20px rgba(0,0,0,0.04)" }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "16px", flexWrap: "wrap", gap: "8px" }}>
+              <div>
+                <span style={{ fontSize: "11px", fontWeight: 800, textTransform: "uppercase", padding: "3px 8px", borderRadius: "6px", background: "rgba(16, 185, 129, 0.15)", color: "#10B981" }}>
+                  Direct Recruiter Hiring
+                </span>
+                <h2 style={{ fontSize: "18px", fontWeight: 700, margin: "6px 0 0", color: "var(--text-primary)" }}>
+                  Open Positions Posted by Recruiters
+                </h2>
+              </div>
+              {myApplications.length > 0 && (
+                <span style={{ fontSize: "12.5px", color: "var(--text-muted)", fontWeight: 600 }}>
+                  You have applied to {myApplications.length} job{myApplications.length > 1 ? "s" : ""}
+                </span>
+              )}
+            </div>
+
+            {recruiterOpenings.length === 0 ? (
+              <div style={{ textAlign: "center", padding: "24px 16px", background: "var(--bg-base)", borderRadius: "12px", border: "1px dashed var(--border-strong)" }}>
+                <p style={{ fontSize: "13.5px", fontWeight: 600, color: "var(--text-primary)", margin: 0 }}>No recruiter openings published yet</p>
+                <p style={{ fontSize: "12px", color: "var(--text-muted)", margin: "4px 0 0" }}>
+                  Switch to <strong>Recruiter Mode</strong> to post the first job opening!
+                </p>
+              </div>
+            ) : (
+              <div style={{ maxHeight: "260px", overflowY: "auto", paddingRight: "4px", display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "14px" }}>
+                {recruiterOpenings.map((posting) => {
+                  const myApp = myApplications.find((a: any) => a.job_posting_id === posting.id);
+                  const isApplying = applyingId === posting.id;
+
+                  return (
+                    <div
+                      key={posting.id}
+                      onClick={() => {
+                        window.location.href = `/direct-jobs?jobId=${posting.id}`;
+                      }}
+                      style={{
+                        background: "var(--bg-surface)",
+                        border: "1px solid var(--border-strong)",
+                        borderRadius: "14px",
+                        padding: "16px",
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: "10px",
+                        position: "relative",
+                        cursor: "pointer",
+                        transition: "all 0.15s ease"
+                      }}
+                    >
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "8px" }}>
+                        <div>
+                          <h3 style={{ fontSize: "15px", fontWeight: 700, color: "var(--text-primary)", margin: 0 }}>
+                            {posting.title}
+                          </h3>
+                          <p style={{ fontSize: "12.5px", color: "var(--text-muted)", margin: "2px 0 0" }}>
+                            {posting.company} {posting.location ? `· ${posting.location}` : ""} {posting.is_remote ? "🌐 Remote" : ""}
+                          </p>
+                        </div>
+
+                        {/* Application Status Badge or View Link */}
+                        {myApp ? (
+                          <span
+                            style={{
+                              fontSize: "11px",
+                              fontWeight: 700,
+                              textTransform: "uppercase",
+                              padding: "4px 8px",
+                              borderRadius: "6px",
+                              background: myApp.status === "shortlisted"
+                                ? "rgba(16, 185, 129, 0.15)"
+                                : myApp.status === "rejected"
+                                ? "rgba(239, 68, 68, 0.15)"
+                                : "rgba(59, 130, 246, 0.15)",
+                              color: myApp.status === "shortlisted"
+                                ? "#10B981"
+                                : myApp.status === "rejected"
+                                ? "#EF4444"
+                                : "#3B82F6",
+                              whiteSpace: "nowrap"
+                            }}
+                          >
+                            {myApp.status === "shortlisted" ? "✓ Accepted" : myApp.status === "rejected" ? "✕ Rejected" : "Applied"}
+                          </span>
+                        ) : (
+                          <span
+                            style={{
+                              fontSize: "11.5px",
+                              fontWeight: 600,
+                              color: "#10B981",
+                              display: "flex",
+                              alignItems: "center",
+                              gap: "4px",
+                              whiteSpace: "nowrap"
+                            }}
+                          >
+                            View & Apply →
+                          </span>
+                        )}
+                      </div>
+
+                      {posting.salary_range && (
+                        <p style={{ fontSize: "12.5px", fontWeight: 600, color: "var(--text-secondary)", margin: 0 }}>
+                          Salary/Stipend: {posting.salary_range}
+                        </p>
+                      )}
+
+                      {posting.skills_required?.length > 0 && (
+                        <div style={{ display: "flex", flexWrap: "wrap", gap: "4px" }}>
+                          {posting.skills_required.map((sk: string, i: number) => (
+                            <span
+                              key={i}
+                              style={{
+                                fontSize: "10.5px",
+                                fontWeight: 600,
+                                padding: "2px 6px",
+                                borderRadius: "4px",
+                                background: "var(--bg-elevated)",
+                                border: "1px solid var(--border)",
+                                color: "var(--text-secondary)"
+                              }}
+                            >
+                              {sk}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
         </div>
 

@@ -13,6 +13,8 @@ class UserProfileUpdate(BaseModel):
 
     username: str | None = Field(default=None, min_length=1, max_length=100)
     urls: dict[str, str] | None = None
+    role: str | None = None  # "candidate" or "recruiter"
+    company_name: str | None = None
 
 
 class SavedInternshipRequest(BaseModel):
@@ -24,6 +26,8 @@ def serialize_user_profile(user: User):
         "user_id": user.id,
         "name": user.username or user.email.split("@")[0],
         "email": user.email,
+        "role": user.role or "candidate",
+        "company_name": user.company_name,
         "skills": prof.skills if prof and prof.skills else [],
         "education": prof.education if prof and prof.education else [],
         "experience": prof.experience if prof and prof.experience else [],
@@ -59,6 +63,10 @@ async def save_user_profile(
         current_user.username = payload.username
     if payload.urls is not None:
         current_user.urls = payload.urls
+    if payload.role is not None and payload.role in ("candidate", "recruiter"):
+        current_user.role = payload.role
+    if payload.company_name is not None:
+        current_user.company_name = payload.company_name
         
     db.add(current_user)
     db.commit()

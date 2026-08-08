@@ -1,3 +1,5 @@
+import { notifyAgentTask } from "@/components/shared/AgentTaskNotch";
+
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
 
 let authToken: string | null = null;
@@ -55,7 +57,9 @@ export const api = {
       } catch (e) {}
       throw new Error(errDetail);
     }
-    return res.json();
+    const data = await res.json();
+    notifyAgentTask("parse", "Parsing Resume Profile...");
+    return data;
   },
 
   getProfile: async () => {
@@ -103,7 +107,11 @@ export const api = {
     });
     if (res.status === 400) return [];
     if (!res.ok) throw new Error("Failed to load matches");
-    return res.json();
+    const data = await res.json();
+    if (Array.isArray(data) && data.length > 0) {
+      notifyAgentTask("match", "Evaluating Role Matches...");
+    }
+    return data;
   },
 
   saveProfile: async (payload: any) => {
@@ -192,7 +200,9 @@ export const api = {
       } catch (e) {}
       throw new Error(errDetail);
     }
-    return res.json();
+    const data = await res.json();
+    notifyAgentTask("tailor", "Generating Tailored Resume...");
+    return data;
   },
 
   chat: async (message: string) => {
@@ -257,6 +267,137 @@ export const api = {
     return res.json();
   },
 
+  // ── Recruiter API ─────────────────────────────────────────────────────
+
+  getRecruiterDashboard: async () => {
+    const res = await fetch(`${BASE_URL}/recruiter/dashboard`, {
+      headers: await getHeaders(),
+    });
+    if (!res.ok) {
+      let errDetail = "Failed to load recruiter dashboard";
+      try { const errJson = await res.json(); errDetail = errJson.detail || errDetail; } catch (e) {}
+      throw new Error(errDetail);
+    }
+    return res.json();
+  },
+
+  createJobPosting: async (data: {
+    title: string;
+    company: string;
+    description: string;
+    skills_required?: string[];
+    location?: string;
+    salary_range?: string;
+    job_type?: string;
+    is_remote?: boolean;
+  }) => {
+    const res = await fetch(`${BASE_URL}/recruiter/jobs`, {
+      method: "POST",
+      headers: await getHeaders({ "Content-Type": "application/json" }),
+      body: JSON.stringify(data),
+    });
+    if (!res.ok) {
+      let errDetail = "Failed to create job posting";
+      try { const errJson = await res.json(); errDetail = errJson.detail || errDetail; } catch (e) {}
+      throw new Error(errDetail);
+    }
+    return res.json();
+  },
+
+  getRecruiterJobs: async () => {
+    const res = await fetch(`${BASE_URL}/recruiter/jobs`, {
+      headers: await getHeaders(),
+    });
+    if (!res.ok) {
+      let errDetail = "Failed to load job postings";
+      try { const errJson = await res.json(); errDetail = errJson.detail || errDetail; } catch (e) {}
+      throw new Error(errDetail);
+    }
+    return res.json();
+  },
+
+  getRecruiterJob: async (id: number) => {
+    const res = await fetch(`${BASE_URL}/recruiter/jobs/${id}`, {
+      headers: await getHeaders(),
+    });
+    if (!res.ok) throw new Error("Failed to load job posting");
+    return res.json();
+  },
+
+  updateJobPosting: async (id: number, data: Record<string, unknown>) => {
+    const res = await fetch(`${BASE_URL}/recruiter/jobs/${id}`, {
+      method: "PUT",
+      headers: await getHeaders({ "Content-Type": "application/json" }),
+      body: JSON.stringify(data),
+    });
+    if (!res.ok) throw new Error("Failed to update job posting");
+    return res.json();
+  },
+
+  deleteJobPosting: async (id: number) => {
+    const res = await fetch(`${BASE_URL}/recruiter/jobs/${id}`, {
+      method: "DELETE",
+      headers: await getHeaders(),
+    });
+    if (!res.ok) throw new Error("Failed to delete job posting");
+    return res.json();
+  },
+
+  getJobCandidates: async (jobId: number) => {
+    const res = await fetch(`${BASE_URL}/recruiter/jobs/${jobId}/candidates`, {
+      headers: await getHeaders(),
+    });
+    if (!res.ok) throw new Error("Failed to load candidates");
+    return res.json();
+  },
+
+  updateApplicationStatus: async (applicationId: number, status: string) => {
+    const res = await fetch(`${BASE_URL}/recruiter/applications/${applicationId}/status`, {
+      method: "PUT",
+      headers: await getHeaders({ "Content-Type": "application/json" }),
+      body: JSON.stringify({ status }),
+    });
+    if (!res.ok) throw new Error("Failed to update application status");
+    return res.json();
+  },
+
+  browseJobPostings: async (params?: { keyword?: string; location?: string; remote_only?: boolean; job_type?: string }) => {
+    const url = new URL(`${BASE_URL}/recruiter/browse-jobs`);
+    if (params?.keyword) url.searchParams.set("keyword", params.keyword);
+    if (params?.location) url.searchParams.set("location", params.location);
+    if (params?.remote_only) url.searchParams.set("remote_only", "true");
+    if (params?.job_type) url.searchParams.set("job_type", params.job_type);
+    const res = await fetch(url.toString(), {
+      headers: await getHeaders(),
+    });
+    if (!res.ok) throw new Error("Failed to browse job postings");
+    return res.json();
+  },
+
+  applyToJob: async (jobPostingId: number) => {
+    const res = await fetch(`${BASE_URL}/recruiter/apply/${jobPostingId}`, {
+      method: "POST",
+      headers: await getHeaders(),
+    });
+    if (!res.ok) {
+      let errDetail = "Failed to apply";
+      try { const errJson = await res.json(); errDetail = errJson.detail || errDetail; } catch (e) {}
+      throw new Error(errDetail);
+    }
+    return res.json();
+  },
+
+  getMyApplications: async () => {
+    const res = await fetch(`${BASE_URL}/recruiter/my-applications`, {
+      headers: await getHeaders(),
+    });
+    if (!res.ok) throw new Error("Failed to load my applications");
+    return res.json();
+  },
+
+  getCandidateResumeUrl: (applicationId: number) => {
+    return `${BASE_URL}/recruiter/applications/${applicationId}/resume`;
+  },
 };
 
 export default api;

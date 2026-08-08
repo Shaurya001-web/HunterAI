@@ -17,6 +17,7 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [username, setUsername] = useState("");
+  const [selectedRole, setSelectedRole] = useState<"candidate" | "recruiter">("candidate");
   const [isClosing, setIsClosing] = useState(false);
   const [isFormTransitioning, setIsFormTransitioning] = useState(false);
 
@@ -34,6 +35,7 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
         setEmail("");
         setPassword("");
         setUsername("");
+        setSelectedRole("candidate");
       }, 0);
     } else {
       if (dialog.open) {
@@ -86,7 +88,7 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
     e.preventDefault();
     let success = false;
     if (isSignUp) {
-      success = await signUp(email, password, username);
+      success = await signUp(email, password, username, selectedRole);
     } else {
       success = await signIn(email, password);
     }
@@ -194,21 +196,65 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
             {/* Form (Manual Inputs + Primary Submit Button) */}
             <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
               {isSignUp && (
-                <div style={{ display: "flex", flexDirection: "column", gap: "5px" }}>
-                  <label style={{ fontSize: "11px", fontWeight: 600, color: "var(--text-muted)" }}>Username</label>
-                  <div style={{ position: "relative" }}>
-                    <User size={15} color="var(--text-muted)" style={{ position: "absolute", left: "12px", top: "50%", transform: "translateY(-50%)", opacity: 0.7 }} />
-                    <input
-                      type="text"
-                      required
-                      placeholder="Username"
-                      value={username}
-                      onChange={(e) => setUsername(e.target.value)}
-                      className="input-base"
-                      style={{ paddingLeft: "36px", height: "42px", borderRadius: "10px", border: "1px solid var(--border-strong)" }}
-                    />
+                <>
+                  <div style={{ display: "flex", flexDirection: "column", gap: "5px" }}>
+                    <label style={{ fontSize: "11px", fontWeight: 600, color: "var(--text-muted)" }}>I am a...</label>
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
+                      <button
+                        type="button"
+                        onClick={() => setSelectedRole("candidate")}
+                        style={{
+                          padding: "10px",
+                          borderRadius: "10px",
+                          border: selectedRole === "candidate" ? "2px solid var(--accent)" : "1px solid var(--border-strong)",
+                          background: selectedRole === "candidate" ? "var(--bg-elevated)" : "var(--bg-base)",
+                          color: "var(--text-primary)",
+                          fontWeight: 600,
+                          fontSize: "12.5px",
+                          cursor: "pointer",
+                          transition: "all 0.2s",
+                          textAlign: "center"
+                        }}
+                      >
+                        🎯 Candidate
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setSelectedRole("recruiter")}
+                        style={{
+                          padding: "10px",
+                          borderRadius: "10px",
+                          border: selectedRole === "recruiter" ? "2px solid var(--accent)" : "1px solid var(--border-strong)",
+                          background: selectedRole === "recruiter" ? "var(--bg-elevated)" : "var(--bg-base)",
+                          color: "var(--text-primary)",
+                          fontWeight: 600,
+                          fontSize: "12.5px",
+                          cursor: "pointer",
+                          transition: "all 0.2s",
+                          textAlign: "center"
+                        }}
+                      >
+                        💼 Recruiter
+                      </button>
+                    </div>
                   </div>
-                </div>
+
+                  <div style={{ display: "flex", flexDirection: "column", gap: "5px" }}>
+                    <label style={{ fontSize: "11px", fontWeight: 600, color: "var(--text-muted)" }}>Username</label>
+                    <div style={{ position: "relative" }}>
+                      <User size={15} color="var(--text-muted)" style={{ position: "absolute", left: "12px", top: "50%", transform: "translateY(-50%)", opacity: 0.7 }} />
+                      <input
+                        type="text"
+                        required
+                        placeholder="Username"
+                        value={username}
+                        onChange={(e) => setUsername(e.target.value)}
+                        className="input-base"
+                        style={{ paddingLeft: "36px", height: "42px", borderRadius: "10px", border: "1px solid var(--border-strong)" }}
+                      />
+                    </div>
+                  </div>
+                </>
               )}
 
               <div style={{ display: "flex", flexDirection: "column", gap: "5px" }}>
