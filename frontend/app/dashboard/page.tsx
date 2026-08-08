@@ -16,6 +16,7 @@ import {
   Sparkles,
   CheckCircle2
 } from "lucide-react";
+import ExportReportButton from "@/components/dashboard/ExportReportButton";
 
 function getTimeOfDay() {
   const h = new Date().getHours();
@@ -394,6 +395,11 @@ export default function Dashboard() {
                 <Sparkles size={15} /> Resume Builder
               </a>
             </div>
+          </div>
+
+          <div>
+            <p style={{ fontSize: "12px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.1em", color: "var(--text-muted)", margin: "0 0 10px" }}>Quick Actions</p>
+            <ExportReportButton />
           </div>
         </div>
       )}

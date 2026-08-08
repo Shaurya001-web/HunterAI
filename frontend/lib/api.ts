@@ -26,6 +26,19 @@ export const api = {
     authToken = token;
   },
 
+  exportCareerReport: async (format: "pdf" | "csv" | "html") => {
+    const res = await fetch(`${BASE_URL}/reports/export/${format}`, {
+      method: "POST",
+      headers: await getHeaders(),
+    });
+    if (!res.ok) {
+      let errDetail = "Unable to generate report";
+      try { const errJson = await res.json(); errDetail = errJson.detail || errDetail; } catch {}
+      throw new Error(errDetail);
+    }
+    return res.blob();
+  },
+
   uploadResume: async (file: File) => {
     const formData = new FormData();
     formData.append("file", file);
