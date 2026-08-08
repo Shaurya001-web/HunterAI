@@ -9,11 +9,13 @@ Wire into your existing app in backend/main.py:
     app.include_router(recommendations_router)
 """
 
-from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel
+from fastapi import APIRouter, Depends, HTTPException
+from pydantic import BaseModel, Field
 
 from engine.matching_engine import JobMatch, get_ranked_jobs_for_user
 from engine.preference_extractor import PreferenceFilters, extract_preferences
+from config.models import User
+from routes.auth import get_current_user
 
 # Swap this out for your real Supabase auth dependency, e.g.:
 # from auth import get_current_user
@@ -25,8 +27,7 @@ router = APIRouter(prefix="/api/recommendations", tags=["Recommendations"])
 
 
 class PreferenceRequest(BaseModel):
-    text: str
-    user_id: str
+    text: str = Field(min_length=1, max_length=2_000)
 
 
 class PreferenceResponse(BaseModel):
@@ -35,7 +36,10 @@ class PreferenceResponse(BaseModel):
 
 
 @router.post("/preferences", response_model=PreferenceResponse)
-async def parse_preferences_and_rank(payload: PreferenceRequest) -> PreferenceResponse:
+async def parse_preferences_and_rank(
+    payload: PreferenceRequest,
+    current_user: User = Depends(get_current_user),
+) -> PreferenceResponse:
     """
     1. Extract structured preferences from the user's free-text input.
     2. Re-rank/filter that user's job matches using those preferences.
@@ -46,7 +50,9 @@ async def parse_preferences_and_rank(payload: PreferenceRequest) -> PreferenceRe
     preferences = extract_preferences(payload.text)
 
     try:
-        ranked_jobs = get_ranked_jobs_for_user(user_id=payload.user_id, preferences=preferences)
+        ranked_jobs = get_ranked_jobs_for_user(
+            user_id=current_user.id, preferences=preferences
+        )
     except NotImplementedError as exc:
         # Raised by the placeholder fetch_* / calculate_ats_score functions in
         # matching_engine.py until they're wired to your real implementations.

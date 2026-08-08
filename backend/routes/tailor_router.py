@@ -59,8 +59,10 @@ async def generate_plan_endpoint(
         
         return {"plan": plan}
         
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    except HTTPException:
+        raise
+    except Exception:
+        raise HTTPException(status_code=500, detail="Unable to generate a tailoring plan.")
 
 @router.post("/tailor-resume")
 async def tailor_resume_endpoint(
@@ -95,7 +97,7 @@ async def tailor_resume_endpoint(
         
         # Hash profile for caching
         profile_hash_str = json.dumps(user_profile_dict, sort_keys=True)
-        profile_hash = hashlib.md5(profile_hash_str.encode()).hexdigest()
+        profile_hash = hashlib.sha256(profile_hash_str.encode()).hexdigest()
         
         # 2. Check Cache
         cached = db.query(TailoredResume).filter(
@@ -126,15 +128,19 @@ async def tailor_resume_endpoint(
         ats_score_after = suitability_after.get("score", 0.0)
         
         # 6. Save to cache
-        new_cached = TailoredResume(
-            user_id=current_user.id,
-            job_id=job.id,
-            profile_version_hash=profile_hash,
-            tailored_json=tailored_json,
-            ats_score_before=ats_score_before,
-            ats_score_after=ats_score_after
-        )
-        db.add(new_cached)
+        if cached:
+            cached.tailored_json = tailored_json
+            cached.ats_score_before = ats_score_before
+            cached.ats_score_after = ats_score_after
+        else:
+            db.add(TailoredResume(
+                user_id=current_user.id,
+                job_id=job.id,
+                profile_version_hash=profile_hash,
+                tailored_json=tailored_json,
+                ats_score_before=ats_score_before,
+                ats_score_after=ats_score_after,
+            ))
         db.commit()
         
         return {
@@ -143,6 +149,8 @@ async def tailor_resume_endpoint(
             "ats_score_after": ats_score_after
         }
         
-    except Exception as e:
+    except HTTPException:
+        raise
+    except Exception:
         db.rollback()
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Unable to tailor resume.")

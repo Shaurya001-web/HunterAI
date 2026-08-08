@@ -13,18 +13,17 @@ class TailoredProfile(BaseModel):
     education: list
     experience: list
 
-async def tailor_resume_json(user_profile: dict, job_data: dict) -> dict:
-    # 1. Input sanitization (strip instructions)
-    # Simple sanitization of scraped text
-    job_desc = str(job_data.get("description", ""))
-    bad_phrases = ["ignore previous", "system:", "you are now"]
-    for phrase in bad_phrases:
-        if phrase in job_desc.lower():
-            job_desc = job_desc.lower().replace(phrase, "[redacted]")
-    
-    job_data["description"] = job_desc
+def sanitize_job_data(job_data: dict) -> dict:
+    """Return a copy of job data with common prompt-injection phrases removed."""
+    sanitized = dict(job_data)
+    description = str(sanitized.get("description", ""))
+    for phrase in ("ignore previous", "system:", "you are now"):
+        description = re.sub(re.escape(phrase), "[redacted]", description, flags=re.IGNORECASE)
+    sanitized["description"] = description
+    return sanitized
 
 async def generate_tailor_plan(user_profile: dict, job_data: dict, feedback: str = None) -> str:
+    job_data = sanitize_job_data(job_data)
     prompt = f"""
 You are an expert ATS (Applicant Tracking System) Resume Consultant.
 Your goal is to analyze the Target Job Information and the User's Original Resume Data, and propose a specific plan for tailoring the resume to maximize ATS compatibility.
@@ -68,15 +67,7 @@ Here is the User's Original Resume Data:
     return str(response.content).strip()
 
 async def tailor_resume_json(user_profile: dict, job_data: dict, approved_plan: str = None) -> dict:
-    # 1. Input sanitization (strip instructions)
-    # Simple sanitization of scraped text
-    job_desc = str(job_data.get("description", ""))
-    bad_phrases = ["ignore previous", "system:", "you are now"]
-    for phrase in bad_phrases:
-        if phrase in job_desc.lower():
-            job_desc = job_desc.lower().replace(phrase, "[redacted]")
-    
-    job_data["description"] = job_desc
+    job_data = sanitize_job_data(job_data)
     prompt = f"""
 You are an expert ATS (Applicant Tracking System) Resume Consultant.
 Your goal is to take a user's EXISTING parsed resume data and rewrite it to perfectly match a SPECIFIC target job, ensuring maximum ATS compatibility.

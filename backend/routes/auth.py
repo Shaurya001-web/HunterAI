@@ -15,8 +15,10 @@ def get_current_user(
     authorization: str = Header(None),
     db: Session = Depends(get_db)
 ) -> User:
+    is_dev = os.getenv("DEV_MODE", "false").lower() == "true"
+
     # 1. Parse custom mock token if present (local development isolation)
-    if authorization:
+    if authorization and is_dev:
         try:
             scheme, token = str(authorization).split(maxsplit=1)
             if scheme.lower() == "bearer" and token.startswith("mock_token:"):
@@ -85,7 +87,6 @@ def get_current_user(
             print(f"JWKS verification check bypassed or failed: {e}. Falling back to symmetric HS256 secret verification...")
 
     if not payload:
-        is_dev = os.getenv("DEV_MODE", "false").lower() == "true"
         if not jwt_secret or jwt_secret == "YOUR_SUPABASE_JWT_SECRET":
             if is_dev:
                 user_id = "local_dev_user"

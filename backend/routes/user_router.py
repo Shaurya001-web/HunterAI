@@ -1,10 +1,22 @@
 from fastapi import APIRouter, Depends, HTTPException
+from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy.orm import Session
 from routes.auth import get_current_user
 from config.models import User
 from config.database import get_db
 
 router = APIRouter()
+
+
+class UserProfileUpdate(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    username: str | None = Field(default=None, min_length=1, max_length=100)
+    urls: dict[str, str] | None = None
+
+
+class SavedInternshipRequest(BaseModel):
+    job_id: int = Field(gt=0)
 
 def serialize_user_profile(user: User):
     prof = user.profile
@@ -39,15 +51,14 @@ async def get_user_profiles_list(
 
 @router.post("/profile")
 async def save_user_profile(
-    payload: dict,
+    payload: UserProfileUpdate,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    if "username" in payload:
-        current_user.username = payload["username"]
-    if "urls" in payload:
-        # Expecting a dictionary, e.g. {"linkedin": "...", "github": "..."}
-        current_user.urls = payload["urls"]
+    if payload.username is not None:
+        current_user.username = payload.username
+    if payload.urls is not None:
+        current_user.urls = payload.urls
         
     db.add(current_user)
     db.commit()
@@ -89,13 +100,13 @@ async def get_saved_internships(
 
 @router.post("/profile/saved")
 async def save_internship(
-    payload: dict,
+    payload: SavedInternshipRequest,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    job_id = payload.get("job_id")
-    if not job_id:
-        raise HTTPException(status_code=400, detail="Missing job_id")
+    job_id = payload.job_id
+    if not db.query(Job.id).filter(Job.id == job_id).first():
+        raise HTTPException(status_code=404, detail="Job not found")
     prof = current_user.profile
     if not prof:
         prof = Profile(user_id=current_user.id, saved_internships=[])
