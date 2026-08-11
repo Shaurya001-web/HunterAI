@@ -6,7 +6,6 @@ import { usePathname } from "next/navigation";
 import { LayoutDashboard, User, Sparkles, Upload, LogOut, Bookmark, Bot, FileEdit, ChevronLeft, ChevronRight, Search, Building } from "lucide-react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { AuthModal } from "@/components/auth/AuthModal";
-import ExportReportButton from "@/components/dashboard/ExportReportButton";
 
 const NAV = [
   { href: "/dashboard", label: "Dashboard",       icon: LayoutDashboard },
@@ -116,9 +115,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               </Link>
             );
           })}
-          <div style={{ marginTop: "16px", padding: "0 12px", display: "flex", justifyContent: "center" }}>
-            <ExportReportButton collapsed={collapsed} />
-          </div>
         </nav>
 
         {/* Account Option shifted to Sidebar Footer */}
