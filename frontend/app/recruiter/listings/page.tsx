@@ -178,7 +178,7 @@ export default function RecruiterListings() {
                 )}
                 {job.salary_range && (
                   <span style={{ display: "flex", alignItems: "center", gap: "4px" }}>
-                    <DollarSign size={13} /> {job.salary_range}
+                    {(!/[\$₹€£]/i.test(job.salary_range) && !/unpaid/i.test(job.salary_range)) && <DollarSign size={13} />} {job.salary_range}
                   </span>
                 )}
                 <span style={{ textTransform: "capitalize" }}>Type: {job.job_type}</span>

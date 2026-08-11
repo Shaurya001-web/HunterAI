@@ -282,7 +282,7 @@ function DirectJobsContent() {
                     )}
                     {job.salary_range && (
                       <span style={{ display: "flex", alignItems: "center", gap: "4px" }}>
-                        <DollarSign size={13} color="var(--text-muted)" /> {job.salary_range}
+                        {(!/[\$₹€£]/i.test(job.salary_range) && !/unpaid/i.test(job.salary_range)) && <DollarSign size={13} color="var(--text-muted)" />} {job.salary_range}
                       </span>
                     )}
                     {job.is_remote && <span>🌐 Remote</span>}

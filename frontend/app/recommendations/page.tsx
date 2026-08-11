@@ -148,7 +148,7 @@ function JobCard({
       <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
         {[
           { icon: <MapPin size={12} />, text: match.location || "Remote" },
-          { icon: <DollarSign size={12} />, text: match.stipend || "Negotiable" },
+          { icon: (!match.stipend || (!/[\$₹€£]/i.test(match.stipend) && !/unpaid/i.test(match.stipend))) ? <DollarSign size={12} /> : null, text: match.stipend || "Negotiable" },
           ...(match.duration ? [{ icon: <Calendar size={12} />, text: match.duration }] : []),
         ].map((item, i) => (
           <div
