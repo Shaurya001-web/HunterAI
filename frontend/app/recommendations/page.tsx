@@ -502,6 +502,15 @@ export default function RecommendationsPage() {
     );
   }
 
+  const activeFiltersCount = [
+    location !== "",
+    remoteOnly === true,
+    stipendMin !== "",
+    sources.length > 0,
+    jobTypes.length > 0,
+    minScore > 0
+  ].filter(Boolean).length;
+
   return (
     <>
       {/* Subheader and profile selector */}
@@ -592,9 +601,17 @@ export default function RecommendationsPage() {
             style={{
               background: showFilters ? "#ffffff" : "rgba(251, 251, 250, 0.58)",
               borderColor: showFilters ? "var(--text-primary)" : "rgba(255, 255, 255, 0.7)",
+              position: "relative",
             }}
           >
             <SlidersHorizontal size={13} /> Filters
+            {activeFiltersCount > 0 && (
+              <span style={{
+                background: "var(--text-primary)", color: "white", borderRadius: "10px", padding: "1px 5px", fontSize: "10px", fontWeight: "bold", marginLeft: "4px"
+              }}>
+                {activeFiltersCount}
+              </span>
+            )}
           </button>
 
           <button
@@ -716,6 +733,32 @@ export default function RecommendationsPage() {
               onChange={(e) => setMinScore(Number(e.target.value))}
               style={{ width: "100%", accentColor: "var(--accent)", marginTop: "8px" }}
             />
+          </div>
+          
+          {/* Apply Filters Button */}
+          <div style={{ display: "flex", justifyContent: "flex-end", marginTop: "12px", gridColumn: "1 / -1" }}>
+            <button
+              type="button"
+              onClick={() => {
+                fetchMatches(selectedEmail, searchQuery);
+                setShowFilters(false);
+              }}
+              style={{
+                background: "var(--text-primary)",
+                color: "#ffffff",
+                padding: "8px 24px",
+                borderRadius: "12px",
+                fontSize: "13px",
+                fontWeight: 600,
+                border: "none",
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                gap: "6px",
+              }}
+            >
+              Apply Filters
+            </button>
           </div>
         </div>
       )}
