@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Script from "next/script";
-import { Analytics } from "@vercel/analytics/react";
+import { Analytics } from "@vercel/analytics/next";
 import { AuthProvider } from "@/components/auth/AuthProvider";
 import { ClientLayout } from "@/components/layout/ClientLayout";
 import "./globals.css";
@@ -41,21 +41,7 @@ export default function RootLayout({
   return (
     <html lang="en" data-theme="dark">
       <body className="min-h-screen bg-[var(--bg-base)] text-[var(--text-primary)]">
-        {/* Google tag (gtag.js) */}
-        <Script
-          async
-          src="https://www.googletagmanager.com/gtag/js?id=G-8KTHLB80TF"
-          strategy="afterInteractive"
-        />
-        <Script id="google-analytics" strategy="afterInteractive">
-          {`
-            window.dataLayer = window.dataLayer || [];
-            function gtag(){dataLayer.push(arguments);}
-            gtag('js', new Date());
 
-            gtag('config', 'G-8KTHLB80TF');
-          `}
-        </Script>
         <Script id="json-ld" type="application/ld+json" strategy="beforeInteractive">
           {`
             {
