@@ -4,7 +4,6 @@ import React from "react";
 import { usePathname } from "next/navigation";
 import { AppShell } from "@/components/shell/AppShell";
 import { RecruiterShell } from "@/components/shell/RecruiterShell";
-import { AgentTaskNotch } from "@/components/shared/AgentTaskNotch";
 import { useAuth } from "@/components/auth/AuthProvider";
 
 export function ClientLayout({ children }: { children: React.ReactNode }) {
@@ -16,7 +15,6 @@ export function ClientLayout({ children }: { children: React.ReactNode }) {
     return (
       <>
         {children}
-        <AgentTaskNotch />
       </>
     );
   }
@@ -27,7 +25,6 @@ export function ClientLayout({ children }: { children: React.ReactNode }) {
     return (
       <RecruiterShell>
         {children}
-        <AgentTaskNotch />
       </RecruiterShell>
     );
   }
@@ -36,7 +33,6 @@ export function ClientLayout({ children }: { children: React.ReactNode }) {
     return (
       <RecruiterShell>
         {children}
-        <AgentTaskNotch />
       </RecruiterShell>
     );
   }
@@ -44,7 +40,6 @@ export function ClientLayout({ children }: { children: React.ReactNode }) {
   return (
     <AppShell>
       {children}
-      <AgentTaskNotch />
     </AppShell>
   );
 }

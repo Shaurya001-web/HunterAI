@@ -1,5 +1,3 @@
-import { notifyAgentTask } from "@/components/shared/AgentTaskNotch";
-
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
 
 let authToken: string | null = null;
@@ -58,7 +56,6 @@ export const api = {
       throw new Error(errDetail);
     }
     const data = await res.json();
-    notifyAgentTask("parse", "Parsing Resume Profile...");
     return data;
   },
 
@@ -108,9 +105,6 @@ export const api = {
     if (res.status === 400) return [];
     if (!res.ok) throw new Error("Failed to load matches");
     const data = await res.json();
-    if (Array.isArray(data) && data.length > 0) {
-      notifyAgentTask("match", "Evaluating Role Matches...");
-    }
     return data;
   },
 
@@ -201,7 +195,6 @@ export const api = {
       throw new Error(errDetail);
     }
     const data = await res.json();
-    notifyAgentTask("tailor", "Generating Tailored Resume...");
     return data;
   },
 
