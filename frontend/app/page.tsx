@@ -83,7 +83,6 @@ function DashboardMock({ countersActive }: { countersActive: boolean }) {
           {['Dashboard', 'Skill graph', 'Applications', 'Saved roles', 'Reports'].map((item, index) => (
             <div key={item} className={`flex items-center hover:bg-black/20 hover:transition-all p-2 rounded-2xl justify-between ${index === 0 ? 'text-white' : ''}`}>
               <span>{item}</span>
-              {index === 0 && <span className="rounded-full bg-white/18 px-2 py-0.5 text-xs">12</span>}
             </div>
           ))}
         </div>
