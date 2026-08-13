@@ -18,7 +18,6 @@ from routes.recommendations import router as recommendations_router
 from routes.tailor_router import router as tailor_router
 from routes.resume_ai_router import router as resume_ai_router
 from routes.health import router as health_router
-from routes.recruiter_router import router as recruiter_router
 from config.database import engine, Base
 import config.models # Ensure models are loaded
 
@@ -62,7 +61,6 @@ app.include_router(recommendations_router)
 app.include_router(tailor_router, prefix="/api", tags=["Tailor"])
 app.include_router(resume_ai_router)
 app.include_router(health_router, tags=["Health"])
-app.include_router(recruiter_router)
 
 @app.post("/ats-score", tags=["ATS Evaluation"])
 async def ats_score(file: UploadFile = File(...), job_description: Optional[str] = Form("")):

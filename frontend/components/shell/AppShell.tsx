@@ -3,13 +3,12 @@
 import { useEffect, useState, useRef } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, User, Sparkles, Upload, LogOut, Bookmark, Bot, FileEdit, ChevronLeft, ChevronRight, Search, Building } from "lucide-react";
+import { LayoutDashboard, User, Sparkles, Upload, LogOut, Bookmark, Bot, FileEdit, ChevronLeft, ChevronRight, Search } from "lucide-react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { AuthModal } from "@/components/auth/AuthModal";
 
 const NAV = [
   { href: "/dashboard", label: "Dashboard",       icon: LayoutDashboard },
-  { href: "/direct-jobs", label: "Direct Recruiter", icon: Building },
   { href: "/upload",    label: "Upload",          icon: Upload },
   { href: "/recommendations", label: "Matches", icon: Sparkles },
   { href: "/bookmarks", label: "Saved",           icon: Bookmark },
@@ -19,7 +18,7 @@ const NAV = [
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const { user, signOut, updateProfile, setUserRole } = useAuth();
+  const { user, signOut, updateProfile } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
