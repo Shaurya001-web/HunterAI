@@ -34,7 +34,7 @@ export interface PreferenceResponse {
   jobs: JobMatch[];
 }
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "https://hunterai-2-cq3h.onrender.com";
 
 export class RecommendationApiError extends Error {}
 

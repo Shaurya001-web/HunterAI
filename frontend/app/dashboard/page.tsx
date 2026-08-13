@@ -84,7 +84,7 @@ export default function Dashboard() {
       setMyApplications(apps || []);
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Failed to load dashboard";
-      setError(`${message}. Make sure the HunterAI backend is running at http://127.0.0.1:8000.`);
+      setError(`${message}. The backend server may be waking up — please try again in a moment.`);
     } finally {
       setLoading(false);
       setRefreshing(false);

@@ -90,7 +90,7 @@ export default function UploadPage() {
       const isFetchError = error.message?.includes("Failed to fetch");
       setErrorMsg(
         isFetchError
-          ? "Could not connect to backend server (localhost:8000). Please verify the backend is running."
+          ? "Could not connect to the backend server. Please try again in a moment."
           : error.message || "Upload failed. Please try again."
       );
     } finally {
