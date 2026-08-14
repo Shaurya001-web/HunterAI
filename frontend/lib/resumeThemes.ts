@@ -3,9 +3,6 @@ import { ResumeTheme } from '@/types/resumeTheme';
 export const RESUME_THEMES: ResumeTheme[] = [
   // --- Single Column Themes ---
   { id: 'classic-elegant', name: 'Classic Elegant', description: 'Single column', layout: 'single', badge: 'recommended', accentColor: '#1a1a1a', headerStyle: 'plain', headingStyle: 'underline', fontHeading: 'Times-Bold', fontBody: 'Times-Roman' },
-  { id: 'clean-minimal', name: 'Clean Minimal', description: 'Single column', layout: 'single', accentColor: '#1a1a1a', headerStyle: 'plain', headingStyle: 'underline', fontHeading: 'Helvetica-Bold', fontBody: 'Helvetica' },
-  { id: 'white-black-modern', name: 'White & Black Modern', description: 'Single column', layout: 'single', badge: 'new', accentColor: '#111111', headerStyle: 'plain', headingStyle: 'caps-plain', fontHeading: 'Helvetica-Bold', fontBody: 'Helvetica' },
-  { id: 'black-white-clean', name: 'Black & White Clean', description: 'Single column', layout: 'single', badge: 'new', accentColor: '#000000', headerStyle: 'plain', headingStyle: 'bar', fontHeading: 'Helvetica-Bold', fontBody: 'Helvetica' },
   { id: 'yellow-black-modern', name: 'Yellow & Black Modern', description: 'Single column', layout: 'single', badge: 'new', accentColor: '#ca8a04', headerStyle: 'plain', headingStyle: 'boxed-label', fontHeading: 'Helvetica-Bold', fontBody: 'Helvetica' },
   { id: 'navy-header-corporate', name: 'Navy Header Corporate', description: 'Single column', layout: 'single', badge: 'new', accentColor: '#1e3a8a', headerStyle: 'dark-banner', headingStyle: 'underline', fontHeading: 'Helvetica-Bold', fontBody: 'Helvetica' },
   { id: 'blue-label-row', name: 'Blue Label Row', description: 'Single column', layout: 'single', badge: 'new', accentColor: '#2563eb', headerStyle: 'plain', headingStyle: 'boxed-label', fontHeading: 'Helvetica-Bold', fontBody: 'Helvetica' },
