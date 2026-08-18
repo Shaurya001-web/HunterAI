@@ -171,13 +171,7 @@ export default function Dashboard() {
     .sort((a, b) => b[1] - a[1])
     .slice(0, 4);
 
-  const missingSkills: [string, number][] = aggregatedMissing.length > 0
-    ? aggregatedMissing
-    : [
-        ["System Architecture", 2],
-        ["PostgreSQL", 1],
-        ["Docker / Kubernetes", 1],
-      ];
+  const missingSkills: [string, number][] = aggregatedMissing;
 
   return (
     <div style={{ minHeight: "100vh", padding: "24px 0 60px" }}>
@@ -665,29 +659,36 @@ export default function Dashboard() {
                 Skill gaps
               </h2>
               <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-                {missingSkills.map(([skill, count]) => (
-                  <div
-                    key={skill}
-                    style={{
-                      background: "rgba(255, 255, 255, 0.6)",
-                      border: "1px solid rgba(255, 255, 255, 0.8)",
-                      borderRadius: "12px",
-                      padding: "14px 16px",
-                    }}
-                  >
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                      <p style={{ fontWeight: 700, fontSize: "13.5px", margin: 0, color: "var(--text-primary)" }}>
-                        {skill}
-                      </p>
-                      <span style={{ fontSize: "11px", color: "var(--text-muted)" }}>
-                        {count} role{count === 1 ? "" : "s"}
-                      </span>
-                    </div>
-                    <p style={{ fontSize: "12px", color: "var(--text-muted)", margin: "4px 0 0" }}>
-                      Add stronger evidence to improve ATS scoring.
-                    </p>
+                {missingSkills.length === 0 ? (
+                  <div style={{ textAlign: "center", padding: "20px 12px", background: "var(--bg-base)", borderRadius: "12px", border: "1px dashed var(--border-strong)" }}>
+                    <p style={{ fontSize: "13px", fontWeight: 600, color: "var(--text-muted)", margin: 0 }}>Upload a resume to see skill gaps</p>
+                    <p style={{ fontSize: "12px", color: "var(--text-muted)", margin: "4px 0 0", opacity: 0.7 }}>We'll compare your skills against matched roles.</p>
                   </div>
-                ))}
+                ) : (
+                  missingSkills.map(([skill, count]) => (
+                    <div
+                      key={skill}
+                      style={{
+                        background: "rgba(255, 255, 255, 0.6)",
+                        border: "1px solid rgba(255, 255, 255, 0.8)",
+                        borderRadius: "12px",
+                        padding: "14px 16px",
+                      }}
+                    >
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                        <p style={{ fontWeight: 700, fontSize: "13.5px", margin: 0, color: "var(--text-primary)" }}>
+                          {skill}
+                        </p>
+                        <span style={{ fontSize: "11px", color: "var(--text-muted)" }}>
+                          {count} role{count === 1 ? "" : "s"}
+                        </span>
+                      </div>
+                      <p style={{ fontSize: "12px", color: "var(--text-muted)", margin: "4px 0 0" }}>
+                        Add stronger evidence to improve ATS scoring.
+                      </p>
+                    </div>
+                  ))
+                )}
               </div>
             </div>
 
